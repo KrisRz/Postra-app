@@ -164,6 +164,7 @@
     "dotenv-cli": "^8.0.0",
     "emoji-picker-react": "^4.12.0",
     "evp_bytestokey": "^1.0.3",
+    "fabric": "^7.3.1",
     "facebook-nodejs-business-sdk": "^21.0.5",
     "fast-xml-parser": "^4.5.1",
     "file-type": "^16.5.4",

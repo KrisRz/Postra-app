@@ -32,6 +32,10 @@ const nextConfig = {
       config.devtool = isServer ? 'source-map' : 'hidden-source-map';
     }
 
+    if (isServer) {
+      config.externals.push({ canvas: 'commonjs canvas' });
+    }
+
     return config;
   },
   async redirects() {

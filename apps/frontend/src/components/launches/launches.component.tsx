@@ -291,26 +291,30 @@ export const MenuComponent: FC<
         <ImageWithFallback
           fallbackSrc={'/no-picture.jpg'}
           src={integration.picture || '/no-picture.jpg'}
-          className="rounded-[8px] min-w-[36px] min-h-[36px]"
-          alt={integration.identifier}
+          className="rounded-full min-w-[36px] min-h-[36px]"
+          alt=""
           width={36}
           height={36}
         />
-        {integration.identifier === 'youtube' ? (
-          <img
-            src="/icons/platforms/youtube.svg"
-            className="absolute z-10 bottom-[5px] -end-[5px]"
-            width={20}
-          />
-        ) : (
-          <SafeImage
-            src={`/icons/platforms/${integration.identifier}.png`}
-            className="rounded-[8px] absolute z-10 bottom-[5px] -end-[5px] border border-fifth"
-            alt={integration.identifier}
-            width={18.41}
-            height={18.41}
-          />
-        )}
+        <div className="absolute z-10 -bottom-[2px] -end-[2px] rounded-full bg-primary p-[2px]">
+          {integration.identifier === 'youtube' ? (
+            <img
+              src="/icons/platforms/youtube.svg"
+              className="block"
+              alt=""
+              width={16}
+              height={16}
+            />
+          ) : (
+            <SafeImage
+              src={`/icons/platforms/${integration.identifier}.png`}
+              className="rounded-full block"
+              alt=""
+              width={16}
+              height={16}
+            />
+          )}
+        </div>
       </div>
       <div
         // @ts-ignore

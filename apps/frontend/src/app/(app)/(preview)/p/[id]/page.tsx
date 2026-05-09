@@ -10,6 +10,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import { VideoOrImage } from '@gitroom/react/helpers/video.or.image';
 import { CopyClient } from '@gitroom/frontend/components/preview/copy.client';
+import { ClosePreviewButton } from '@gitroom/frontend/components/preview/close.preview.button';
 import { getT } from '@gitroom/react/translation/get.translation.service.backend';
 import { RenderPreviewDateClient } from '@gitroom/frontend/components/preview/render.preview.date.client';
 
@@ -79,9 +80,12 @@ export default async function Auth(
           </div>
           <div className="text-sm text-gray-400 flex items-center gap-[20px]">
             {!!searchParams?.share && (
-              <div>
-                <CopyClient />
-              </div>
+              <>
+                <div>
+                  <CopyClient />
+                </div>
+                <ClosePreviewButton />
+              </>
             )}
             <div className="flex-1">
               {t('publication_date', 'Publication Date:')}{' '}
