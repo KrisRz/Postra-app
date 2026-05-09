@@ -91,9 +91,9 @@ export class FarcasterProvider
     for (const channel of channels) {
       const data = await client.publishCast({
         embeds:
-          firstPost?.media?.map((media) => ({
+          (firstPost?.media?.map((media) => ({
             url: media.path,
-          })) || [],
+          })) || []) as any,
         signerUuid: accessToken,
         text: firstPost.message,
         ...(channel?.value?.id ? { channelId: channel?.value?.id } : {}),
@@ -133,9 +133,9 @@ export class FarcasterProvider
     for (const parentHash of parentIds) {
       const data = await client.publishCast({
         embeds:
-          commentPost?.media?.map((media) => ({
+          (commentPost?.media?.map((media) => ({
             url: media.path,
-          })) || [],
+          })) || []) as any,
         signerUuid: accessToken,
         text: commentPost.message,
         parent: parentHash,

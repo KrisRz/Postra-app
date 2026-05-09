@@ -49,7 +49,10 @@ const PUBLIC_API_ALLOWED_MIME = new Set<string>([
   'video/mp4',
 ]);
 import * as Sentry from '@sentry/nestjs';
-import { socialIntegrationList, IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
+import {
+  socialIntegrationList,
+  IntegrationManager,
+} from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import { getValidationSchemas } from '@gitroom/nestjs-libraries/chat/validation.schemas.helper';
 import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integrations/refresh.integration.service';
 import { RefreshToken } from '@gitroom/nestjs-libraries/integrations/social.abstract';
@@ -167,6 +170,24 @@ export class PublicIntegrationsController {
     );
     body.type = rawBody.type;
 
+    if (
+      process.env.RESTRICT_UPLOAD_DOMAINS &&
+      body.posts.some((p) =>
+        p.value.some((a) =>
+          a.image.some(
+            (i) => i.path.indexOf(process.env.RESTRICT_UPLOAD_DOMAINS) === -1
+          )
+        )
+      )
+    ) {
+      throw new HttpException(
+        {
+          msg: `All media must be uploaded through our upload API route and contain the domain: ${process.env.RESTRICT_UPLOAD_DOMAINS}`,
+        },
+        400
+      );
+    }
+
     console.log(JSON.stringify(body, null, 2));
     return this._postsService.createPost(org.id, body);
   }
@@ -238,7 +259,9 @@ export class PublicIntegrationsController {
 
     if (integrationProvider.externalUrl) {
       throw new HttpException(
-        { msg: 'This integration requires an external URL and is not supported via the public API' },
+        {
+          msg: 'This integration requires an external URL and is not supported via the public API',
+        },
         400
       );
     }
