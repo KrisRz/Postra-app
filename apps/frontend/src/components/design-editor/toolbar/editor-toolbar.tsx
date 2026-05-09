@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, MutableRefObject, useCallback, useRef, useState } from 'react';
+import { FC, MutableRefObject, useCallback, useRef } from 'react';
 import * as fabric from 'fabric';
 import { useEditorStore, EditorTool } from '../editor.store';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -18,16 +18,17 @@ const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string
 ];
 
 export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
-  const { activeTool, setTool } = useEditorStore();
+  const { activeTool, setTool, bgColor, setBgColor } = useEditorStore();
   const t = useT();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [bgColor, setBgColor] = useState('#1a1a2e');
 
   const addText = useCallback(() => {
     if (!canvas.current) return;
+    const cx = canvas.current.getWidth() / canvas.current.getZoom() / 2;
+    const cy = canvas.current.getHeight() / canvas.current.getZoom() / 2;
     const text = new fabric.Textbox('Your text here', {
-      left: canvas.current.getWidth() / canvas.current.getZoom() / 2 - 150,
-      top: canvas.current.getHeight() / canvas.current.getZoom() / 2 - 30,
+      left: cx,
+      top: cy,
       width: 300,
       fontSize: 48,
       fontFamily: 'Geist, sans-serif',
@@ -50,8 +51,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       switch (type) {
         case 'rect':
           obj = new fabric.Rect({
-            left: cx - 75,
-            top: cy - 75,
+            left: cx,
+            top: cy,
             width: 150,
             height: 150,
             fill: '#e94560',
@@ -61,8 +62,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
           break;
         case 'circle':
           obj = new fabric.Circle({
-            left: cx - 60,
-            top: cy - 60,
+            left: cx,
+            top: cy,
             radius: 60,
             fill: '#0f3460',
           });
@@ -95,8 +96,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
           img.set({
             scaleX: scale,
             scaleY: scale,
-            left: (canvasW - img.width! * scale) / 2,
-            top: (canvasH - img.height! * scale) / 2,
+            left: canvasW / 2,
+            top: canvasH / 2,
           });
           canvas.current!.add(img);
           canvas.current!.setActiveObject(img);
@@ -116,7 +117,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       canvas.current.backgroundColor = color;
       canvas.current.renderAll();
     },
-    [canvas]
+    [canvas, setBgColor]
   );
 
   const handleToolClick = useCallback(

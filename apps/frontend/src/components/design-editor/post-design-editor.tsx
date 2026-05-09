@@ -10,6 +10,8 @@ import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Button } from '@gitroom/react/form/button';
 
+const HISTORY_EVENTS = ['object:modified', 'object:added', 'object:removed'] as const;
+
 interface PostDesignEditorProps {
   setMedia: (params: { id: string; path: string }[]) => void;
   closeModal: () => void;
@@ -34,6 +36,8 @@ export const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
   const { platform, setPlatform, pushHistory, setCanvasReady } =
     useEditorStore();
+  const canUndo = useEditorStore((s) => s.historyIndex > 0);
+  const canRedo = useEditorStore((s) => s.historyIndex < s.history.length - 1);
 
   const getScale = useCallback(
     (p: PlatformSize) => {
@@ -43,6 +47,9 @@ export const PostDesignEditor: FC<PostDesignEditorProps> = ({
     },
     []
   );
+
+  const isRestoringRef = useRef(false);
+  const saveStateRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -63,49 +70,47 @@ export const PostDesignEditor: FC<PostDesignEditorProps> = ({
     setCanvasReady(true);
 
     const saveState = () => {
+      if (isRestoringRef.current) return;
       pushHistory(JSON.stringify(c.toJSON()));
     };
+    saveStateRef.current = saveState;
     saveState();
 
-    c.on('object:modified', saveState);
-    c.on('object:added', saveState);
-    c.on('object:removed', saveState);
+    HISTORY_EVENTS.forEach((evt) => c.on(evt, saveState));
 
     return () => {
-      c.off('object:modified', saveState);
-      c.off('object:added', saveState);
-      c.off('object:removed', saveState);
+      HISTORY_EVENTS.forEach((evt) => c.off(evt, saveState));
       c.dispose();
       fabricRef.current = null;
+      saveStateRef.current = null;
       setCanvasReady(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [platform.key]);
 
-  const handleUndo = useCallback(() => {
-    const state = useEditorStore.getState().undo();
-    if (state && fabricRef.current) {
-      fabricRef.current.off('object:added');
-      fabricRef.current.loadFromJSON(state).then(() => {
-        fabricRef.current!.renderAll();
-        fabricRef.current!.on('object:added', () => {
-          pushHistory(JSON.stringify(fabricRef.current!.toJSON()));
-        });
-      });
-    }
+  const restoreState = useCallback((json: string | null) => {
+    if (!json || !fabricRef.current || !saveStateRef.current) return;
+    const c = fabricRef.current;
+    const handler = saveStateRef.current;
+
+    isRestoringRef.current = true;
+    HISTORY_EVENTS.forEach((evt) => c.off(evt, handler));
+
+    c.loadFromJSON(json).then(() => {
+      c.renderAll();
+      isRestoringRef.current = false;
+      HISTORY_EVENTS.forEach((evt) => c.on(evt, handler));
+      useEditorStore.getState().setBgColor(c.backgroundColor as string || '#1a1a2e');
+    });
   }, []);
 
+  const handleUndo = useCallback(() => {
+    restoreState(useEditorStore.getState().undo());
+  }, [restoreState]);
+
   const handleRedo = useCallback(() => {
-    const state = useEditorStore.getState().redo();
-    if (state && fabricRef.current) {
-      fabricRef.current.off('object:added');
-      fabricRef.current.loadFromJSON(state).then(() => {
-        fabricRef.current!.renderAll();
-        fabricRef.current!.on('object:added', () => {
-          pushHistory(JSON.stringify(fabricRef.current!.toJSON()));
-        });
-      });
-    }
-  }, []);
+    restoreState(useEditorStore.getState().redo());
+  }, [restoreState]);
 
   const handleExport = useCallback(async () => {
     if (!fabricRef.current) return;
@@ -176,7 +181,7 @@ export const PostDesignEditor: FC<PostDesignEditorProps> = ({
             <div className="flex gap-2">
               <button
                 onClick={handleUndo}
-                disabled={!useEditorStore.getState().canUndo()}
+                disabled={!canUndo}
                 className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
                 title="Undo (Ctrl+Z)"
               >
@@ -184,7 +189,7 @@ export const PostDesignEditor: FC<PostDesignEditorProps> = ({
               </button>
               <button
                 onClick={handleRedo}
-                disabled={!useEditorStore.getState().canRedo()}
+                disabled={!canRedo}
                 className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
                 title="Redo (Ctrl+Shift+Z)"
               >
