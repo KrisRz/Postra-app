@@ -40,7 +40,6 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
     try {
       const res = await fetch('/media/generate-post-design', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ prompt: aiPrompt, platform: platform.key }),
       });
 
