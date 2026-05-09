@@ -56,9 +56,9 @@ const Polonto = dynamic(
   () => import('@gitroom/frontend/components/launches/polonto')
 );
 const PostDesignEditor = dynamic(
-  () => import('@gitroom/frontend/components/design-editor/post-design-editor').then((m) => ({ default: m.PostDesignEditor })),
+  () => import('@gitroom/frontend/components/design-editor/post-design-editor'),
   { ssr: false }
-) as any;
+);
 const showModalEmitter = new EventEmitter();
 export const Pagination: FC<{
   current: number;

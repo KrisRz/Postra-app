@@ -1,9 +1,11 @@
 'use client';
 
-import { FC, MutableRefObject, useCallback, useRef } from 'react';
+import { FC, MutableRefObject, useCallback, useRef, useState } from 'react';
 import * as fabric from 'fabric';
 import { useEditorStore, EditorTool } from '../editor.store';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { useToaster } from '@gitroom/react/toaster/toaster';
 import clsx from 'clsx';
 
 interface ToolbarProps {
@@ -20,7 +22,10 @@ const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string
 export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   const { activeTool, setTool, bgColor, setBgColor } = useEditorStore();
   const t = useT();
+  const fetch = useFetch();
+  const toaster = useToaster();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const addText = useCallback(() => {
     if (!canvas.current) return;
@@ -85,13 +90,23 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   const addImage = useCallback(
     async (file: File) => {
       if (!canvas.current) return;
-      const reader = new FileReader();
-      reader.onload = async (e) => {
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch('/media/upload-simple', {
+          method: 'POST',
+          body: formData,
+        });
+        const { path } = await res.json();
+
         const imgEl = new Image();
+        imgEl.crossOrigin = 'anonymous';
         imgEl.onload = () => {
+          if (!canvas.current) return;
           const img = new fabric.FabricImage(imgEl);
-          const canvasW = canvas.current!.getWidth() / canvas.current!.getZoom();
-          const canvasH = canvas.current!.getHeight() / canvas.current!.getZoom();
+          const canvasW = canvas.current.getWidth() / canvas.current.getZoom();
+          const canvasH = canvas.current.getHeight() / canvas.current.getZoom();
           const scale = Math.min(canvasW / img.width!, canvasH / img.height!, 1);
           img.set({
             scaleX: scale,
@@ -99,15 +114,20 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
             left: canvasW / 2,
             top: canvasH / 2,
           });
-          canvas.current!.add(img);
-          canvas.current!.setActiveObject(img);
-          canvas.current!.renderAll();
+          canvas.current.add(img);
+          canvas.current.setActiveObject(img);
+          canvas.current.renderAll();
         };
-        imgEl.src = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
+        imgEl.onerror = () =>
+          toaster.show(t('image_load_failed', 'Failed to load image'), 'warning');
+        imgEl.src = path;
+      } catch {
+        toaster.show(t('upload_failed', 'Image upload failed'), 'warning');
+      } finally {
+        setUploading(false);
+      }
     },
-    [canvas]
+    [canvas, fetch, toaster, t]
   );
 
   const setBackground = useCallback(
@@ -187,9 +207,12 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
             </span>
             <button
               onClick={() => fileRef.current?.click()}
-              className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors"
+              disabled={uploading}
+              className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors disabled:opacity-50 disabled:cursor-wait"
             >
-              {t('upload_image', 'Upload Image')}
+              {uploading
+                ? t('uploading', 'Uploading…')
+                : t('upload_image', 'Upload Image')}
             </button>
             <input
               ref={fileRef}

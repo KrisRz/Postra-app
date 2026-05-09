@@ -40,8 +40,6 @@ interface EditorState {
   pushHistory: (json: string) => void;
   undo: () => string | null;
   redo: () => string | null;
-  canUndo: () => boolean;
-  canRedo: () => boolean;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -81,7 +79,4 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({ historyIndex: newIndex });
     return history[newIndex];
   },
-
-  canUndo: () => get().historyIndex > 0,
-  canRedo: () => get().historyIndex < get().history.length - 1,
 }));

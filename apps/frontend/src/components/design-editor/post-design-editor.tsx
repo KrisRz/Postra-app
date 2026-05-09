@@ -21,7 +21,7 @@ interface PostDesignEditorProps {
 
 const CANVAS_VIEWPORT_HEIGHT = 560;
 
-export const PostDesignEditor: FC<PostDesignEditorProps> = ({
+const PostDesignEditor: FC<PostDesignEditorProps> = ({
   setMedia,
   closeModal,
   width,
@@ -227,3 +227,6 @@ export const PostDesignEditor: FC<PostDesignEditorProps> = ({
     </div>
   );
 };
+
+export default PostDesignEditor;
+export { PostDesignEditor };
