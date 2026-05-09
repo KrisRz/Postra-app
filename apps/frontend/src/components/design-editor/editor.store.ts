@@ -1,0 +1,83 @@
+'use client';
+
+import { create } from 'zustand';
+
+export type EditorTool = 'select' | 'text' | 'shapes' | 'images' | 'ai';
+
+export interface PlatformSize {
+  key: string;
+  label: string;
+  width: number;
+  height: number;
+}
+
+export const PLATFORM_SIZES: PlatformSize[] = [
+  { key: 'instagram-feed', label: 'IG Feed (4:5)', width: 1080, height: 1350 },
+  { key: 'instagram-square', label: 'IG Square (1:1)', width: 1080, height: 1080 },
+  { key: 'instagram-story', label: 'IG Story (9:16)', width: 1080, height: 1920 },
+  { key: 'facebook-feed', label: 'FB Feed (1:1)', width: 1080, height: 1080 },
+  { key: 'linkedin-feed', label: 'LinkedIn (1:1)', width: 1200, height: 1200 },
+  { key: 'tiktok-cover', label: 'TikTok (9:16)', width: 1080, height: 1920 },
+  { key: 'x-post', label: 'X Post (16:9)', width: 1600, height: 900 },
+  { key: 'custom', label: 'Custom', width: 1080, height: 1080 },
+];
+
+interface EditorState {
+  activeTool: EditorTool;
+  platform: PlatformSize;
+  history: string[];
+  historyIndex: number;
+  isGenerating: boolean;
+  canvasReady: boolean;
+
+  setTool: (tool: EditorTool) => void;
+  setPlatform: (platform: PlatformSize) => void;
+  setGenerating: (val: boolean) => void;
+  setCanvasReady: (val: boolean) => void;
+
+  pushHistory: (json: string) => void;
+  undo: () => string | null;
+  redo: () => string | null;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
+}
+
+export const useEditorStore = create<EditorState>((set, get) => ({
+  activeTool: 'select',
+  platform: PLATFORM_SIZES[0],
+  history: [],
+  historyIndex: -1,
+  isGenerating: false,
+  canvasReady: false,
+
+  setTool: (tool) => set({ activeTool: tool }),
+  setPlatform: (platform) => set({ platform }),
+  setGenerating: (val) => set({ isGenerating: val }),
+  setCanvasReady: (val) => set({ canvasReady: val }),
+
+  pushHistory: (json) => {
+    const { history, historyIndex } = get();
+    const trimmed = history.slice(0, historyIndex + 1);
+    const next = [...trimmed, json].slice(-30);
+    set({ history: next, historyIndex: next.length - 1 });
+  },
+
+  undo: () => {
+    const { history, historyIndex } = get();
+    if (historyIndex <= 0) return null;
+    const newIndex = historyIndex - 1;
+    set({ historyIndex: newIndex });
+    return history[newIndex];
+  },
+
+  redo: () => {
+    const { history, historyIndex } = get();
+    if (historyIndex >= history.length - 1) return null;
+    const newIndex = historyIndex + 1;
+    set({ historyIndex: newIndex });
+    return history[newIndex];
+  },
+
+  canUndo: () => get().historyIndex > 0,
+  canRedo: () => get().historyIndex < get().history.length - 1,
+}));

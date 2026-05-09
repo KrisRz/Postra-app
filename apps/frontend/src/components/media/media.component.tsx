@@ -55,6 +55,10 @@ import { useDebounce } from 'use-debounce';
 const Polonto = dynamic(
   () => import('@gitroom/frontend/components/launches/polonto')
 );
+const PostDesignEditor = dynamic(
+  () => import('@gitroom/frontend/components/design-editor/post-design-editor').then((m) => ({ default: m.PostDesignEditor })),
+  { ssr: false }
+) as any;
 const showModalEmitter = new EventEmitter();
 export const Pagination: FC<{
   current: number;
@@ -739,13 +743,14 @@ export const MultiMediaComponent: FC<{
   );
 
   const designMedia = useCallback(() => {
-    if (!!user?.tier?.ai && !dummy) {
+    if (!dummy) {
       modals.openModal({
         askClose: false,
         title: t('design_media', 'Design Media'),
         size: '80%',
+        height: '750px',
         children: (close) => (
-          <Polonto setMedia={changeMedia} closeModal={close} />
+          <PostDesignEditor setMedia={changeMedia} closeModal={close} />
         ),
       });
     }
@@ -840,7 +845,7 @@ export const MultiMediaComponent: FC<{
               </div>
               <div
                 onClick={designMedia}
-                className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px]"
+                className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors"
               >
                 <div className="flex gap-[5px] items-center">
                   <div>
@@ -920,11 +925,10 @@ export const MediaComponent: FC<{
       title: t('media_editor', 'Media Editor'),
       askClose: false,
       closeOnEscape: true,
-      fullScreen: true,
-      size: 'calc(100% - 80px)',
-      height: 'calc(100% - 80px)',
+      size: '80%',
+      height: '750px',
       children: (close) => (
-        <Polonto
+        <PostDesignEditor
           width={width}
           height={height}
           setMedia={changeMedia}

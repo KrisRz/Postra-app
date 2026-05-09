@@ -1,0 +1,38 @@
+'use client';
+
+import { FC } from 'react';
+import { useEditorStore, PLATFORM_SIZES } from '../editor.store';
+import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import clsx from 'clsx';
+
+export const FormatBar: FC = () => {
+  const { platform, setPlatform } = useEditorStore();
+  const t = useT();
+
+  return (
+    <div className="flex items-center gap-2 px-4 py-2 border-t border-newBorder bg-newBgColorInner">
+      <span className="text-[10px] text-textColor/60 uppercase tracking-wide mr-2">
+        {t('format', 'Format')}:
+      </span>
+      <div className="flex gap-1 flex-wrap">
+        {PLATFORM_SIZES.filter((p) => p.key !== 'custom').map((size) => (
+          <button
+            key={size.key}
+            onClick={() => setPlatform(size)}
+            className={clsx(
+              'px-2 py-1 text-[10px] rounded transition-colors',
+              platform.key === size.key
+                ? 'bg-forth text-white'
+                : 'bg-newColColor text-textColor hover:bg-forth/50'
+            )}
+          >
+            {size.label}
+          </button>
+        ))}
+      </div>
+      <span className="ml-auto text-[10px] text-textColor/40">
+        {platform.width}×{platform.height}px
+      </span>
+    </div>
+  );
+};
