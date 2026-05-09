@@ -10,6 +10,7 @@ export interface PostDesignSpec {
   layout: 'centered-stack' | 'left-aligned' | 'bottom-stack' | 'top-banner';
   backgroundUrl: string;
   cacheHit: boolean;
+  brandKit?: { logoPath: string | null } | null;
 }
 
 const TEXT_FONT = 'Geist, sans-serif';
@@ -160,5 +161,33 @@ export const renderDesignSpec = async (
   } catch (err) {
     // Gradient placeholder remains — usable design
     console.warn('Background image swap skipped:', err);
+  }
+
+  // 4. Brand logo bottom-right (optional, async)
+  if (spec.brandKit?.logoPath) {
+    try {
+      const logoEl = new Image();
+      logoEl.crossOrigin = 'anonymous';
+      await new Promise<void>((resolve, reject) => {
+        logoEl.onload = () => resolve();
+        logoEl.onerror = () => reject(new Error('logo load failed'));
+        logoEl.src = spec.brandKit!.logoPath!;
+      });
+
+      const logo = new fabric.FabricImage(logoEl, { selectable: true });
+      const logoTargetWidth = width * 0.12;
+      const padding = width * 0.04;
+      logo.scaleToWidth(logoTargetWidth);
+      logo.set({
+        left: width - padding,
+        top: height - padding,
+        originX: 'right',
+        originY: 'bottom',
+      });
+      canvas.add(logo);
+      canvas.renderAll();
+    } catch (err) {
+      console.warn('Logo placement skipped:', err);
+    }
   }
 };
