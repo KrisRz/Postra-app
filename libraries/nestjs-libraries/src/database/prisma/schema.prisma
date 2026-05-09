@@ -43,10 +43,27 @@ model Organization {
   webhooks            Webhooks[]
   oauthApp            OAuthApp[]
   oauthAuthorizations OAuthAuthorization[]
+  brandKit            BrandKit?
 
   @@index([apiKey])
   @@index([streakSince])
   @@index([paymentId])
+}
+
+model BrandKit {
+  id             String       @id @default(uuid())
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  logoPath       String?
+  primaryColor   String       @default("#38bdf8")
+  secondaryColor String       @default("#0a0e1a")
+  textColor      String       @default("#ffffff")
+  font           String       @default("Geist")
+  tone           String       @default("professional")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
 }
 
 model Tags {

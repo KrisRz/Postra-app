@@ -49,6 +49,10 @@ export class BrandKitDto {
   @IsString()
   @IsOptional()
   tone?: string;
+
+  @IsString()
+  @IsOptional()
+  logoPath?: string | null;
 }
 
 export class GeneratePostDesignDto {

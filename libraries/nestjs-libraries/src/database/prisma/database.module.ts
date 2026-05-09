@@ -42,6 +42,8 @@ import { AnnouncementsRepository } from '@gitroom/nestjs-libraries/database/pris
 import { AnnouncementsService } from '@gitroom/nestjs-libraries/database/prisma/announcements/announcements.service';
 import { ErrorsRepository } from '@gitroom/nestjs-libraries/database/prisma/errors/errors.repository';
 import { ErrorsService } from '@gitroom/nestjs-libraries/database/prisma/errors/errors.service';
+import { BrandKitRepository } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.repository';
+import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
 
 @Global()
 @Module({
@@ -93,6 +95,8 @@ import { ErrorsService } from '@gitroom/nestjs-libraries/database/prisma/errors/
     AnnouncementsService,
     ErrorsRepository,
     ErrorsService,
+    BrandKitRepository,
+    BrandKitService,
   ],
   get exports() {
     return this.providers;

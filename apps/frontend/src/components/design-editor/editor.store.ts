@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 
-export type EditorTool = 'select' | 'text' | 'shapes' | 'images' | 'ai';
+export type EditorTool = 'select' | 'text' | 'shapes' | 'images' | 'ai' | 'brand';
 
 export interface PlatformSize {
   key: string;

@@ -9,6 +9,7 @@ import { VideoManager } from '@gitroom/nestjs-libraries/videos/video.manager';
 import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
+import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import {
   AuthorizationActions,
@@ -26,7 +27,8 @@ export class MediaService {
     private _mediaRepository: MediaRepository,
     private _openAi: OpenaiService,
     private _subscriptionService: SubscriptionService,
-    private _videoManager: VideoManager
+    private _videoManager: VideoManager,
+    private _brandKitService: BrandKitService
   ) {}
 
   async deleteMedia(org: string, id: string) {
@@ -66,10 +68,13 @@ export class MediaService {
       );
     }
 
+    const brandKit =
+      dto.brandKit ?? (await this._brandKitService.getNormalized(org.id)) ?? undefined;
+
     const spec = await this._openAi.generatePostDesign(
       dto.prompt,
       dto.platform,
-      dto.brandKit
+      brandKit
     );
 
     const cacheKey = `bg:${createHash('md5')
@@ -98,7 +103,12 @@ export class MediaService {
       await ioRedis.set(cacheKey, backgroundUrl, 'EX', POST_DESIGN_BG_CACHE_TTL);
     }
 
-    return { ...spec, backgroundUrl, cacheHit };
+    return {
+      ...spec,
+      backgroundUrl,
+      cacheHit,
+      brandKit: brandKit ? { logoPath: brandKit.logoPath ?? null } : null,
+    };
   }
 
   saveFile(org: string, fileName: string, filePath: string, originalName?: string) {
