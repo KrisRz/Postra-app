@@ -74,22 +74,38 @@ export const socialIntegrationList: Array<SocialAbstract & SocialProvider> = [
   // new MastodonCustomProvider(),
 ];
 
+const enabledProviders = new Set([
+  'facebook',
+  'instagram',
+  'linkedin',
+  'linkedin-page',
+  'tiktok',
+  'youtube',
+]);
+
+const hiddenProviders = new Set([
+  'instagram-standalone',
+]);
+
 @Injectable()
 export class IntegrationManager {
   async getAllIntegrations() {
     return {
       social: await Promise.all(
-        socialIntegrationList.map(async (p) => ({
-          name: p.name,
-          identifier: p.identifier,
-          toolTip: p.toolTip,
-          editor: p.editor,
-          isExternal: !!p.externalUrl,
-          isWeb3: !!p.isWeb3,
-          isChromeExtension: !!p.isChromeExtension,
-          ...(p.extensionCookies ? { extensionCookies: p.extensionCookies } : {}),
-          ...(p.customFields ? { customFields: await p.customFields() } : {}),
-        }))
+        socialIntegrationList
+          .filter((p) => !hiddenProviders.has(p.identifier))
+          .map(async (p) => ({
+            name: p.name,
+            identifier: p.identifier,
+            toolTip: p.toolTip,
+            editor: p.editor,
+            enabled: enabledProviders.has(p.identifier),
+            isExternal: !!p.externalUrl,
+            isWeb3: !!p.isWeb3,
+            isChromeExtension: !!p.isChromeExtension,
+            ...(p.extensionCookies ? { extensionCookies: p.extensionCookies } : {}),
+            ...(p.customFields ? { customFields: await p.customFields() } : {}),
+          }))
       ),
       article: [] as any[],
     };
