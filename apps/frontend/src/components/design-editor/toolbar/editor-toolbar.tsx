@@ -6,6 +6,7 @@ import { useEditorStore, EditorTool } from '../editor.store';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
+import { AiGeneratePanel } from './ai-generate-panel';
 import clsx from 'clsx';
 
 interface ToolbarProps {
@@ -13,6 +14,7 @@ interface ToolbarProps {
 }
 
 const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string }[] = [
+  { key: 'ai', icon: '✨', labelKey: 'tool_ai', fallback: 'AI Generate' },
   { key: 'select', icon: '↖', labelKey: 'tool_select', fallback: 'Select' },
   { key: 'text', icon: 'T', labelKey: 'tool_text', fallback: 'Text' },
   { key: 'shapes', icon: '◻', labelKey: 'tool_shapes', fallback: 'Shapes' },
@@ -169,6 +171,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       </div>
 
       <div className="border-t border-newBorder p-3 flex flex-col gap-3">
+        {activeTool === 'ai' && <AiGeneratePanel canvas={canvas} />}
+
         {activeTool === 'shapes' && (
           <div className="flex flex-col gap-2">
             <span className="text-[10px] text-textColor/60 uppercase tracking-wide">

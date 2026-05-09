@@ -1,4 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
+import { createHash } from 'crypto';
 import { MediaRepository } from '@gitroom/nestjs-libraries/database/prisma/media/media.repository';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
@@ -7,11 +8,15 @@ import { SaveMediaInformationDto } from '@gitroom/nestjs-libraries/dtos/media/sa
 import { VideoManager } from '@gitroom/nestjs-libraries/videos/video.manager';
 import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
+import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
+import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import {
   AuthorizationActions,
   Sections,
   SubscriptionException,
 } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
+
+const POST_DESIGN_BG_CACHE_TTL = 60 * 60 * 24 * 7; // 7 days
 
 @Injectable()
 export class MediaService {
@@ -50,6 +55,50 @@ export class MediaService {
     );
 
     return generating;
+  }
+
+  async generatePostDesign(org: Organization, dto: GeneratePostDesignDto) {
+    const total = await this._subscriptionService.checkCredits(org);
+    if (process.env.STRIPE_PUBLISHABLE_KEY && total.credits <= 0) {
+      throw new HttpException(
+        'No image generation credits remaining for this billing cycle',
+        402
+      );
+    }
+
+    const spec = await this._openAi.generatePostDesign(
+      dto.prompt,
+      dto.platform,
+      dto.brandKit
+    );
+
+    const cacheKey = `bg:${createHash('md5')
+      .update(spec.imagePrompt.trim().toLowerCase())
+      .digest('hex')}`;
+
+    let backgroundUrl = await ioRedis.get(cacheKey);
+    let cacheHit = !!backgroundUrl;
+
+    if (!backgroundUrl) {
+      backgroundUrl = await this._subscriptionService.useCredit(
+        org,
+        'ai_images',
+        async () => {
+          const dalleUrl = await this._openAi.generateImage(
+            spec.imagePrompt,
+            true
+          );
+          if (!dalleUrl) {
+            throw new HttpException('DALL-E generation failed', 502);
+          }
+          return await this.storage.uploadSimple(dalleUrl);
+        }
+      );
+
+      await ioRedis.set(cacheKey, backgroundUrl, 'EX', POST_DESIGN_BG_CACHE_TTL);
+    }
+
+    return { ...spec, backgroundUrl, cacheHit };
   }
 
   saveFile(org: string, fileName: string, filePath: string, originalName?: string) {
