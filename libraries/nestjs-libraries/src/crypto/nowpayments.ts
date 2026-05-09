@@ -25,17 +25,17 @@ export interface ProcessPayment {
 export class Nowpayments {
   constructor(private _subscriptionService: SubscriptionService) {}
 
-  async processPayment(path: string, body: ProcessPayment) {
+  async processPayment(path: string, body: ProcessPayment): Promise<ProcessPayment | undefined> {
     const decrypt = AuthService.verifyJWT(path) as any;
     if (!decrypt || !decrypt.order_id) {
-      return;
+      return undefined;
     }
 
     if (
       body.payment_status !== 'confirmed' &&
       body.payment_status !== 'finished'
     ) {
-      return;
+      return undefined;
     }
 
     const [org, make] = body.order_id.split('_');

@@ -32,7 +32,7 @@ export class TrackService {
     user?: User
   ) {
     if (!access_token || !pixel_id) {
-      return;
+      return undefined;
     }
     // @ts-ignore
     const current_timestamp = Math.floor(new Date() / 1000);

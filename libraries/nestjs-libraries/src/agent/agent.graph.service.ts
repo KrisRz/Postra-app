@@ -114,7 +114,7 @@ export class AgentGraphService {
         messages: {
           reducer: (currentState, updateValue) =>
             currentState.concat(updateValue),
-          default: () => [],
+          default: (): any[] => [],
         },
         fresearch: null,
         format: null,

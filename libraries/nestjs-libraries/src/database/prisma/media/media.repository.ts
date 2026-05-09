@@ -88,7 +88,7 @@ export class MediaRepository {
         organization: {
           id: org,
         },
-        deletedAt: null,
+        deletedAt: null as null,
         ...searchFilter,
       },
     };
@@ -96,7 +96,7 @@ export class MediaRepository {
     const results = await this._media.model.media.findMany({
       where: {
         organizationId: org,
-        deletedAt: null,
+        deletedAt: null as null,
         ...searchFilter,
       },
       orderBy: {
