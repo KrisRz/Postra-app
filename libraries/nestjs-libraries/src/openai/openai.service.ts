@@ -226,6 +226,84 @@ export class OpenaiService {
     };
   }
 
+  async generatePostDesign(
+    prompt: string,
+    platform: string,
+    brandKit?: {
+      colors?: { primary?: string; secondary?: string; text?: string };
+      font?: string;
+      tone?: string;
+    }
+  ) {
+    const PostDesignSchema = z.object({
+      headline: z.string().max(60),
+      subtext: z.string().max(120),
+      cta: z.string().max(30),
+      imagePrompt: z
+        .string()
+        .describe(
+          'DALL-E 3 prompt for the background image. Describe a visually appealing scene with empty space (left, center, or bottom-third) for text overlay. Always end with: "dark gradient overlay at the bottom for text readability, modern minimalist composition, no text in image".'
+        ),
+      colors: z.object({
+        background: z.string().describe('hex color, e.g. #1a1a2e'),
+        accent: z.string().describe('hex color for emphasis'),
+        text: z.string().describe('hex color for primary text — must contrast strongly with background'),
+      }),
+      layout: z.enum([
+        'centered-stack',
+        'left-aligned',
+        'bottom-stack',
+        'top-banner',
+      ]),
+    });
+
+    const brandHint = brandKit?.colors
+      ? `BRAND CONSTRAINTS — respect strictly:
+- Background color: ${brandKit.colors.secondary || 'designer choice'}
+- Accent color: ${brandKit.colors.primary || 'designer choice'}
+- Text color: ${brandKit.colors.text || '#ffffff'}
+- Font family: ${brandKit.font || 'sans-serif'}
+- Tone: ${brandKit.tone || 'professional'}`
+      : '';
+
+    for (let i = 0; i < 3; i++) {
+      try {
+        const parsed = (
+          await openai.chat.completions.parse({
+            model: 'gpt-4.1',
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert social media graphic designer.
+Generate a complete design specification for a ${platform} post.
+
+LANGUAGE: Detect the language of the user's prompt. Generate ALL text fields (headline, subtext, cta) in that SAME language. If Polish prompt → Polish text. Never mix.
+
+CONTENT RULES:
+- headline: short, impactful, max ~5 words
+- subtext: supporting detail, 1 sentence
+- cta: short call-to-action (e.g. "Sprawdź", "Kup teraz", "Zobacz więcej", or English equivalent)
+- imagePrompt: rich visual description for DALL-E 3 background. Leave space for text. End with "dark gradient overlay at the bottom for text readability, modern minimalist composition, no text in image".
+- colors: high-contrast, accessible (WCAG AA min)
+- layout: pick the best layout for the content
+
+${brandHint}`,
+              },
+              { role: 'user', content: prompt },
+            ],
+            response_format: zodResponseFormat(PostDesignSchema, 'postDesign'),
+          })
+        ).choices[0].message.parsed;
+
+        if (parsed) return parsed;
+      } catch (err) {
+        console.log('generatePostDesign attempt failed:', err);
+      }
+    }
+
+    throw new Error('Failed to generate post design after 3 attempts');
+  }
+
   async generateSlidesFromText(text: string) {
     for (let i = 0; i < 3; i++) {
       try {

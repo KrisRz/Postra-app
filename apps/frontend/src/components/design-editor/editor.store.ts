@@ -30,12 +30,14 @@ interface EditorState {
   isGenerating: boolean;
   canvasReady: boolean;
   bgColor: string;
+  aiPrompt: string;
 
   setTool: (tool: EditorTool) => void;
   setPlatform: (platform: PlatformSize) => void;
   setGenerating: (val: boolean) => void;
   setCanvasReady: (val: boolean) => void;
   setBgColor: (color: string) => void;
+  setAiPrompt: (prompt: string) => void;
 
   pushHistory: (json: string) => void;
   undo: () => string | null;
@@ -50,12 +52,14 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   isGenerating: false,
   canvasReady: false,
   bgColor: '#1a1a2e',
+  aiPrompt: '',
 
   setTool: (tool) => set({ activeTool: tool }),
   setPlatform: (platform) => set({ platform }),
   setGenerating: (val) => set({ isGenerating: val }),
   setCanvasReady: (val) => set({ canvasReady: val }),
   setBgColor: (color) => set({ bgColor: color }),
+  setAiPrompt: (prompt) => set({ aiPrompt: prompt }),
 
   pushHistory: (json) => {
     const { history, historyIndex } = get();

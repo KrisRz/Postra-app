@@ -25,6 +25,7 @@ import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { SaveMediaInformationDto } from '@gitroom/nestjs-libraries/dtos/media/save.media.information.dto';
 import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { VideoFunctionDto } from '@gitroom/nestjs-libraries/dtos/videos/video.function.dto';
+import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
 
 @ApiTags('Media')
 @Controller('/media')
@@ -82,6 +83,14 @@ export class MediaController {
     const file = await this.storage.uploadSimple(image.output);
 
     return this._mediaService.saveFile(org.id, file.split('/').pop(), file);
+  }
+
+  @Post('/generate-post-design')
+  generatePostDesign(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: GeneratePostDesignDto
+  ) {
+    return this._mediaService.generatePostDesign(org, body);
   }
 
   @Post('/upload-server')
