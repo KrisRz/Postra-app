@@ -236,32 +236,34 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
           </div>
         )}
 
-        <div className="flex flex-col gap-2">
-          <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
-            {t('background', 'Background')}
-          </span>
-          <div className="flex gap-1 flex-wrap">
-            {['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#533483', '#ffffff', '#000000'].map(
-              (color) => (
-                <button
-                  key={color}
-                  onClick={() => setBackground(color)}
-                  className={clsx(
-                    'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
-                    bgColor === color ? 'border-white scale-110' : 'border-transparent'
-                  )}
-                  style={{ backgroundColor: color }}
-                />
-              )
-            )}
+        {(activeTool === 'shapes' || activeTool === 'images') && (
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
+              {t('background', 'Background')}
+            </span>
+            <div className="flex gap-1 flex-wrap">
+              {['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#533483', '#ffffff', '#000000'].map(
+                (color) => (
+                  <button
+                    key={color}
+                    onClick={() => setBackground(color)}
+                    className={clsx(
+                      'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
+                      bgColor === color ? 'border-white scale-110' : 'border-transparent'
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                )
+              )}
+            </div>
+            <input
+              type="color"
+              value={bgColor}
+              onChange={(e) => setBackground(e.target.value)}
+              className="w-full h-7 rounded cursor-pointer border-0 bg-transparent"
+            />
           </div>
-          <input
-            type="color"
-            value={bgColor}
-            onChange={(e) => setBackground(e.target.value)}
-            className="w-full h-7 rounded cursor-pointer border-0 bg-transparent"
-          />
-        </div>
+        )}
       </div>
     </div>
   );

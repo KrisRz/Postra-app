@@ -67,7 +67,6 @@ export const BrandKitPanel: FC = () => {
     try {
       const res = await fetch('/brand-kit', {
         method: 'PUT',
-        headers: { 'content-type': 'application/json' },
         body: JSON.stringify(next),
       });
       if (res.ok) setSavedAt(Date.now());
