@@ -96,12 +96,15 @@ export const PostDesignEditor: FC<PostDesignEditorProps> = ({
     isRestoringRef.current = true;
     HISTORY_EVENTS.forEach((evt) => c.off(evt, handler));
 
-    c.loadFromJSON(json).then(() => {
-      c.renderAll();
-      isRestoringRef.current = false;
-      HISTORY_EVENTS.forEach((evt) => c.on(evt, handler));
-      useEditorStore.getState().setBgColor(c.backgroundColor as string || '#1a1a2e');
-    });
+    c.loadFromJSON(json)
+      .then(() => {
+        c.renderAll();
+        useEditorStore.getState().setBgColor(c.backgroundColor as string || '#1a1a2e');
+      })
+      .finally(() => {
+        isRestoringRef.current = false;
+        HISTORY_EVENTS.forEach((evt) => c.on(evt, handler));
+      });
   }, []);
 
   const handleUndo = useCallback(() => {
