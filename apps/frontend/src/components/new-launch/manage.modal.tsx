@@ -62,7 +62,6 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
   const modal = useModals();
   const [showSettings, setShowSettings] = useState(false);
   const [settingsPulse, setSettingsPulse] = useState(false);
-  const prevIntegrationCount = useRef(selectedIntegrations.length);
   const { data: shortlinkPreferenceData } = useShortlinkPreference();
 
   const { addEditSets, mutate, customClose, dummy } = props;
@@ -100,6 +99,8 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
       activateExitButton: state.activateExitButton,
     }))
   );
+
+  const prevIntegrationCount = useRef(selectedIntegrations.length);
 
   useEffect(() => {
     if (hide) {
