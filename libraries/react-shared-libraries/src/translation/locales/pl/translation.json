@@ -720,7 +720,7 @@
   "ai_generate_button": "✨ Wygeneruj projekt",
   "ai_generating": "Generowanie…",
   "ai_generate_failed": "Generowanie AI nie powiodło się. Spróbuj innego promptu.",
-  "ai_generate_hint": "AI generuje tło + tekst w jednym kroku. ~5-10s. Koszt: 1 kredyt obrazu.",
+  "ai_generate_hint": "AI generuje tło + tekst w jednym kroku. Trwa około 5-10 sekund.",
   "ai_no_credits": "Brak kredytów na generowanie obrazów w tym miesiącu. Ulepsz plan.",
   "ai_prompt_required": "Opisz, co chcesz wygenerować",
   "ai_prompt_placeholder": "np. Letnia wyprzedaż -50% w sklepie odzieżowym",
@@ -743,5 +743,9 @@
   "tone_minimal": "minimalistyczny",
   "logo": "Logo",
   "upload_logo": "Wgraj logo",
-  "logo_upload_failed": "Wgrywanie logo nie powiodło się"
+  "logo_upload_failed": "Wgrywanie logo nie powiodło się",
+  "undo_tooltip": "Cofnij (Ctrl+Z)",
+  "redo_tooltip": "Ponów (Ctrl+Shift+Z)",
+  "delete_tooltip": "Usuń zaznaczony obiekt (Delete)",
+  "delete_no_selection": "Najpierw zaznacz obiekt na canvas"
 }

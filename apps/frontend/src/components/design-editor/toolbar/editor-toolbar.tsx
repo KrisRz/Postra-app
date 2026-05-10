@@ -117,6 +117,10 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
             scaleY: scale,
             left: canvasW / 2,
             top: canvasH / 2,
+            selectable: true,
+            evented: true,
+            hasControls: true,
+            hasBorders: true,
           });
           canvas.current.add(img);
           canvas.current.setActiveObject(img);
@@ -153,8 +157,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   );
 
   return (
-    <div className="w-[180px] border-r border-newBorder flex flex-col bg-newBgColorInner">
-      <div className="flex flex-col gap-1 p-2">
+    <div className="w-[180px] border-r border-newBorder flex flex-col bg-newBgColorInner h-full min-h-0">
+      <div className="flex flex-col gap-1 p-2 shrink-0">
         {TOOLS.map((tool) => (
           <button
             key={tool.key}
@@ -172,7 +176,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         ))}
       </div>
 
-      <div className="border-t border-newBorder p-3 flex flex-col gap-3">
+      <div className="border-t border-newBorder p-3 flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto">
         {activeTool === 'ai' && <AiGeneratePanel canvas={canvas} />}
 
         {activeTool === 'brand' && <BrandKitPanel />}

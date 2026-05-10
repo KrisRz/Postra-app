@@ -15,10 +15,18 @@ export interface PostDesignSpec {
 
 const TEXT_FONT = 'Geist, sans-serif';
 
+interface PositionEntry {
+  left: number;
+  top: number;
+  textAlign: 'left' | 'center';
+  originX: 'left' | 'center';
+  originY: 'top';
+}
+
 interface LayoutPositions {
-  headline: { left: number; top: number; textAlign: 'left' | 'center' };
-  subtext: { left: number; top: number; textAlign: 'left' | 'center' };
-  cta: { left: number; top: number; textAlign: 'left' | 'center' };
+  headline: PositionEntry;
+  subtext: PositionEntry;
+  cta: PositionEntry;
 }
 
 const computeLayout = (
@@ -27,31 +35,35 @@ const computeLayout = (
   height: number
 ): LayoutPositions => {
   const cx = width / 2;
+  // Fabric v7 default originX = 'center'. We need explicit origin so that
+  // `left` is interpreted as either box-left-edge (originX='left') or
+  // box-horizontal-center (originX='center'). Without this the left-aligned
+  // layout cuts text off the left of the canvas.
   switch (layout) {
     case 'left-aligned':
       return {
-        headline: { left: width * 0.08, top: height * 0.45, textAlign: 'left' },
-        subtext: { left: width * 0.08, top: height * 0.6, textAlign: 'left' },
-        cta: { left: width * 0.08, top: height * 0.78, textAlign: 'left' },
+        headline: { left: width * 0.08, top: height * 0.45, textAlign: 'left', originX: 'left', originY: 'top' },
+        subtext: { left: width * 0.08, top: height * 0.6, textAlign: 'left', originX: 'left', originY: 'top' },
+        cta: { left: width * 0.08, top: height * 0.78, textAlign: 'left', originX: 'left', originY: 'top' },
       };
     case 'bottom-stack':
       return {
-        headline: { left: cx, top: height * 0.62, textAlign: 'center' },
-        subtext: { left: cx, top: height * 0.76, textAlign: 'center' },
-        cta: { left: cx, top: height * 0.88, textAlign: 'center' },
+        headline: { left: cx, top: height * 0.62, textAlign: 'center', originX: 'center', originY: 'top' },
+        subtext: { left: cx, top: height * 0.76, textAlign: 'center', originX: 'center', originY: 'top' },
+        cta: { left: cx, top: height * 0.88, textAlign: 'center', originX: 'center', originY: 'top' },
       };
     case 'top-banner':
       return {
-        headline: { left: cx, top: height * 0.12, textAlign: 'center' },
-        subtext: { left: cx, top: height * 0.26, textAlign: 'center' },
-        cta: { left: cx, top: height * 0.4, textAlign: 'center' },
+        headline: { left: cx, top: height * 0.12, textAlign: 'center', originX: 'center', originY: 'top' },
+        subtext: { left: cx, top: height * 0.26, textAlign: 'center', originX: 'center', originY: 'top' },
+        cta: { left: cx, top: height * 0.4, textAlign: 'center', originX: 'center', originY: 'top' },
       };
     case 'centered-stack':
     default:
       return {
-        headline: { left: cx, top: height * 0.42, textAlign: 'center' },
-        subtext: { left: cx, top: height * 0.56, textAlign: 'center' },
-        cta: { left: cx, top: height * 0.72, textAlign: 'center' },
+        headline: { left: cx, top: height * 0.42, textAlign: 'center', originX: 'center', originY: 'top' },
+        subtext: { left: cx, top: height * 0.56, textAlign: 'center', originX: 'center', originY: 'top' },
+        cta: { left: cx, top: height * 0.72, textAlign: 'center', originX: 'center', originY: 'top' },
       };
   }
 };
