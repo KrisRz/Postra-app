@@ -47,8 +47,11 @@ export const ComingSoon: FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 text-center">
-      <div className="max-w-[600px] w-full flex flex-col items-center gap-8">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[radial-gradient(circle_at_top_left,rgba(56,189,248,0.14),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(167,139,250,0.14),transparent_32%),linear-gradient(180deg,#0a0e1a,#0f172a_42%,#111827)] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(56,189,248,0.06),transparent_20%),radial-gradient(circle_at_80%_80%,rgba(167,139,250,0.08),transparent_24%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:radial-gradient(rgba(255,255,255,0.75)_0.6px,transparent_0.6px)] [background-size:18px_18px]" />
+      <div className="relative min-h-full flex flex-col items-center justify-center px-6 py-12 text-center">
+        <div className="max-w-[600px] w-full flex flex-col items-center gap-8">
         <div className="flex flex-col items-center gap-3">
           <h1 className="text-[56px] sm:text-[72px] font-[800] tracking-[-0.04em] text-white leading-none">
             P<span className="text-[#38bdf8]">o</span>str
@@ -109,11 +112,12 @@ export const ComingSoon: FC = () => {
         </form>
 
         <a
-          href="mailto:hello@postra.pl"
-          className="text-[13px] text-textColor/50 hover:text-textColor/80 transition-colors"
+          href="mailto:kontakt@postra.pl"
+          className="text-[13px] text-white/50 hover:text-white/80 transition-colors"
         >
-          Kontakt: hello@postra.pl
+          Kontakt: kontakt@postra.pl
         </a>
+        </div>
       </div>
     </div>
   );
