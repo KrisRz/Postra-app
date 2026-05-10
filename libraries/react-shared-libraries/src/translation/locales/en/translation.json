@@ -745,5 +745,9 @@
   "tone_minimal": "minimal",
   "logo": "Logo",
   "upload_logo": "Upload logo",
-  "logo_upload_failed": "Logo upload failed"
+  "logo_upload_failed": "Logo upload failed",
+  "undo_tooltip": "Undo (Ctrl+Z)",
+  "redo_tooltip": "Redo (Ctrl+Shift+Z)",
+  "delete_tooltip": "Delete selected object (Delete)",
+  "delete_no_selection": "Select an object on the canvas first"
 }

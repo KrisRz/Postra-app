@@ -168,12 +168,17 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   const handleDelete = useCallback(() => {
     if (!fabricRef.current) return;
     const active = fabricRef.current.getActiveObjects();
-    if (active.length) {
-      active.forEach((obj) => fabricRef.current!.remove(obj));
-      fabricRef.current.discardActiveObject();
-      fabricRef.current.renderAll();
+    if (!active.length) {
+      toaster.show(
+        t('delete_no_selection', 'Najpierw zaznacz obiekt na canvas'),
+        'warning'
+      );
+      return;
     }
-  }, []);
+    active.forEach((obj) => fabricRef.current!.remove(obj));
+    fabricRef.current.discardActiveObject();
+    fabricRef.current.renderAll();
+  }, [toaster, t]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -203,23 +208,23 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
               <button
                 onClick={handleUndo}
                 disabled={!canUndo}
-                className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
-                title="Undo (Ctrl+Z)"
+                className="h-8 px-3 text-sm rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
+                title={t('undo_tooltip', 'Cofnij (Ctrl+Z)')}
               >
                 ↶
               </button>
               <button
                 onClick={handleRedo}
                 disabled={!canRedo}
-                className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
-                title="Redo (Ctrl+Shift+Z)"
+                className="h-8 px-3 text-sm rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
+                title={t('redo_tooltip', 'Ponów (Ctrl+Shift+Z)')}
               >
                 ↷
               </button>
               <button
                 onClick={handleDelete}
-                className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-red-500/20 transition-colors"
-                title="Delete selected"
+                className="h-8 px-3 text-sm rounded bg-newColColor text-textColor hover:bg-red-500 hover:text-white transition-colors"
+                title={t('delete_tooltip', 'Usuń zaznaczony obiekt (Delete)')}
               >
                 🗑
               </button>

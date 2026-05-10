@@ -231,18 +231,26 @@ const ColorRow: FC<{ label: string; value: string; onChange: (v: string) => void
   onChange,
 }) => (
   <div className="flex items-center gap-2">
-    <input
-      type="color"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-8 h-8 rounded cursor-pointer border border-newBorder bg-transparent"
-    />
+    <div className="relative w-9 h-9 shrink-0">
+      <div
+        className="absolute inset-0 rounded-md border border-newBorder shadow-inner pointer-events-none"
+        style={{ backgroundColor: value }}
+      />
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        aria-label={label}
+        title={label}
+      />
+    </div>
     <input
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="flex-1 text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth font-mono"
+      className="flex-1 min-w-0 text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth font-mono"
     />
-    <span className="text-[10px] text-textColor/60 w-16 text-right">{label}</span>
+    <span className="text-[10px] text-textColor/60 w-14 text-right shrink-0">{label}</span>
   </div>
 );

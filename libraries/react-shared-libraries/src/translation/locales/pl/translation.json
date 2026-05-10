@@ -743,5 +743,9 @@
   "tone_minimal": "minimalistyczny",
   "logo": "Logo",
   "upload_logo": "Wgraj logo",
-  "logo_upload_failed": "Wgrywanie logo nie powiodło się"
+  "logo_upload_failed": "Wgrywanie logo nie powiodło się",
+  "undo_tooltip": "Cofnij (Ctrl+Z)",
+  "redo_tooltip": "Ponów (Ctrl+Shift+Z)",
+  "delete_tooltip": "Usuń zaznaczony obiekt (Delete)",
+  "delete_no_selection": "Najpierw zaznacz obiekt na canvas"
 }

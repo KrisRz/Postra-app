@@ -117,6 +117,10 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
             scaleY: scale,
             left: canvasW / 2,
             top: canvasH / 2,
+            selectable: true,
+            evented: true,
+            hasControls: true,
+            hasBorders: true,
           });
           canvas.current.add(img);
           canvas.current.setActiveObject(img);
