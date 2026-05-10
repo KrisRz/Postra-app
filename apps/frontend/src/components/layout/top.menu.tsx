@@ -96,6 +96,31 @@ export const useMenuItem = () => {
       path: '/analytics',
     },
     {
+      name: t('studio', 'Studio'),
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 20 20"
+          fill="none"
+        >
+          <path
+            d="M10 1.667c-4.602 0-8.333 3.731-8.333 8.333 0 1.473.83 2.5 2.083 2.5h1.667c.92 0 1.667.747 1.667 1.667 0 .42-.166.802-.435 1.077-.262.282-.43.66-.43 1.083 0 .92.746 1.673 1.666 1.673H10c4.602 0 8.333-3.731 8.333-8.333S14.602 1.667 10 1.667Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="6.25" cy="8.333" r="1" fill="currentColor" />
+          <circle cx="10" cy="5.833" r="1" fill="currentColor" />
+          <circle cx="13.75" cy="8.333" r="1" fill="currentColor" />
+          <circle cx="14.167" cy="11.667" r="1" fill="currentColor" />
+        </svg>
+      ),
+      path: '/studio',
+    },
+    {
       name: t('media', 'Media'),
       icon: (
         <svg

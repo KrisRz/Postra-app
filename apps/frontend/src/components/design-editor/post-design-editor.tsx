@@ -17,6 +17,7 @@ interface PostDesignEditorProps {
   closeModal: () => void;
   width?: number;
   height?: number;
+  mode?: 'composer' | 'studio';
 }
 
 const CANVAS_VIEWPORT_HEIGHT = 560;
@@ -26,6 +27,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   closeModal,
   width,
   height,
+  mode = 'composer',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
@@ -147,6 +149,22 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     }
   }, [fetch, setMedia, closeModal, toaster, t]);
 
+  const handleDownload = useCallback(() => {
+    if (!fabricRef.current) return;
+    const scale = 1 / fabricRef.current.getZoom();
+    const dataUrl = fabricRef.current.toDataURL({
+      format: 'png',
+      quality: 1,
+      multiplier: scale,
+    });
+    const link = document.createElement('a');
+    link.download = `postra-design-${Date.now()}.png`;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, []);
+
   const handleDelete = useCallback(() => {
     if (!fabricRef.current) return;
     const active = fabricRef.current.getActiveObjects();
@@ -175,7 +193,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   }, [handleDelete, handleUndo, handleRedo]);
 
   return (
-    <div className="flex flex-col h-[700px] bg-newBgColorInner rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full min-h-[600px] bg-newBgColorInner rounded-lg overflow-hidden">
       <div className="flex flex-1 min-h-0">
         <EditorToolbar canvas={fabricRef} />
 
@@ -206,13 +224,24 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                 🗑
               </button>
             </div>
-            <Button
-              loading={exporting}
-              onClick={handleExport}
-              className="!h-[32px] !text-xs"
-            >
-              {t('use_in_post', 'Use in Post')}
-            </Button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDownload}
+                className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
+                title={t('download_png_hint', 'Pobierz grafikę jako plik PNG')}
+              >
+                ⬇ {t('download_png', 'Pobierz PNG')}
+              </button>
+              {mode === 'composer' && (
+                <Button
+                  loading={exporting}
+                  onClick={handleExport}
+                  className="!h-[32px] !text-xs"
+                >
+                  {t('use_in_post', 'Use in Post')}
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex-1 flex items-center justify-center bg-black/30 overflow-hidden p-4">
