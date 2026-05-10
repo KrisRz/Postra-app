@@ -720,7 +720,7 @@
   "ai_generate_button": "✨ Wygeneruj projekt",
   "ai_generating": "Generowanie…",
   "ai_generate_failed": "Generowanie AI nie powiodło się. Spróbuj innego promptu.",
-  "ai_generate_hint": "AI generuje tło + tekst w jednym kroku. ~5-10s. Koszt: 1 kredyt obrazu.",
+  "ai_generate_hint": "AI generuje tło + tekst w jednym kroku. Trwa około 5-10 sekund.",
   "ai_no_credits": "Brak kredytów na generowanie obrazów w tym miesiącu. Ulepsz plan.",
   "ai_prompt_required": "Opisz, co chcesz wygenerować",
   "ai_prompt_placeholder": "np. Letnia wyprzedaż -50% w sklepie odzieżowym",

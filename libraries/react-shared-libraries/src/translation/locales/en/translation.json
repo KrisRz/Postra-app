@@ -722,7 +722,7 @@
   "ai_generate_button": "✨ Generate Design",
   "ai_generating": "Generating…",
   "ai_generate_failed": "AI generation failed. Try a different prompt.",
-  "ai_generate_hint": "AI generates background + text in one step. ~5-10s. Costs 1 image credit.",
+  "ai_generate_hint": "AI generates background + text in one step. Takes about 5-10 seconds.",
   "ai_no_credits": "No image generation credits left this month. Upgrade your plan.",
   "ai_prompt_required": "Please describe what you want to generate",
   "ai_prompt_placeholder": "e.g. Summer sale -50% at clothing store",
