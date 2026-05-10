@@ -61,6 +61,7 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
   const toaster = useToaster();
   const modal = useModals();
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsPulse, setSettingsPulse] = useState(false);
   const { data: shortlinkPreferenceData } = useShortlinkPreference();
 
   const { addEditSets, mutate, customClose, dummy } = props;
@@ -99,11 +100,23 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
     }))
   );
 
+  const prevIntegrationCount = useRef(selectedIntegrations.length);
+
   useEffect(() => {
     if (hide) {
       setHide(false);
     }
   }, [hide]);
+
+  useEffect(() => {
+    if (selectedIntegrations.length > prevIntegrationCount.current) {
+      setSettingsPulse(true);
+      const timer = setTimeout(() => setSettingsPulse(false), 1500);
+      prevIntegrationCount.current = selectedIntegrations.length;
+      return () => clearTimeout(timer);
+    }
+    prevIntegrationCount.current = selectedIntegrations.length;
+  }, [selectedIntegrations.length]);
 
   const currentIntegrationText = useMemo(() => {
     if (current === 'global') {
@@ -498,9 +511,11 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
                   <div
                     onClick={() => setShowSettings(!showSettings)}
                     className={clsx(
-                      'bg-[#38bdf8] rounded-[12px] flex items-center gap-[8px] cursor-pointer p-[12px]',
-                      showSettings ? '!rounded-b-none' : ''
+                      'bg-[#38bdf8] rounded-[12px] flex items-center gap-[8px] cursor-pointer p-[12px] transition-shadow',
+                      showSettings ? '!rounded-b-none' : '',
+                      settingsPulse && 'animate-settings-pulse'
                     )}
+                    onAnimationEnd={() => setSettingsPulse(false)}
                   >
                     <div className="flex-1 text-[14px] font-[600] text-white">
                       {currentIntegrationText}
@@ -526,7 +541,14 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
                     </div>
                   </div>
                   <style>
-                    {`#social-settings [data-id="${current}"] {display: block !important;}`}
+                    {`#social-settings [data-id="${current}"] {display: block !important;}
+@keyframes settings-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+  25% { box-shadow: 0 0 16px 4px rgba(56, 189, 248, 0.7); }
+  50% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+  75% { box-shadow: 0 0 16px 4px rgba(56, 189, 248, 0.7); }
+}
+.animate-settings-pulse { animation: settings-pulse 1.5s ease-in-out; }`}
                   </style>
                 </div>
               </div>
