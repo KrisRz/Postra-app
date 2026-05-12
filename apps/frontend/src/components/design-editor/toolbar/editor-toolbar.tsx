@@ -11,6 +11,10 @@ import { BrandKitPanel } from './brand-kit-panel';
 import { IconsPanel } from './icons-panel';
 import { LayersPanel } from './layers-panel';
 import { STUDIO_FONTS, DEFAULT_FONT, findFontByFamily } from '../fonts';
+import {
+  removeBackgroundFromImage,
+  replaceImageOnCanvas,
+} from '../utils/background-removal';
 import clsx from 'clsx';
 
 interface ToolbarProps {
@@ -38,6 +42,45 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   const [defaultFontFamily, setDefaultFontFamily] = useState<string>(
     DEFAULT_FONT.family
   );
+  const [removingBg, setRemovingBg] = useState(false);
+  const [bgProgress, setBgProgress] = useState(0);
+
+  const removeImageBackground = useCallback(async () => {
+    if (!canvas.current || removingBg) return;
+    const active = canvas.current.getActiveObject();
+    if (!active || !(active instanceof fabric.FabricImage)) {
+      toaster.show(
+        t('bg_remove_no_image', 'Zaznacz obraz na canvas'),
+        'warning'
+      );
+      return;
+    }
+    const sourceEl = active.getElement();
+    if (!(sourceEl instanceof HTMLImageElement)) {
+      toaster.show(
+        t('bg_remove_no_image', 'Zaznacz obraz na canvas'),
+        'warning'
+      );
+      return;
+    }
+
+    setRemovingBg(true);
+    setBgProgress(0);
+    try {
+      const newSrc = await removeBackgroundFromImage(sourceEl, {
+        onProgress: (p) => setBgProgress(p),
+      });
+      await replaceImageOnCanvas(canvas.current, active, newSrc);
+    } catch {
+      toaster.show(
+        t('bg_remove_failed', 'Usuwanie tła nie powiodło się'),
+        'warning'
+      );
+    } finally {
+      setRemovingBg(false);
+      setBgProgress(0);
+    }
+  }, [canvas, removingBg, toaster, t]);
 
   const addText = useCallback(() => {
     if (!canvas.current) return;
@@ -302,6 +345,22 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
                 e.target.value = '';
               }}
             />
+
+            <button
+              onClick={removeImageBackground}
+              disabled={removingBg}
+              className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors disabled:opacity-50 disabled:cursor-wait"
+            >
+              {removingBg
+                ? `${t('bg_remove_loading', 'Usuwanie…')} ${Math.round(bgProgress * 100)}%`
+                : `✂ ${t('bg_remove_button', 'Usuń tło')}`}
+            </button>
+            <p className="text-[10px] text-textColor/40 leading-snug">
+              {t(
+                'bg_remove_hint',
+                'Zaznacz obraz, kliknij. Pierwsze uruchomienie pobiera model AI (~30MB), kolejne są szybsze.'
+              )}
+            </p>
           </div>
         )}
 
