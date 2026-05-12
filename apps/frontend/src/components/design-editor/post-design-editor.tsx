@@ -6,6 +6,7 @@ import { useEditorStore, PLATFORM_SIZES, PlatformSize } from './editor.store';
 import { EditorToolbar } from './toolbar/editor-toolbar';
 import { FormatBar } from './toolbar/format-bar';
 import { WelcomeModal } from './welcome-modal';
+import { repositionObjectFromTo } from './utils/multi-format-renderer';
 import './fonts';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
@@ -59,6 +60,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
   const isRestoringRef = useRef(false);
   const saveStateRef = useRef<(() => void) | null>(null);
+  const prevPlatformRef = useRef(platform);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -76,6 +78,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
     c.setZoom(scale);
     fabricRef.current = c;
+    prevPlatformRef.current = p;
     setCanvasReady(true);
 
     const saveState = () => {
@@ -95,7 +98,31 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       setCanvasReady(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [platform.key]);
+  }, []);
+
+  useEffect(() => {
+    const c = fabricRef.current;
+    if (!c) return;
+    if (prevPlatformRef.current.key === platform.key) return;
+
+    const prev = prevPlatformRef.current;
+    const next = platform;
+
+    isRestoringRef.current = true;
+    c.getObjects().forEach((obj) =>
+      repositionObjectFromTo(obj, prev.width, prev.height, next.width, next.height)
+    );
+
+    const newScale = getScale(next);
+    c.setDimensions({ width: next.width * newScale, height: next.height * newScale });
+    c.setZoom(newScale);
+    c.renderAll();
+
+    prevPlatformRef.current = next;
+    isRestoringRef.current = false;
+
+    saveStateRef.current?.();
+  }, [platform, getScale]);
 
   const restoreState = useCallback((json: string | null) => {
     if (!json || !fabricRef.current || !saveStateRef.current) return;
