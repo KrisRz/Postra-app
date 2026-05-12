@@ -720,6 +720,7 @@
   "tool_layers": "Warstwy",
   "tool_images": "Obrazy",
   "tool_ai": "AI Generuj",
+  "tool_templates": "Szablony",
   "tool_brand": "Marka",
 
   "holiday_upcoming": "Za",
@@ -752,6 +753,17 @@
   "bg_remove_no_image": "Zaznacz obraz na canvas",
   "bg_remove_failed": "Usuwanie tła nie powiodło się",
   "bg_remove_hint": "Zaznacz obraz, kliknij. Pierwsze uruchomienie pobiera model AI (~30MB), kolejne są szybsze.",
+
+  "tpl_cat_promo": "Promocja",
+  "tpl_cat_quote": "Cytat",
+  "tpl_cat_announcement": "Ogłoszenie",
+  "tpl_cat_stats": "Statystyki",
+  "tpl_cat_tip": "Tip",
+  "tpl_cat_event": "Wydarzenie",
+  "tpl_cat_community": "Społeczność",
+  "template_apply_failed": "Nie udało się zastosować szablonu",
+  "template_coming_soon": "Wkrótce więcej szablonów w tej kategorii",
+  "template_hint": "Szablon nadpisuje aktualny canvas. Możesz cofnąć przez Ctrl+Z.",
 
   "icon_search_placeholder": "Szukaj ikony…",
   "icon_no_results": "Brak wyników",

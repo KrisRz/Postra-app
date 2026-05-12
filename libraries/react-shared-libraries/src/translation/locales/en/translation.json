@@ -722,6 +722,7 @@
   "tool_layers": "Layers",
   "tool_images": "Images",
   "tool_ai": "AI Generate",
+  "tool_templates": "Templates",
   "tool_brand": "Brand Kit",
 
   "holiday_upcoming": "In",
@@ -754,6 +755,17 @@
   "bg_remove_no_image": "Select an image on canvas first",
   "bg_remove_failed": "Background removal failed",
   "bg_remove_hint": "Select image, click. First run downloads AI model (~30MB), subsequent runs are faster.",
+
+  "tpl_cat_promo": "Promo",
+  "tpl_cat_quote": "Quote",
+  "tpl_cat_announcement": "Announcement",
+  "tpl_cat_stats": "Stats",
+  "tpl_cat_tip": "Tip",
+  "tpl_cat_event": "Event",
+  "tpl_cat_community": "Community",
+  "template_apply_failed": "Could not apply template",
+  "template_coming_soon": "More templates coming soon in this category",
+  "template_hint": "Template overwrites current canvas. Undo with Ctrl+Z.",
 
   "icon_search_placeholder": "Search icon…",
   "icon_no_results": "No results",
