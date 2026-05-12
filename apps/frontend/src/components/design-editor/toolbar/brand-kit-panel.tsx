@@ -128,6 +128,18 @@ export const BrandKitPanel: FC = () => {
         )}
       </div>
 
+      <div className="rounded-md bg-forth/10 border border-forth/30 p-2.5 text-[11px] leading-relaxed text-textColor/85">
+        <div className="font-semibold mb-1">
+          {t('brand_kit_intro_title', '💡 Co robi Brand Kit?')}
+        </div>
+        <p>
+          {t(
+            'brand_kit_intro_body',
+            'Twoje kolory, font, ton i logo są automatycznie zastosowane przy ✨ AI Generuj. Ustaw raz, używa się zawsze. Logo trafia bottom-right na każdą AI grafikę.'
+          )}
+        </p>
+      </div>
+
       <div className="flex flex-col gap-2">
         <ColorRow
           label={t('color_primary', 'Primary')}
