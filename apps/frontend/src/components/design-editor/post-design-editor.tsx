@@ -5,6 +5,7 @@ import * as fabric from 'fabric';
 import { useEditorStore, PLATFORM_SIZES, PlatformSize } from './editor.store';
 import { EditorToolbar } from './toolbar/editor-toolbar';
 import { FormatBar } from './toolbar/format-bar';
+import './fonts';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
