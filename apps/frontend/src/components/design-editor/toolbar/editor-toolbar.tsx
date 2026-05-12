@@ -10,6 +10,7 @@ import { AiGeneratePanel } from './ai-generate-panel';
 import { BrandKitPanel } from './brand-kit-panel';
 import { IconsPanel } from './icons-panel';
 import { LayersPanel } from './layers-panel';
+import { TemplatesPanel } from './templates-panel';
 import { STUDIO_FONTS, DEFAULT_FONT, findFontByFamily } from '../fonts';
 import {
   removeBackgroundFromImage,
@@ -23,6 +24,7 @@ interface ToolbarProps {
 
 const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string }[] = [
   { key: 'ai', icon: '✨', labelKey: 'tool_ai', fallback: 'AI Generate' },
+  { key: 'templates', icon: '📐', labelKey: 'tool_templates', fallback: 'Szablony' },
   { key: 'brand', icon: '🎨', labelKey: 'tool_brand', fallback: 'Brand Kit' },
   { key: 'select', icon: '↖', labelKey: 'tool_select', fallback: 'Select' },
   { key: 'text', icon: 'T', labelKey: 'tool_text', fallback: 'Text' },
@@ -251,6 +253,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {activeTool === 'brand' && <BrandKitPanel />}
 
         {activeTool === 'icons' && <IconsPanel canvas={canvas} />}
+
+        {activeTool === 'templates' && <TemplatesPanel canvas={canvas} />}
 
         {activeTool === 'layers' && <LayersPanel canvas={canvas} />}
 
