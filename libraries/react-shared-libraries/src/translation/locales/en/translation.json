@@ -703,6 +703,18 @@
   "export_failed": "Export failed. Please try again.",
   "format": "Format",
 
+  "multi_format_button": "All formats",
+  "multi_format_hint": "Generate 7 variants for all platforms",
+  "multi_format_title": "Export to all platforms",
+  "multi_format_rendering": "Rendering",
+  "multi_format_download_zip": "Download all (ZIP)",
+  "multi_format_add_to_post": "Add all to post",
+  "multi_format_download_one": "Download",
+  "multi_format_cancel": "Cancel",
+  "multi_format_error": "Rendering failed. Try again.",
+  "multi_format_uploading": "Uploading",
+
+
   "tool_select": "Select",
   "tool_text": "Text",
   "tool_shapes": "Shapes",

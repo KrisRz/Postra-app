@@ -701,6 +701,18 @@
   "export_failed": "Eksport nie powiódł się. Spróbuj ponownie.",
   "format": "Format",
 
+  "multi_format_button": "Wszystkie formaty",
+  "multi_format_hint": "Wygeneruj 7 wariantów dla wszystkich platform",
+  "multi_format_title": "Eksportuj do wszystkich platform",
+  "multi_format_rendering": "Renderowanie",
+  "multi_format_download_zip": "Pobierz wszystkie (ZIP)",
+  "multi_format_add_to_post": "Dodaj wszystkie do posta",
+  "multi_format_download_one": "Pobierz",
+  "multi_format_cancel": "Anuluj",
+  "multi_format_error": "Renderowanie nie powiodło się. Spróbuj ponownie.",
+  "multi_format_uploading": "Przesyłanie",
+
+
   "tool_select": "Zaznacz",
   "tool_text": "Tekst",
   "tool_shapes": "Kształty",
