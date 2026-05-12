@@ -749,6 +749,12 @@
   "layers_empty": "No layers. Add text, shape or image first.",
   "layers_hint": "Drag a layer to reorder.",
 
+  "bg_remove_button": "Remove background",
+  "bg_remove_loading": "Removing…",
+  "bg_remove_no_image": "Select an image on canvas first",
+  "bg_remove_failed": "Background removal failed",
+  "bg_remove_hint": "Select image, click. First run downloads AI model (~30MB), subsequent runs are faster.",
+
   "icon_search_placeholder": "Search icon…",
   "icon_no_results": "No results",
   "icon_add_failed": "Failed to add icon",

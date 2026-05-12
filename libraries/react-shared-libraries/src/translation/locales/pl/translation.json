@@ -747,6 +747,12 @@
   "layers_empty": "Brak warstw. Dodaj tekst, kształt lub obraz.",
   "layers_hint": "Przeciągnij warstwę aby zmienić kolejność.",
 
+  "bg_remove_button": "Usuń tło",
+  "bg_remove_loading": "Usuwanie…",
+  "bg_remove_no_image": "Zaznacz obraz na canvas",
+  "bg_remove_failed": "Usuwanie tła nie powiodło się",
+  "bg_remove_hint": "Zaznacz obraz, kliknij. Pierwsze uruchomienie pobiera model AI (~30MB), kolejne są szybsze.",
+
   "icon_search_placeholder": "Szukaj ikony…",
   "icon_no_results": "Brak wyników",
   "icon_add_failed": "Nie udało się dodać ikony",
