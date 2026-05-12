@@ -765,6 +765,16 @@
   "template_coming_soon": "Wkrótce więcej szablonów w tej kategorii",
   "template_hint": "Szablon nadpisuje aktualny canvas. Możesz cofnąć przez Ctrl+Z.",
 
+  "welcome_title": "Witaj w Studio",
+  "welcome_subtitle": "Twórz grafiki na social media w sekundy. Od czego chcesz zacząć?",
+  "welcome_cta_templates": "Zacznij od szablonu",
+  "welcome_desc_templates": "Wybierz z gotowych projektów PL i dostosuj",
+  "welcome_cta_ai": "Wygeneruj AI",
+  "welcome_desc_ai": "Opisz pomysł, AI stworzy projekt z tłem i tekstem",
+  "welcome_cta_blank": "Pusty canvas",
+  "welcome_desc_blank": "Zacznij od zera, dodaj swoje elementy",
+  "welcome_close": "Zamknij",
+
   "icon_search_placeholder": "Szukaj ikony…",
   "icon_no_results": "Brak wyników",
   "icon_add_failed": "Nie udało się dodać ikony",

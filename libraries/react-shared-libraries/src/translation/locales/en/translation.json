@@ -767,6 +767,16 @@
   "template_coming_soon": "More templates coming soon in this category",
   "template_hint": "Template overwrites current canvas. Undo with Ctrl+Z.",
 
+  "welcome_title": "Welcome to Studio",
+  "welcome_subtitle": "Create social media graphics in seconds. Where do you want to start?",
+  "welcome_cta_templates": "Start from template",
+  "welcome_desc_templates": "Pick a ready-made PL design and customise",
+  "welcome_cta_ai": "Generate with AI",
+  "welcome_desc_ai": "Describe an idea, AI creates a design with background and text",
+  "welcome_cta_blank": "Blank canvas",
+  "welcome_desc_blank": "Start from scratch, add your own elements",
+  "welcome_close": "Close",
+
   "icon_search_placeholder": "Search icon…",
   "icon_no_results": "No results",
   "icon_add_failed": "Failed to add icon",
