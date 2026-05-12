@@ -729,6 +729,7 @@
   "holiday_post_prefix": "Post na",
   "holiday_suggestions": "Nadchodzące święta",
   "holiday_or_custom": "Lub wpisz własny pomysł niżej — to tylko sugestie.",
+  "ai_generate_warning": "AI tworzy nowy projekt i zastępuje obecny canvas. Aby zachować szablon, generuj na pustym canvas albo edytuj ręcznie po wygenerowaniu.",
 
   "font_label": "Czcionka",
   "text_add": "Dodaj tekst",

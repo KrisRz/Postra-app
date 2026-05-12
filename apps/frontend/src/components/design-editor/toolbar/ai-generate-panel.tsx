@@ -142,6 +142,13 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
           ? t('ai_generating', 'Generating…')
           : t('ai_generate_button', '✨ Generate Design')}
       </Button>
+      <div className="rounded-md bg-yellow-500/10 border border-yellow-500/30 px-2 py-1.5 text-[10px] leading-snug text-textColor/80">
+        ⚠️{' '}
+        {t(
+          'ai_generate_warning',
+          'AI tworzy nowy projekt i zastępuje obecny canvas. Aby zachować szablon, generuj na pustym canvas albo edytuj ręcznie po wygenerowaniu.'
+        )}
+      </div>
       <p className="text-[10px] text-textColor/40 leading-snug">
         {t(
           'ai_generate_hint',

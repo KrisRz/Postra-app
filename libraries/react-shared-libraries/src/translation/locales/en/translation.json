@@ -731,6 +731,7 @@
   "holiday_post_prefix": "Post about",
   "holiday_suggestions": "Upcoming holidays",
   "holiday_or_custom": "Or type your own idea below — these are just suggestions.",
+  "ai_generate_warning": "AI creates a new design and replaces the current canvas. To keep a template, generate on an empty canvas or edit manually after generation.",
 
   "font_label": "Font",
   "text_add": "Add text",
