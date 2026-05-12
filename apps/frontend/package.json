@@ -14,6 +14,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "geist": "^1.7.0"
+    "@fontsource/bebas-neue": "^5.2.7",
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@fontsource/lato": "^5.2.7",
+    "@fontsource/playfair-display": "^5.2.8",
+    "@imgly/background-removal": "^1.7.0",
+    "@tabler/icons-react": "^3.44.0",
+    "geist": "^1.7.0",
+    "jszip": "^3.10.1"
   }
 }

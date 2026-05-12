@@ -1,14 +1,20 @@
 'use client';
 
-import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import * as fabric from 'fabric';
 import { useEditorStore, PLATFORM_SIZES, PlatformSize } from './editor.store';
 import { EditorToolbar } from './toolbar/editor-toolbar';
 import { FormatBar } from './toolbar/format-bar';
+import { WelcomeModal } from './welcome-modal';
+import './fonts';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Button } from '@gitroom/react/form/button';
+
+const MultiFormatModal = lazy(() =>
+  import('./multi-format-modal').then((m) => ({ default: m.MultiFormatModal }))
+);
 
 const HISTORY_EVENTS = ['object:modified', 'object:added', 'object:removed'] as const;
 
@@ -32,6 +38,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [multiFormatOpen, setMultiFormatOpen] = useState(false);
   const fetch = useFetch();
   const toaster = useToaster();
   const t = useT();
@@ -237,6 +244,13 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
               >
                 ⬇ {t('download_png', 'Pobierz PNG')}
               </button>
+              <button
+                onClick={() => setMultiFormatOpen(true)}
+                className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
+                title={t('multi_format_hint', 'Wygeneruj 7 wariantów dla wszystkich platform')}
+              >
+                📐 {t('multi_format_button', 'Wszystkie formaty')}
+              </button>
               {mode === 'composer' && (
                 <Button
                   loading={exporting}
@@ -258,6 +272,22 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
           <FormatBar />
         </div>
       </div>
+
+      {multiFormatOpen && (
+        <Suspense fallback={null}>
+          <MultiFormatModal
+            canvasRef={fabricRef}
+            srcWidth={platform.width}
+            srcHeight={platform.height}
+            mode={mode}
+            setMedia={setMedia}
+            onClose={() => setMultiFormatOpen(false)}
+            closeParent={closeModal}
+          />
+        </Suspense>
+      )}
+
+      <WelcomeModal />
     </div>
   );
 };

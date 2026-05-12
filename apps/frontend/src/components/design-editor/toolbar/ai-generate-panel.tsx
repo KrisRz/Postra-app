@@ -4,6 +4,10 @@ import { FC, MutableRefObject, useCallback } from 'react';
 import * as fabric from 'fabric';
 import { useEditorStore } from '../editor.store';
 import { renderDesignSpec, PostDesignSpec } from '../utils/canvas-renderer';
+import {
+  usePolishHolidays,
+  getUpcomingHoliday,
+} from '../utils/polish-holidays';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -28,6 +32,8 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const t = useT();
   const user = useUser();
   const allowed = !!user?.tier?.image_generator;
+  const holidays = usePolishHolidays();
+  const upcoming = getUpcomingHoliday(holidays);
 
   const generate = useCallback(async () => {
     if (!canvas.current) return;
@@ -83,6 +89,23 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       <span className="text-[10px] uppercase tracking-wide text-textColor/60">
         {t('ai_generate', 'AI Generate')}
       </span>
+      {upcoming && (
+        <button
+          onClick={() =>
+            setAiPrompt(
+              `${t('holiday_post_prefix', 'Post na')} ${upcoming.holiday.localName}`
+            )
+          }
+          disabled={isGenerating}
+          className="text-left text-[11px] px-2 py-1.5 rounded bg-newColColor/60 hover:bg-newColColor border border-newBorder/50 text-textColor/80 hover:text-textColor transition-colors disabled:opacity-50"
+        >
+          🗓 {t('holiday_upcoming', 'Za')} {upcoming.days}{' '}
+          {upcoming.days === 1
+            ? t('holiday_day', 'dzień')
+            : t('holiday_days', 'dni')}
+          : <strong>{upcoming.holiday.localName}</strong>
+        </button>
+      )}
       <textarea
         value={aiPrompt}
         onChange={(e) => setAiPrompt(e.target.value)}

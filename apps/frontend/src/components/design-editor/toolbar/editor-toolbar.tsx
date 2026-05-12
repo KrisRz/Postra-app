@@ -8,6 +8,14 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { AiGeneratePanel } from './ai-generate-panel';
 import { BrandKitPanel } from './brand-kit-panel';
+import { IconsPanel } from './icons-panel';
+import { LayersPanel } from './layers-panel';
+import { TemplatesPanel } from './templates-panel';
+import { STUDIO_FONTS, DEFAULT_FONT, findFontByFamily } from '../fonts';
+import {
+  removeBackgroundFromImage,
+  replaceImageOnCanvas,
+} from '../utils/background-removal';
 import clsx from 'clsx';
 
 interface ToolbarProps {
@@ -16,11 +24,14 @@ interface ToolbarProps {
 
 const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string }[] = [
   { key: 'ai', icon: '✨', labelKey: 'tool_ai', fallback: 'AI Generate' },
+  { key: 'templates', icon: '📐', labelKey: 'tool_templates', fallback: 'Szablony' },
   { key: 'brand', icon: '🎨', labelKey: 'tool_brand', fallback: 'Brand Kit' },
   { key: 'select', icon: '↖', labelKey: 'tool_select', fallback: 'Select' },
   { key: 'text', icon: 'T', labelKey: 'tool_text', fallback: 'Text' },
   { key: 'shapes', icon: '◻', labelKey: 'tool_shapes', fallback: 'Shapes' },
+  { key: 'icons', icon: '🎯', labelKey: 'tool_icons', fallback: 'Ikony' },
   { key: 'images', icon: '🖼', labelKey: 'tool_images', fallback: 'Images' },
+  { key: 'layers', icon: '📚', labelKey: 'tool_layers', fallback: 'Warstwy' },
 ];
 
 export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
@@ -30,6 +41,48 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   const toaster = useToaster();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [defaultFontFamily, setDefaultFontFamily] = useState<string>(
+    DEFAULT_FONT.family
+  );
+  const [removingBg, setRemovingBg] = useState(false);
+  const [bgProgress, setBgProgress] = useState(0);
+
+  const removeImageBackground = useCallback(async () => {
+    if (!canvas.current || removingBg) return;
+    const active = canvas.current.getActiveObject();
+    if (!active || !(active instanceof fabric.FabricImage)) {
+      toaster.show(
+        t('bg_remove_no_image', 'Zaznacz obraz na canvas'),
+        'warning'
+      );
+      return;
+    }
+    const sourceEl = active.getElement();
+    if (!(sourceEl instanceof HTMLImageElement)) {
+      toaster.show(
+        t('bg_remove_no_image', 'Zaznacz obraz na canvas'),
+        'warning'
+      );
+      return;
+    }
+
+    setRemovingBg(true);
+    setBgProgress(0);
+    try {
+      const newSrc = await removeBackgroundFromImage(sourceEl, {
+        onProgress: (p) => setBgProgress(p),
+      });
+      await replaceImageOnCanvas(canvas.current, active, newSrc);
+    } catch {
+      toaster.show(
+        t('bg_remove_failed', 'Usuwanie tła nie powiodło się'),
+        'warning'
+      );
+    } finally {
+      setRemovingBg(false);
+      setBgProgress(0);
+    }
+  }, [canvas, removingBg, toaster, t]);
 
   const addText = useCallback(() => {
     if (!canvas.current) return;
@@ -40,7 +93,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       top: cy,
       width: 300,
       fontSize: 48,
-      fontFamily: 'Geist, sans-serif',
+      fontFamily: defaultFontFamily,
       fill: '#ffffff',
       textAlign: 'center',
       editable: true,
@@ -48,7 +101,24 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     canvas.current.add(text);
     canvas.current.setActiveObject(text);
     canvas.current.renderAll();
-  }, [canvas]);
+  }, [canvas, defaultFontFamily]);
+
+  const applyFontToSelection = useCallback(
+    (family: string) => {
+      setDefaultFontFamily(family);
+      if (!canvas.current) return;
+      const active = canvas.current.getActiveObjects();
+      let touched = false;
+      active.forEach((obj) => {
+        if (obj instanceof fabric.Textbox || obj instanceof fabric.IText) {
+          obj.set({ fontFamily: family });
+          touched = true;
+        }
+      });
+      if (touched) canvas.current.renderAll();
+    },
+    [canvas]
+  );
 
   const addShape = useCallback(
     (type: 'rect' | 'circle' | 'line') => {
@@ -150,10 +220,11 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
 
   const handleToolClick = useCallback(
     (tool: EditorTool) => {
+      const wasActive = activeTool === tool;
       setTool(tool);
-      if (tool === 'text') addText();
+      if (tool === 'text' && !wasActive) addText();
     },
-    [setTool, addText]
+    [activeTool, setTool, addText]
   );
 
   return (
@@ -180,6 +251,47 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {activeTool === 'ai' && <AiGeneratePanel canvas={canvas} />}
 
         {activeTool === 'brand' && <BrandKitPanel />}
+
+        {activeTool === 'icons' && <IconsPanel canvas={canvas} />}
+
+        {activeTool === 'templates' && <TemplatesPanel canvas={canvas} />}
+
+        {activeTool === 'layers' && <LayersPanel canvas={canvas} />}
+
+        {activeTool === 'text' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
+              {t('font_label', 'Czcionka')}
+            </span>
+            <select
+              value={findFontByFamily(defaultFontFamily).family}
+              onChange={(e) => applyFontToSelection(e.target.value)}
+              className="text-xs px-2 py-1.5 rounded bg-newColColor text-textColor border border-newBorder focus:outline-none focus:border-forth"
+            >
+              {STUDIO_FONTS.map((font) => (
+                <option
+                  key={font.key}
+                  value={font.family}
+                  style={{ fontFamily: font.family }}
+                >
+                  {font.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={addText}
+              className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors"
+            >
+              + {t('text_add', 'Dodaj tekst')}
+            </button>
+            <p className="text-[10px] text-textColor/40 leading-snug">
+              {t(
+                'text_font_hint',
+                'Wybierz czcionkę dla nowego tekstu. Aby zmienić istniejący — zaznacz tekst i wybierz czcionkę.'
+              )}
+            </p>
+          </div>
+        )}
 
         {activeTool === 'shapes' && (
           <div className="flex flex-col gap-2">
@@ -237,6 +349,22 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
                 e.target.value = '';
               }}
             />
+
+            <button
+              onClick={removeImageBackground}
+              disabled={removingBg}
+              className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors disabled:opacity-50 disabled:cursor-wait"
+            >
+              {removingBg
+                ? `${t('bg_remove_loading', 'Usuwanie…')} ${Math.round(bgProgress * 100)}%`
+                : `✂ ${t('bg_remove_button', 'Usuń tło')}`}
+            </button>
+            <p className="text-[10px] text-textColor/40 leading-snug">
+              {t(
+                'bg_remove_hint',
+                'Zaznacz obraz, kliknij. Pierwsze uruchomienie pobiera model AI (~30MB), kolejne są szybsze.'
+              )}
+            </p>
           </div>
         )}
 
