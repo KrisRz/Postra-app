@@ -721,6 +721,15 @@
   "tool_ai": "AI Generuj",
   "tool_brand": "Marka",
 
+  "holiday_upcoming": "Za",
+  "holiday_day": "dzień",
+  "holiday_days": "dni",
+  "holiday_post_prefix": "Post na",
+
+  "font_label": "Czcionka",
+  "text_add": "Dodaj tekst",
+  "text_font_hint": "Wybierz czcionkę dla nowego tekstu. Aby zmienić istniejący — zaznacz tekst i wybierz czcionkę.",
+
   "icon_search_placeholder": "Szukaj ikony…",
   "icon_no_results": "Brak wyników",
   "icon_add_failed": "Nie udało się dodać ikony",

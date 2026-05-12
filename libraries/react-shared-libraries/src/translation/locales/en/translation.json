@@ -723,6 +723,15 @@
   "tool_ai": "AI Generate",
   "tool_brand": "Brand Kit",
 
+  "holiday_upcoming": "In",
+  "holiday_day": "day",
+  "holiday_days": "days",
+  "holiday_post_prefix": "Post about",
+
+  "font_label": "Font",
+  "text_add": "Add text",
+  "text_font_hint": "Pick a font for new text. To change existing text — select it and pick a font.",
+
   "icon_search_placeholder": "Search icon…",
   "icon_no_results": "No results",
   "icon_add_failed": "Failed to add icon",
