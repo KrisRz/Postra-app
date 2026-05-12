@@ -9,6 +9,7 @@ import { useToaster } from '@gitroom/react/toaster/toaster';
 import { AiGeneratePanel } from './ai-generate-panel';
 import { BrandKitPanel } from './brand-kit-panel';
 import { IconsPanel } from './icons-panel';
+import { LayersPanel } from './layers-panel';
 import { STUDIO_FONTS, DEFAULT_FONT, findFontByFamily } from '../fonts';
 import clsx from 'clsx';
 
@@ -24,6 +25,7 @@ const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string
   { key: 'shapes', icon: '◻', labelKey: 'tool_shapes', fallback: 'Shapes' },
   { key: 'icons', icon: '🎯', labelKey: 'tool_icons', fallback: 'Ikony' },
   { key: 'images', icon: '🖼', labelKey: 'tool_images', fallback: 'Images' },
+  { key: 'layers', icon: '📚', labelKey: 'tool_layers', fallback: 'Warstwy' },
 ];
 
 export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
@@ -206,6 +208,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {activeTool === 'brand' && <BrandKitPanel />}
 
         {activeTool === 'icons' && <IconsPanel canvas={canvas} />}
+
+        {activeTool === 'layers' && <LayersPanel canvas={canvas} />}
 
         {activeTool === 'text' && (
           <div className="flex flex-col gap-2">
