@@ -8,6 +8,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { AiGeneratePanel } from './ai-generate-panel';
 import { BrandKitPanel } from './brand-kit-panel';
+import { IconsPanel } from './icons-panel';
 import clsx from 'clsx';
 
 interface ToolbarProps {
@@ -20,6 +21,7 @@ const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string
   { key: 'select', icon: '↖', labelKey: 'tool_select', fallback: 'Select' },
   { key: 'text', icon: 'T', labelKey: 'tool_text', fallback: 'Text' },
   { key: 'shapes', icon: '◻', labelKey: 'tool_shapes', fallback: 'Shapes' },
+  { key: 'icons', icon: '🎯', labelKey: 'tool_icons', fallback: 'Ikony' },
   { key: 'images', icon: '🖼', labelKey: 'tool_images', fallback: 'Images' },
 ];
 
@@ -180,6 +182,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {activeTool === 'ai' && <AiGeneratePanel canvas={canvas} />}
 
         {activeTool === 'brand' && <BrandKitPanel />}
+
+        {activeTool === 'icons' && <IconsPanel canvas={canvas} />}
 
         {activeTool === 'shapes' && (
           <div className="flex flex-col gap-2">
