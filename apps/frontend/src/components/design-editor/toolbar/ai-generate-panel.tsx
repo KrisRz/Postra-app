@@ -6,7 +6,7 @@ import { useEditorStore } from '../editor.store';
 import { renderDesignSpec, PostDesignSpec } from '../utils/canvas-renderer';
 import {
   usePolishHolidays,
-  getUpcomingHoliday,
+  getUpcomingHolidays,
 } from '../utils/polish-holidays';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
@@ -33,7 +33,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const user = useUser();
   const allowed = !!user?.tier?.image_generator;
   const holidays = usePolishHolidays();
-  const upcoming = getUpcomingHoliday(holidays);
+  const upcoming = getUpcomingHolidays(holidays, 3, 120);
 
   const generate = useCallback(async () => {
     if (!canvas.current) return;
@@ -89,22 +89,38 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       <span className="text-[10px] uppercase tracking-wide text-textColor/60">
         {t('ai_generate', 'AI Generate')}
       </span>
-      {upcoming && (
-        <button
-          onClick={() =>
-            setAiPrompt(
-              `${t('holiday_post_prefix', 'Post na')} ${upcoming.holiday.localName}`
-            )
-          }
-          disabled={isGenerating}
-          className="text-left text-[11px] px-2 py-1.5 rounded bg-newColColor/60 hover:bg-newColColor border border-newBorder/50 text-textColor/80 hover:text-textColor transition-colors disabled:opacity-50"
-        >
-          🗓 {t('holiday_upcoming', 'Za')} {upcoming.days}{' '}
-          {upcoming.days === 1
-            ? t('holiday_day', 'dzień')
-            : t('holiday_days', 'dni')}
-          : <strong>{upcoming.holiday.localName}</strong>
-        </button>
+      {upcoming.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] uppercase tracking-wide text-textColor/50">
+            🗓 {t('holiday_suggestions', 'Nadchodzące święta')}
+          </span>
+          <div className="flex flex-col gap-1">
+            {upcoming.map((entry) => (
+              <button
+                key={entry.holiday.date}
+                onClick={() =>
+                  setAiPrompt(
+                    `${t('holiday_post_prefix', 'Post na')} ${entry.holiday.localName}`
+                  )
+                }
+                disabled={isGenerating}
+                className="text-left text-[11px] px-2 py-1.5 rounded bg-newColColor/60 hover:bg-newColColor border border-newBorder/50 text-textColor/80 hover:text-textColor transition-colors disabled:opacity-50"
+              >
+                {t('holiday_upcoming', 'Za')} {entry.days}{' '}
+                {entry.days === 1
+                  ? t('holiday_day', 'dzień')
+                  : t('holiday_days', 'dni')}
+                : <strong>{entry.holiday.localName}</strong>
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-textColor/40 leading-snug">
+            {t(
+              'holiday_or_custom',
+              'Lub wpisz własny pomysł niżej — to tylko sugestie.'
+            )}
+          </p>
+        </div>
       )}
       <textarea
         value={aiPrompt}
