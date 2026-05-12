@@ -729,6 +729,8 @@
   "holiday_day": "day",
   "holiday_days": "days",
   "holiday_post_prefix": "Post about",
+  "holiday_suggestions": "Upcoming holidays",
+  "holiday_or_custom": "Or type your own idea below — these are just suggestions.",
 
   "font_label": "Font",
   "text_add": "Add text",
@@ -755,6 +757,9 @@
   "bg_remove_no_image": "Select an image on canvas first",
   "bg_remove_failed": "Background removal failed",
   "bg_remove_hint": "Select image, click. First run downloads AI model (~30MB), subsequent runs are faster.",
+
+  "brand_kit_intro_title": "💡 What does Brand Kit do?",
+  "brand_kit_intro_body": "Your colors, font, tone and logo are automatically applied to ✨ AI Generate. Set once, applies always. Logo goes bottom-right on every AI graphic.",
 
   "tpl_cat_promo": "Promo",
   "tpl_cat_quote": "Quote",

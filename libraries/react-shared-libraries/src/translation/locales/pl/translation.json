@@ -727,6 +727,8 @@
   "holiday_day": "dzień",
   "holiday_days": "dni",
   "holiday_post_prefix": "Post na",
+  "holiday_suggestions": "Nadchodzące święta",
+  "holiday_or_custom": "Lub wpisz własny pomysł niżej — to tylko sugestie.",
 
   "font_label": "Czcionka",
   "text_add": "Dodaj tekst",
@@ -753,6 +755,9 @@
   "bg_remove_no_image": "Zaznacz obraz na canvas",
   "bg_remove_failed": "Usuwanie tła nie powiodło się",
   "bg_remove_hint": "Zaznacz obraz, kliknij. Pierwsze uruchomienie pobiera model AI (~30MB), kolejne są szybsze.",
+
+  "brand_kit_intro_title": "💡 Co robi Brand Kit?",
+  "brand_kit_intro_body": "Twoje kolory, font, ton i logo są automatycznie zastosowane przy ✨ AI Generuj. Ustaw raz, używa się zawsze. Logo trafia bottom-right na każdą AI grafikę.",
 
   "tpl_cat_promo": "Promocja",
   "tpl_cat_quote": "Cytat",
