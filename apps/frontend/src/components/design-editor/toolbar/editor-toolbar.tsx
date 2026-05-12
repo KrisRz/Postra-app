@@ -228,20 +228,20 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   );
 
   return (
-    <div className="w-[180px] border-r border-newBorder flex flex-col bg-newBgColorInner h-full min-h-0">
+    <div className="w-[220px] border-r border-newBorder flex flex-col bg-newBgColorInner h-full min-h-0">
       <div className="flex flex-col gap-1 p-2 shrink-0">
         {TOOLS.map((tool) => (
           <button
             key={tool.key}
             onClick={() => handleToolClick(tool.key)}
             className={clsx(
-              'flex items-center gap-2 px-3 py-2 rounded-md text-xs transition-colors text-left',
+              'flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors text-left',
               activeTool === tool.key
                 ? 'bg-forth text-white'
                 : 'text-textColor hover:bg-newColColor'
             )}
           >
-            <span className="w-5 text-center text-sm">{tool.icon}</span>
+            <span className="w-5 text-center text-base">{tool.icon}</span>
             <span>{t(tool.labelKey, tool.fallback)}</span>
           </button>
         ))}
