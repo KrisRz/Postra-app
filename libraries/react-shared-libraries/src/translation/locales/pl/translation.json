@@ -655,7 +655,9 @@
   "post_preview": "Podgląd wpisu",
   "check_circles_above": "Sprawdź kręgi powyżej",
   "create_output": "Utwórz dane wyjściowe",
-  "assistant_initial_message": "Cześć! Pomogę Ci udoskonalić Twoje posty w mediach społecznościowych.",
+  "assistant_title": "✨ Asystent AI",
+  "assistant_initial_message": "Cześć! 👋 Pomogę Ci napisać świetny post na social media. Powiedz mi o czym chcesz napisać, lub jeśli masz już draft — jak mam go poprawić.",
+  "assistant_instructions": "Jesteś asystentem AI do pisania postów social media po polsku.\n\nPomagasz użytkownikowi:\n- Napisać nowy post od zera (\"napisz post o time management dla LinkedIn\")\n- Przepisać / poprawić istniejący (\"zrób krótszy\", \"bardziej casual\", \"dodaj CTA\")\n- Dodać emoji i hashtagi\n- Dostosować ton (formalny, przyjazny, sprzedażowy, ekspercki)\n- Przetłumaczyć między PL i EN\n- Zaproponować warianty A/B\n\nFunkcje, które masz dostępne:\n- setPosts(content: string[]) — ustawia treść w composerze; każdy element to osobny post w wątku\n\nZasady:\n- Domyślnie odpowiadaj i pisz po polsku. Tylko jeśli user wyraźnie poprosi o angielski — pisz po angielsku.\n- Treść zwięzła, angażująca, zgodna z konwencjami platformy.\n- Instagram: emoji + 3-5 hashtagów\n- LinkedIn: profesjonalny ton + storytelling\n- X / Twitter: <280 znaków\n- TikTok / Reels: catchy hook na początku\n- Jeśli composer ma już draft (sprawdź 'Current content of posts' w czytanych danych), traktuj go jako punkt wyjścia do iteracji, nie wymazuj bez pytania.",
   "no_longer_global_mode": "Nie jest już w trybie globalnym",
   "two_days": "Dwa dni",
   "three_days": "Trzy dni",
@@ -727,6 +729,9 @@
   "holiday_day": "dzień",
   "holiday_days": "dni",
   "holiday_post_prefix": "Post na",
+  "holiday_suggestions": "Nadchodzące święta",
+  "holiday_or_custom": "Lub wpisz własny pomysł niżej — to tylko sugestie.",
+  "ai_generate_warning": "AI tworzy nowy projekt i zastępuje obecny canvas. Aby zachować szablon, generuj na pustym canvas albo edytuj ręcznie po wygenerowaniu.",
 
   "font_label": "Czcionka",
   "text_add": "Dodaj tekst",
@@ -753,6 +758,9 @@
   "bg_remove_no_image": "Zaznacz obraz na canvas",
   "bg_remove_failed": "Usuwanie tła nie powiodło się",
   "bg_remove_hint": "Zaznacz obraz, kliknij. Pierwsze uruchomienie pobiera model AI (~30MB), kolejne są szybsze.",
+
+  "brand_kit_intro_title": "💡 Co robi Brand Kit?",
+  "brand_kit_intro_body": "Twoje kolory, font, ton i logo są automatycznie zastosowane przy ✨ AI Generuj. Ustaw raz, używa się zawsze. Logo trafia bottom-right na każdą AI grafikę.",
 
   "tpl_cat_promo": "Promocja",
   "tpl_cat_quote": "Cytat",

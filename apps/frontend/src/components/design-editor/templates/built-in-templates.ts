@@ -61,13 +61,14 @@ const promoModern: DesignTemplate = {
 
     addTextbox(canvas, 'PROMOCJA', {
       left: cx,
-      top: p.height * 0.04,
+      top: p.height * 0.045,
       width: p.width * 0.9,
-      fontSize: p.width * 0.05,
+      fontSize: p.width * 0.045,
       fill: brand.background,
       originX: 'center',
+      textAlign: 'center',
       fontWeight: 'bold',
-      charSpacing: 320,
+      charSpacing: 80,
       fontFamily: brand.fontFamily,
     });
 
@@ -190,8 +191,9 @@ const announcementBold: DesignTemplate = {
       width: p.width * 0.5,
       fontSize: p.width * 0.04,
       fill: brand.primary,
+      textAlign: 'left',
       fontWeight: 'bold',
-      charSpacing: 160,
+      charSpacing: 80,
       fontFamily: brand.fontFamily,
     });
 
@@ -373,7 +375,8 @@ const eventDate: DesignTemplate = {
       fontSize: p.width * 0.03,
       fill: brand.text,
       originX: 'center',
-      charSpacing: 160,
+      textAlign: 'center',
+      charSpacing: 100,
       fontFamily: brand.fontFamily,
     });
 

@@ -688,22 +688,35 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
       <CopilotPopup
         hitEscapeToClose={false}
         clickOutsideToClose={true}
-        instructions={`
-You are an assistant that help the user to schedule their social media posts,
-Here are the things you can do:
-- Add a new comment / post to the list of posts
-- Delete a comment / post from the list of posts
-- Add content to the comment / post
-- Activate or deactivate the comment / post
+        instructions={t(
+          'assistant_instructions',
+          `Jesteś asystentem AI do pisania postów social media po polsku.
 
-Post content can be added using the addPostContentFor{num} function.
-After using the addPostFor{num} it will create a new addPostContentFor{num+ 1} function.
-`}
+Pomagasz użytkownikowi:
+- Napisać nowy post od zera ("napisz post o time management dla LinkedIn")
+- Przepisać / poprawić istniejący ("zrób krótszy", "bardziej casual", "dodaj CTA")
+- Dodać emoji i hashtagi
+- Dostosować ton (formalny, przyjazny, sprzedażowy, ekspercki)
+- Przetłumaczyć między PL i EN
+- Zaproponować warianty A/B
+
+Funkcje, które masz dostępne:
+- setPosts(content: string[]) — ustawia treść w composerze; każdy element to osobny post w wątku
+
+Zasady:
+- Domyślnie odpowiadaj i pisz po polsku. Tylko jeśli user wyraźnie poprosi o angielski — pisz po angielsku.
+- Treść zwięzła, angażująca, zgodna z konwencjami platformy.
+- Instagram: emoji + 3-5 hashtagów
+- LinkedIn: profesjonalny ton + storytelling
+- X / Twitter: <280 znaków
+- TikTok / Reels: catchy hook na początku
+- Jeśli composer ma już draft (sprawdź "Current content of posts" w czytanych danych), traktuj go jako punkt wyjścia do iteracji, nie wymazuj bez pytania.`
+        )}
         labels={{
-          title: t('your_assistant', 'Your Assistant'),
+          title: t('assistant_title', '✨ Asystent AI'),
           initial: t(
             'assistant_initial_message',
-            'Hi! I can help you to refine your social media posts.'
+            'Cześć! 👋 Pomogę Ci napisać świetny post na social media. Powiedz mi o czym chcesz napisać, lub jeśli masz już draft — jak mam go poprawić.'
           ),
         }}
       />

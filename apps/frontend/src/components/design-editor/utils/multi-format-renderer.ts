@@ -38,64 +38,99 @@ const isBackground = (
   return w * h >= srcW * srcH * BG_COVERAGE_THRESHOLD;
 };
 
-const repositionObject = (
+const getEdges = (obj: fabric.Object) => {
+  const w = (obj.width || 0) * (obj.scaleX || 1);
+  const h = (obj.height || 0) * (obj.scaleY || 1);
+  const oX = obj.originX || 'left';
+  const oY = obj.originY || 'top';
+
+  let edgeLeft = obj.left || 0;
+  if (oX === 'center') edgeLeft -= w / 2;
+  else if (oX === 'right') edgeLeft -= w;
+
+  let edgeTop = obj.top || 0;
+  if (oY === 'center') edgeTop -= h / 2;
+  else if (oY === 'bottom') edgeTop -= h;
+
+  return { left: edgeLeft, top: edgeTop, width: w, height: h };
+};
+
+const applyEdges = (
+  obj: fabric.Object,
+  edgeLeft: number,
+  edgeTop: number,
+  width: number,
+  height: number
+) => {
+  const oX = obj.originX || 'left';
+  const oY = obj.originY || 'top';
+
+  let finalLeft = edgeLeft;
+  if (oX === 'center') finalLeft += width / 2;
+  else if (oX === 'right') finalLeft += width;
+
+  let finalTop = edgeTop;
+  if (oY === 'center') finalTop += height / 2;
+  else if (oY === 'bottom') finalTop += height;
+
+  obj.set({ left: finalLeft, top: finalTop });
+};
+
+export const repositionObjectFromTo = (
   obj: fabric.Object,
   srcW: number,
   srcH: number,
   dstW: number,
   dstH: number
 ): void => {
-  const objW = (obj.width || 0) * (obj.scaleX || 1);
-  const objH = (obj.height || 0) * (obj.scaleY || 1);
-  const left = obj.left || 0;
-  const top = obj.top || 0;
+  const bounds = getEdges(obj);
 
   if (isBackground(obj, srcW, srcH)) {
-    const coverScale = Math.max(dstW / objW, dstH / objH);
+    const coverScale = Math.max(dstW / bounds.width, dstH / bounds.height);
     obj.set({
       scaleX: (obj.scaleX || 1) * coverScale,
       scaleY: (obj.scaleY || 1) * coverScale,
-      left: (dstW - objW * coverScale) / 2,
-      top: (dstH - objH * coverScale) / 2,
     });
+    const newW = bounds.width * coverScale;
+    const newH = bounds.height * coverScale;
+    applyEdges(obj, (dstW - newW) / 2, (dstH - newH) / 2, newW, newH);
     return;
   }
 
   const uniformScale = Math.min(dstW / srcW, dstH / srcH);
-  const newW = objW * uniformScale;
-  const newH = objH * uniformScale;
+  const newW = bounds.width * uniformScale;
+  const newH = bounds.height * uniformScale;
 
   const anchors: PositionAnchors = {
-    x: detectAnchor(left, objW, srcW),
-    y: detectAnchor(top, objH, srcH),
+    x: detectAnchor(bounds.left, bounds.width, srcW),
+    y: detectAnchor(bounds.top, bounds.height, srcH),
   };
 
-  let newLeft: number;
+  let newEdgeLeft: number;
   if (anchors.x === 'start') {
-    newLeft = (left / srcW) * dstW;
+    newEdgeLeft = (bounds.left / srcW) * dstW;
   } else if (anchors.x === 'end') {
-    const rightPad = srcW - (left + objW);
-    newLeft = dstW - newW - (rightPad / srcW) * dstW;
+    const rightPad = srcW - (bounds.left + bounds.width);
+    newEdgeLeft = dstW - newW - (rightPad / srcW) * dstW;
   } else {
-    newLeft = (dstW - newW) / 2;
+    newEdgeLeft = (dstW - newW) / 2;
   }
 
-  let newTop: number;
+  let newEdgeTop: number;
   if (anchors.y === 'start') {
-    newTop = (top / srcH) * dstH;
+    newEdgeTop = (bounds.top / srcH) * dstH;
   } else if (anchors.y === 'end') {
-    const bottomPad = srcH - (top + objH);
-    newTop = dstH - newH - (bottomPad / srcH) * dstH;
+    const bottomPad = srcH - (bounds.top + bounds.height);
+    newEdgeTop = dstH - newH - (bottomPad / srcH) * dstH;
   } else {
-    newTop = (dstH - newH) / 2;
+    newEdgeTop = (dstH - newH) / 2;
   }
 
   obj.set({
     scaleX: (obj.scaleX || 1) * uniformScale,
     scaleY: (obj.scaleY || 1) * uniformScale,
-    left: newLeft,
-    top: newTop,
   });
+  applyEdges(obj, newEdgeLeft, newEdgeTop, newW, newH);
 };
 
 export const renderCanvasAtSize = async (
@@ -118,7 +153,7 @@ export const renderCanvasAtSize = async (
   await c.loadFromJSON(canvasJson);
 
   c.getObjects().forEach((obj) =>
-    repositionObject(obj, srcW, srcH, target.width, target.height)
+    repositionObjectFromTo(obj, srcW, srcH, target.width, target.height)
   );
 
   c.renderAll();

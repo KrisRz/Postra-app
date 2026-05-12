@@ -102,3 +102,16 @@ export const getUpcomingHoliday = (
     .sort((a, b) => a.days - b.days)[0];
   return next || null;
 };
+
+export const getUpcomingHolidays = (
+  holidays: PolishHoliday[] | null,
+  count = 3,
+  withinDays = 120
+): { holiday: PolishHoliday; days: number }[] => {
+  if (!holidays || holidays.length === 0) return [];
+  return holidays
+    .map((h) => ({ holiday: h, days: daysUntil(h.date) }))
+    .filter((entry) => entry.days >= 0 && entry.days <= withinDays)
+    .sort((a, b) => a.days - b.days)
+    .slice(0, count);
+};
