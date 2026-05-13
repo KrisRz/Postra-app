@@ -466,14 +466,424 @@ const communityWelcome: DesignTemplate = {
   },
 };
 
+const promoBadge: DesignTemplate = {
+  key: 'promo-badge',
+  category: 'promo',
+  label: 'Promocja z odznaką',
+  description: 'Okrągła odznaka procentowa i tekst opisu',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addCircle(canvas, {
+      left: cx,
+      top: p.height * 0.32,
+      radius: p.width * 0.22,
+      fill: brand.primary,
+      originX: 'center',
+      originY: 'center',
+    });
+
+    addTextbox(canvas, '-30%', {
+      left: cx,
+      top: p.height * 0.32,
+      width: p.width * 0.45,
+      fontSize: p.width * 0.14,
+      fill: brand.background,
+      originX: 'center',
+      originY: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Tylko w ten weekend', {
+      left: cx,
+      top: p.height * 0.62,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.055,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Kod: WEEKEND30', {
+      left: cx,
+      top: p.height * 0.74,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.04,
+      fill: brand.primary,
+      originX: 'center',
+      charSpacing: 80,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const quoteMinimal: DesignTemplate = {
+  key: 'quote-minimal',
+  category: 'quote',
+  label: 'Cytat Minimalny',
+  description: 'Krótki cytat z dużą typografią',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, 'Mniej.\nAle lepiej.', {
+      left: cx,
+      top: p.height * 0.35,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.14,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      lineHeight: 1.0,
+      textAlign: 'center',
+      fontFamily: '"Bebas Neue", Impact, sans-serif',
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.72,
+      width: p.width * 0.08,
+      height: 3,
+      fill: brand.primary,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, '— Dieter Rams', {
+      left: cx,
+      top: p.height * 0.76,
+      width: p.width * 0.7,
+      fontSize: p.width * 0.03,
+      fill: brand.primary,
+      originX: 'center',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const announcementBanner: DesignTemplate = {
+  key: 'announcement-banner',
+  category: 'announcement',
+  label: 'Ogłoszenie Banner',
+  description: 'Pasek odznaki + duży tytuł',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.12,
+      width: p.width * 0.35,
+      height: p.height * 0.05,
+      fill: brand.primary,
+      rx: p.height * 0.025,
+      ry: p.height * 0.025,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, 'WAŻNE', {
+      left: cx,
+      top: p.height * 0.13,
+      width: p.width * 0.35,
+      fontSize: p.width * 0.028,
+      fill: brand.background,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Mamy świetne\nwiadomości', {
+      left: cx,
+      top: p.height * 0.32,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.11,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      lineHeight: 1.1,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Sprawdź szczegóły w komentarzu poniżej.', {
+      left: cx,
+      top: p.height * 0.7,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.04,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.75,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const statsComparison: DesignTemplate = {
+  key: 'stats-comparison',
+  category: 'stats',
+  label: 'Statystyki Porównanie',
+  description: 'Dwie liczby vs siebie',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+
+    addTextbox(canvas, 'PRZED', {
+      left: p.width * 0.25,
+      top: p.height * 0.2,
+      width: p.width * 0.4,
+      fontSize: p.width * 0.035,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.7,
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, '23%', {
+      left: p.width * 0.25,
+      top: p.height * 0.35,
+      width: p.width * 0.4,
+      fontSize: p.width * 0.18,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'PO', {
+      left: p.width * 0.75,
+      top: p.height * 0.2,
+      width: p.width * 0.4,
+      fontSize: p.width * 0.035,
+      fill: brand.primary,
+      originX: 'center',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, '87%', {
+      left: p.width * 0.75,
+      top: p.height * 0.35,
+      width: p.width * 0.4,
+      fontSize: p.width * 0.18,
+      fill: brand.primary,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Skuteczność po wdrożeniu', {
+      left: p.width / 2,
+      top: p.height * 0.72,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.045,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Case study klienta — sprawdź w komentarzu', {
+      left: p.width / 2,
+      top: p.height * 0.82,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.03,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.6,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const tipDidYouKnow: DesignTemplate = {
+  key: 'tip-didyouknow',
+  category: 'tip',
+  label: 'Tip — Czy wiesz',
+  description: 'Pojedynczy fakt / wskazówka',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, '💡', {
+      left: cx,
+      top: p.height * 0.14,
+      width: p.width * 0.3,
+      fontSize: p.width * 0.14,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, 'Czy wiesz, że...', {
+      left: cx,
+      top: p.height * 0.34,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.04,
+      fill: brand.primary,
+      originX: 'center',
+      charSpacing: 100,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Posty z grafiką mają\n2.3× większy zasięg\nniż same teksty?', {
+      left: cx,
+      top: p.height * 0.45,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.065,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      lineHeight: 1.3,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Źródło: HubSpot 2026', {
+      left: cx,
+      top: p.height * 0.84,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.028,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.5,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const eventSaveDate: DesignTemplate = {
+  key: 'event-save-date',
+  category: 'event',
+  label: 'Save the Date',
+  description: 'Minimalistyczne zapisz datę',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, 'SAVE\nTHE\nDATE', {
+      left: cx,
+      top: p.height * 0.2,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.16,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      lineHeight: 0.95,
+      fontFamily: '"Bebas Neue", Impact, sans-serif',
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.62,
+      width: p.width * 0.5,
+      height: 2,
+      fill: brand.primary,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, '07.06.2026', {
+      left: cx,
+      top: p.height * 0.66,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.07,
+      fill: brand.primary,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Konferencja Marketing PL · Warszawa', {
+      left: cx,
+      top: p.height * 0.82,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.035,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.7,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const communityThanks: DesignTemplate = {
+  key: 'community-thanks',
+  category: 'community',
+  label: 'Podziękowanie',
+  description: 'Duże dziękujemy z liczbą obserwujących',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, '5 000', {
+      left: cx,
+      top: p.height * 0.22,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.26,
+      fill: brand.primary,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'obserwujących', {
+      left: cx,
+      top: p.height * 0.52,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.05,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.8,
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.62,
+      width: p.width * 0.2,
+      height: 2,
+      fill: brand.primary,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, 'Dziękujemy ❤️', {
+      left: cx,
+      top: p.height * 0.68,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.085,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Idziemy po więcej razem 🚀', {
+      left: cx,
+      top: p.height * 0.84,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.035,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.6,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
 export const BUILT_IN_TEMPLATES: DesignTemplate[] = [
   promoModern,
+  promoBadge,
   quoteClassic,
+  quoteMinimal,
   announcementBold,
+  announcementBanner,
   statsHighlight,
+  statsComparison,
   tipNumbered,
+  tipDidYouKnow,
   eventDate,
+  eventSaveDate,
   communityWelcome,
+  communityThanks,
 ];
 
 export const applyTemplate = (

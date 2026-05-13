@@ -53,7 +53,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
   );
 
   return (
-    <div className="flex flex-col gap-2 min-h-0 flex-1">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-1">
         {TEMPLATE_CATEGORIES.map((c) => (
           <button
@@ -72,7 +72,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-2 flex-1 overflow-y-auto pr-1">
+      <div className="grid grid-cols-1 gap-2">
         {filtered.length === 0 && (
           <div className="text-center text-[11px] text-textColor/50 py-4">
             {t('template_coming_soon', 'Wkrótce więcej szablonów w tej kategorii')}

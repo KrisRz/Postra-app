@@ -7,7 +7,13 @@ import { EditorToolbar } from './toolbar/editor-toolbar';
 import { FormatBar } from './toolbar/format-bar';
 import { WelcomeModal } from './welcome-modal';
 import { repositionObjectFromTo } from './utils/multi-format-renderer';
+import {
+  installStudioFabricMetadata,
+  wireStudioIds,
+} from './utils/fabric-studio-metadata';
 import './fonts';
+
+installStudioFabricMetadata();
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -79,6 +85,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     c.setZoom(scale);
     fabricRef.current = c;
     prevPlatformRef.current = p;
+    wireStudioIds(c);
     setCanvasReady(true);
 
     const saveState = () => {
@@ -290,8 +297,8 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
             </div>
           </div>
 
-          <div className="flex-1 flex items-center justify-center bg-black/30 overflow-hidden p-4">
-            <div className="shadow-2xl rounded-sm">
+          <div className="flex-1 flex items-center justify-center bg-black/30 overflow-auto p-4">
+            <div className="shadow-2xl rounded-sm shrink-0">
               <canvas ref={canvasRef} />
             </div>
           </div>
