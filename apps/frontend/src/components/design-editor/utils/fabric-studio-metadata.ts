@@ -2,7 +2,7 @@ import * as fabric from 'fabric';
 import {
   STUDIO_FABRIC_METADATA_KEYS,
   nextStudioId,
-} from '../studio-spec';
+} from '@gitroom/nestjs-libraries/studio/studio-spec';
 
 let installed = false;
 
