@@ -395,7 +395,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
 
   return (
     <div className="flex h-full min-h-0 bg-newBgColorInner border-r border-newBorder shrink-0">
-      <div className="w-[76px] flex flex-col gap-1 p-2 shrink-0 overflow-y-auto border-r border-newBorder">
+      <div className="w-[100px] flex flex-col gap-1 p-2 shrink-0 overflow-y-auto border-r border-newBorder">
         {TOOLS.map((tool) => (
           <button
             key={tool.key}
@@ -403,14 +403,14 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
             title={t(tool.labelKey, tool.fallback)}
             aria-label={t(tool.labelKey, tool.fallback)}
             className={clsx(
-              'flex flex-col items-center gap-1 px-1 py-2 rounded-md transition-colors',
+              'flex flex-col items-center gap-1 px-1.5 py-2 rounded-md transition-colors',
               activeTool === tool.key
                 ? 'bg-forth text-white'
                 : 'text-textColor hover:bg-newColColor'
             )}
           >
             <span className="text-lg leading-none">{tool.icon}</span>
-            <span className="text-[9px] leading-tight text-center break-words">
+            <span className="text-[10px] leading-tight text-center">
               {t(tool.labelKey, tool.fallback)}
             </span>
           </button>
