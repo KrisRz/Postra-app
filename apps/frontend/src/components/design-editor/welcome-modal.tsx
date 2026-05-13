@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useEditorStore } from './editor.store';
 
@@ -28,6 +28,7 @@ export const WelcomeModal: FC = () => {
   const t = useT();
   const { setTool } = useEditorStore();
   const [open, setOpen] = useState(false);
+  const firstButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (isFirstTime()) setOpen(true);
@@ -37,6 +38,23 @@ export const WelcomeModal: FC = () => {
     markWelcomed();
     setOpen(false);
   };
+
+  useEffect(() => {
+    if (!open) return;
+    const previousActive = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        close();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    firstButtonRef.current?.focus();
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      previousActive?.focus?.();
+    };
+  }, [open]);
 
   const startWithTool = (tool: 'templates' | 'ai') => {
     setTool(tool);
@@ -49,6 +67,9 @@ export const WelcomeModal: FC = () => {
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={close}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-modal-title"
     >
       <div
         className="relative w-full max-w-md mx-4 bg-newBgColorInner rounded-lg shadow-2xl border border-newBorder p-6"
@@ -56,7 +77,10 @@ export const WelcomeModal: FC = () => {
       >
         <div className="text-center mb-5">
           <div className="text-4xl mb-2">🎨</div>
-          <h2 className="text-xl font-semibold text-textColor mb-1">
+          <h2
+            id="welcome-modal-title"
+            className="text-xl font-semibold text-textColor mb-1"
+          >
             {t('welcome_title', 'Witaj w Studio')}
           </h2>
           <p className="text-sm text-textColor/60">
@@ -69,6 +93,7 @@ export const WelcomeModal: FC = () => {
 
         <div className="flex flex-col gap-2">
           <button
+            ref={firstButtonRef}
             onClick={() => startWithTool('templates')}
             className="text-left p-4 rounded-md bg-newColColor hover:bg-forth hover:text-white text-textColor transition-colors group"
           >

@@ -6,6 +6,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Button } from '@gitroom/react/form/button';
+import { STUDIO_FONTS } from '../fonts';
 
 interface BrandKit {
   logoPath: string | null;
@@ -160,12 +161,21 @@ export const BrandKitPanel: FC = () => {
 
       <div className="flex flex-col gap-1">
         <label className="text-[10px] text-textColor/60">{t('font', 'Font')}</label>
-        <input
-          type="text"
+        <select
           value={kit.font}
           onChange={(e) => update('font', e.target.value)}
-          className="text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth"
-        />
+          className="text-xs px-2 py-1.5 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth"
+        >
+          {STUDIO_FONTS.map((font) => (
+            <option
+              key={font.key}
+              value={font.label}
+              style={{ fontFamily: font.family }}
+            >
+              {font.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex flex-col gap-1">

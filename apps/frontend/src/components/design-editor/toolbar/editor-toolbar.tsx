@@ -22,6 +22,50 @@ interface ToolbarProps {
   canvas: MutableRefObject<fabric.Canvas | null>;
 }
 
+type ShapeType =
+  | 'rect'
+  | 'circle'
+  | 'triangle'
+  | 'star'
+  | 'hexagon'
+  | 'heart'
+  | 'arrow'
+  | 'speech'
+  | 'line';
+
+const SHAPE_BUTTONS: { type: ShapeType; icon: string; titleKey: string; fallback: string }[] = [
+  { type: 'rect', icon: '▭', titleKey: 'shape_rect', fallback: 'Prostokąt' },
+  { type: 'circle', icon: '●', titleKey: 'shape_circle', fallback: 'Koło' },
+  { type: 'triangle', icon: '▲', titleKey: 'shape_triangle', fallback: 'Trójkąt' },
+  { type: 'star', icon: '★', titleKey: 'shape_star', fallback: 'Gwiazda' },
+  { type: 'hexagon', icon: '⬡', titleKey: 'shape_hexagon', fallback: 'Heksagon' },
+  { type: 'heart', icon: '♥', titleKey: 'shape_heart', fallback: 'Serce' },
+  { type: 'arrow', icon: '➜', titleKey: 'shape_arrow', fallback: 'Strzałka' },
+  { type: 'speech', icon: '💬', titleKey: 'shape_speech', fallback: 'Dymek' },
+  { type: 'line', icon: '─', titleKey: 'shape_line', fallback: 'Linia' },
+];
+
+const BG_COLORS = [
+  '#0a0e1a',
+  '#1a1a2e',
+  '#16213e',
+  '#0f3460',
+  '#533483',
+  '#1f1147',
+  '#0d3b66',
+  '#264653',
+  '#2a9d8f',
+  '#e76f51',
+  '#e94560',
+  '#f4a261',
+  '#fbbf24',
+  '#10b981',
+  '#38bdf8',
+  '#a78bfa',
+  '#ffffff',
+  '#000000',
+];
+
 const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string }[] = [
   { key: 'ai', icon: '✨', labelKey: 'tool_ai', fallback: 'AI Generate' },
   { key: 'templates', icon: '📐', labelKey: 'tool_templates', fallback: 'Szablony' },
@@ -88,7 +132,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     if (!canvas.current) return;
     const cx = canvas.current.getWidth() / canvas.current.getZoom() / 2;
     const cy = canvas.current.getHeight() / canvas.current.getZoom() / 2;
-    const text = new fabric.Textbox('Your text here', {
+    const text = new fabric.Textbox(t('text_placeholder', 'Wpisz swój tekst'), {
       left: cx,
       top: cy,
       width: 300,
@@ -101,7 +145,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     canvas.current.add(text);
     canvas.current.setActiveObject(text);
     canvas.current.renderAll();
-  }, [canvas, defaultFontFamily]);
+  }, [canvas, defaultFontFamily, t]);
 
   const applyFontToSelection = useCallback(
     (family: string) => {
@@ -121,7 +165,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   );
 
   const addShape = useCallback(
-    (type: 'rect' | 'circle' | 'line') => {
+    (type: ShapeType) => {
       if (!canvas.current) return;
       const cx = canvas.current.getWidth() / canvas.current.getZoom() / 2;
       const cy = canvas.current.getHeight() / canvas.current.getZoom() / 2;
@@ -134,23 +178,108 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
             top: cy,
             width: 150,
             height: 150,
-            fill: '#e94560',
+            fill: '#38bdf8',
             rx: 8,
             ry: 8,
+            originX: 'center',
+            originY: 'center',
           });
           break;
         case 'circle':
           obj = new fabric.Circle({
             left: cx,
             top: cy,
-            radius: 60,
-            fill: '#0f3460',
+            radius: 80,
+            fill: '#a78bfa',
+            originX: 'center',
+            originY: 'center',
           });
           break;
+        case 'triangle':
+          obj = new fabric.Triangle({
+            left: cx,
+            top: cy,
+            width: 160,
+            height: 140,
+            fill: '#38bdf8',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        case 'star': {
+          const r1 = 80;
+          const r2 = 35;
+          const points: fabric.XY[] = [];
+          for (let i = 0; i < 10; i++) {
+            const r = i % 2 === 0 ? r1 : r2;
+            const a = (Math.PI / 5) * i - Math.PI / 2;
+            points.push({ x: Math.cos(a) * r, y: Math.sin(a) * r });
+          }
+          obj = new fabric.Polygon(points, {
+            left: cx,
+            top: cy,
+            fill: '#fbbf24',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
+        case 'hexagon': {
+          const r = 80;
+          const points: fabric.XY[] = [];
+          for (let i = 0; i < 6; i++) {
+            const a = (Math.PI / 3) * i - Math.PI / 2;
+            points.push({ x: Math.cos(a) * r, y: Math.sin(a) * r });
+          }
+          obj = new fabric.Polygon(points, {
+            left: cx,
+            top: cy,
+            fill: '#10b981',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
+        case 'heart': {
+          const path =
+            'M 0 -30 C -15 -55 -55 -55 -55 -20 C -55 10 -25 30 0 60 C 25 30 55 10 55 -20 C 55 -55 15 -55 0 -30 Z';
+          obj = new fabric.Path(path, {
+            left: cx,
+            top: cy,
+            fill: '#ef4444',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
+        case 'arrow': {
+          const path = 'M 0 -15 L 80 -15 L 80 -35 L 130 0 L 80 35 L 80 15 L 0 15 Z';
+          obj = new fabric.Path(path, {
+            left: cx,
+            top: cy,
+            fill: '#38bdf8',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
+        case 'speech': {
+          const path =
+            'M -90 -60 L 90 -60 Q 110 -60 110 -40 L 110 30 Q 110 50 90 50 L -30 50 L -60 80 L -50 50 L -90 50 Q -110 50 -110 30 L -110 -40 Q -110 -60 -90 -60 Z';
+          obj = new fabric.Path(path, {
+            left: cx,
+            top: cy,
+            fill: '#a78bfa',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
         case 'line':
+        default:
           obj = new fabric.Line([cx - 100, cy, cx + 100, cy], {
             stroke: '#ffffff',
-            strokeWidth: 3,
+            strokeWidth: 4,
           });
           break;
       }
@@ -296,30 +425,20 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {activeTool === 'shapes' && (
           <div className="flex flex-col gap-2">
             <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
-              {t('add_shape', 'Add Shape')}
+              {t('add_shape', 'Dodaj kształt')}
             </span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => addShape('rect')}
-                className="w-8 h-8 rounded bg-newColColor hover:bg-forth flex items-center justify-center text-textColor transition-colors"
-                title="Rectangle"
-              >
-                ▭
-              </button>
-              <button
-                onClick={() => addShape('circle')}
-                className="w-8 h-8 rounded bg-newColColor hover:bg-forth flex items-center justify-center text-textColor transition-colors"
-                title="Circle"
-              >
-                ●
-              </button>
-              <button
-                onClick={() => addShape('line')}
-                className="w-8 h-8 rounded bg-newColColor hover:bg-forth flex items-center justify-center text-textColor transition-colors"
-                title="Line"
-              >
-                ─
-              </button>
+            <div className="grid grid-cols-4 gap-1.5">
+              {SHAPE_BUTTONS.map((shape) => (
+                <button
+                  key={shape.type}
+                  onClick={() => addShape(shape.type)}
+                  className="aspect-square rounded bg-newColColor hover:bg-forth flex items-center justify-center text-textColor text-base transition-colors"
+                  title={t(shape.titleKey, shape.fallback)}
+                  aria-label={t(shape.titleKey, shape.fallback)}
+                >
+                  {shape.icon}
+                </button>
+              ))}
             </div>
           </div>
         )}
@@ -371,28 +490,29 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {(activeTool === 'shapes' || activeTool === 'images') && (
           <div className="flex flex-col gap-2">
             <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
-              {t('background', 'Background')}
+              {t('background', 'Tło')}
             </span>
-            <div className="flex gap-1 flex-wrap">
-              {['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#533483', '#ffffff', '#000000'].map(
-                (color) => (
-                  <button
-                    key={color}
-                    onClick={() => setBackground(color)}
-                    className={clsx(
-                      'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
-                      bgColor === color ? 'border-white scale-110' : 'border-transparent'
-                    )}
-                    style={{ backgroundColor: color }}
-                  />
-                )
-              )}
+            <div className="grid grid-cols-6 gap-1.5">
+              {BG_COLORS.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => setBackground(color)}
+                  className={clsx(
+                    'w-7 h-7 rounded-full border-2 transition-transform hover:scale-110',
+                    bgColor === color ? 'border-white scale-110' : 'border-newBorder/40'
+                  )}
+                  style={{ backgroundColor: color }}
+                  aria-label={`${t('background', 'Tło')} ${color}`}
+                  title={color}
+                />
+              ))}
             </div>
             <input
               type="color"
               value={bgColor}
               onChange={(e) => setBackground(e.target.value)}
               className="w-full h-7 rounded cursor-pointer border-0 bg-transparent"
+              aria-label={t('background_custom', 'Własny kolor tła')}
             />
           </div>
         )}
