@@ -44,6 +44,7 @@ import { ErrorsRepository } from '@gitroom/nestjs-libraries/database/prisma/erro
 import { ErrorsService } from '@gitroom/nestjs-libraries/database/prisma/errors/errors.service';
 import { BrandKitRepository } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.repository';
 import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
+import { StudioAiService } from '@gitroom/nestjs-libraries/studio/studio-ai.service';
 
 @Global()
 @Module({
@@ -80,6 +81,7 @@ import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand
     RefreshIntegrationService,
     ExtractContentService,
     OpenaiService,
+    StudioAiService,
     FalService,
     EmailService,
     TrackService,

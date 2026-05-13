@@ -1,0 +1,93 @@
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsDefined,
+  IsIn,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
+
+const PLATFORMS = [
+  'instagram-feed',
+  'instagram-square',
+  'instagram-story',
+  'facebook',
+  'linkedin',
+  'tiktok',
+  'x',
+  'custom',
+] as const;
+
+export class RefineDesignDto {
+  @IsObject()
+  @IsDefined()
+  spec: unknown;
+
+  @IsString()
+  @IsDefined()
+  @MinLength(2)
+  @MaxLength(500)
+  instruction: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(2_000_000)
+  screenshot?: string;
+}
+
+export class GenerateVariantsDto {
+  @IsString()
+  @IsDefined()
+  @MinLength(3)
+  @MaxLength(500)
+  prompt: string;
+
+  @IsString()
+  @IsDefined()
+  @IsIn(PLATFORMS as unknown as string[])
+  platform: string;
+}
+
+export class BrandVoiceCheckDto {
+  @IsString()
+  @IsDefined()
+  @MinLength(3)
+  @MaxLength(3000)
+  caption: string;
+}
+
+export class DecomposeImageDto {
+  @IsString()
+  @IsDefined()
+  @MaxLength(2_000_000)
+  imageDataUrl: string;
+
+  @IsString()
+  @IsDefined()
+  @IsIn(PLATFORMS as unknown as string[])
+  platform: string;
+}
+
+export class TemplateSearchEntryDto {
+  @IsString()
+  id: string;
+
+  @IsString()
+  @MaxLength(500)
+  text: string;
+}
+
+export class TemplateSearchDto {
+  @IsString()
+  @IsDefined()
+  @MinLength(2)
+  @MaxLength(200)
+  query: string;
+
+  @IsArray()
+  @ArrayMaxSize(200)
+  templates: TemplateSearchEntryDto[];
+}
