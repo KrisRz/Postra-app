@@ -1,0 +1,216 @@
+'use client';
+
+import { FC, MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
+import * as fabric from 'fabric';
+import { useEditorStore } from '../editor.store';
+import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { useToaster } from '@gitroom/react/toaster/toaster';
+import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import { useUser } from '@gitroom/frontend/components/layout/user.context';
+import { Button } from '@gitroom/react/form/button';
+import {
+  applyPatchToCanvas,
+  screenshotForVision,
+  specFromCanvas,
+} from '../utils/spec-canvas-bridge';
+import {
+  StudioPatch,
+  StudioSpec,
+} from '@gitroom/nestjs-libraries/studio/studio-spec';
+
+interface Props {
+  canvas: MutableRefObject<fabric.Canvas | null>;
+}
+
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  text: string;
+}
+
+const QUICK_INSTRUCTIONS = [
+  { key: 'refine_quick_shorter', fallback: 'Krótszy nagłówek' },
+  { key: 'refine_quick_warmer', fallback: 'Cieplejsze kolory' },
+  { key: 'refine_quick_bolder', fallback: 'Mocniejszy CTA' },
+  { key: 'refine_quick_minimal', fallback: 'Bardziej minimalistycznie' },
+];
+
+export const AiRefinePanel: FC<Props> = ({ canvas }) => {
+  const { platform, pushHistory } = useEditorStore();
+  const fetch = useFetch();
+  const toaster = useToaster();
+  const t = useT();
+  const user = useUser();
+  const allowed = !!user?.tier?.image_generator;
+  const [instruction, setInstruction] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [history, setHistory] = useState<ChatMessage[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  const run = useCallback(
+    async (text: string) => {
+      if (!canvas.current || busy) return;
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      const c = canvas.current;
+      if (!c.getObjects().length) {
+        toaster.show(
+          t('refine_empty_canvas', 'Najpierw dodaj coś na canvas — szablon lub AI Generuj.'),
+          'warning'
+        );
+        return;
+      }
+
+      abortRef.current?.abort();
+      const ctrl = new AbortController();
+      abortRef.current = ctrl;
+      setBusy(true);
+      setHistory((prev) => [...prev, { role: 'user', text: trimmed }]);
+      setInstruction('');
+
+      try {
+        const spec: StudioSpec = specFromCanvas(c, platform);
+        const screenshot = screenshotForVision(c);
+
+        const res = await fetch('/media/refine-design', {
+          method: 'POST',
+          body: JSON.stringify({ spec, instruction: trimmed, screenshot }),
+          signal: ctrl.signal,
+        });
+
+        if (!res.ok) {
+          const status = res.status;
+          let message = '';
+          try {
+            const body = await res.json();
+            message = typeof body?.message === 'string' ? body.message : '';
+          } catch {}
+
+          if (status === 402) {
+            toaster.show(
+              t('ai_no_credits', 'Skończyły się kredyty AI w tym miesiącu.'),
+              'warning'
+            );
+          } else if (status === 429) {
+            toaster.show(
+              t('ai_rate_limited', 'Zbyt wiele żądań — poczekaj kilka sekund.'),
+              'warning'
+            );
+          } else {
+            toaster.show(message || t('refine_failed', 'AI nie poprawił projektu — spróbuj inną instrukcję.'), 'warning');
+          }
+          return;
+        }
+
+        const data = (await res.json()) as {
+          patch: StudioPatch;
+          explanation: string;
+        };
+
+        await applyPatchToCanvas(c, spec, data.patch);
+        pushHistory(JSON.stringify(c.toJSON()));
+        setHistory((prev) => [...prev, { role: 'assistant', text: data.explanation }]);
+      } catch (err) {
+        if ((err as { name?: string })?.name === 'AbortError') return;
+        toaster.show(
+          t('refine_failed', 'AI nie poprawił projektu — spróbuj inną instrukcję.'),
+          'warning'
+        );
+      } finally {
+        if (abortRef.current === ctrl) abortRef.current = null;
+        setBusy(false);
+      }
+    },
+    [canvas, busy, platform, fetch, t, toaster, pushHistory]
+  );
+
+  if (!allowed) {
+    return (
+      <div className="text-[11px] text-textColor/60 leading-relaxed">
+        {t(
+          'ai_tier_required',
+          'AI dostępne w planie Pro i wyżej.'
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div>
+        <div className="text-[10px] uppercase tracking-wide text-textColor/60 mb-1">
+          {t('refine_title', 'AI Popraw')}
+        </div>
+        <p className="text-[11px] text-textColor/60 leading-snug">
+          {t(
+            'refine_intro',
+            'Napisz co zmienić w aktualnym projekcie. AI zedytuje wybrane elementy zamiast zaczynać od zera.'
+          )}
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-1">
+        {QUICK_INSTRUCTIONS.map((q) => (
+          <button
+            key={q.key}
+            disabled={busy}
+            onClick={() => run(t(q.key, q.fallback))}
+            className="text-[10px] px-2 py-1 rounded bg-newColColor hover:bg-forth hover:text-white text-textColor/80 transition-colors disabled:opacity-40"
+          >
+            {t(q.key, q.fallback)}
+          </button>
+        ))}
+      </div>
+
+      <textarea
+        value={instruction}
+        onChange={(e) => setInstruction(e.target.value)}
+        placeholder={t(
+          'refine_placeholder',
+          'np. "skróć nagłówek", "zmień akcent na ciepły pomarańcz", "przesuń logo w prawy dolny róg"'
+        )}
+        rows={3}
+        disabled={busy}
+        className="text-xs p-2 rounded bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 resize-none focus:outline-none focus:border-forth disabled:opacity-50"
+      />
+
+      <Button
+        loading={busy}
+        onClick={() => run(instruction)}
+        className="!h-[32px] !text-xs"
+      >
+        {busy
+          ? t('refine_running', 'Poprawiam…')
+          : t('refine_apply', '✨ Popraw projekt')}
+      </Button>
+
+      {history.length > 0 && (
+        <div className="flex flex-col gap-1 mt-1 max-h-40 overflow-y-auto pr-1">
+          {history.slice(-6).map((m, i) => (
+            <div
+              key={i}
+              className={
+                m.role === 'user'
+                  ? 'text-[11px] px-2 py-1 rounded bg-forth/15 border border-forth/30 text-textColor/90'
+                  : 'text-[11px] px-2 py-1 rounded bg-newColColor/60 text-textColor/70'
+              }
+            >
+              <span className="opacity-60 mr-1">
+                {m.role === 'user' ? '›' : '✨'}
+              </span>
+              {m.text}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p className="text-[10px] text-textColor/40 leading-snug">
+        {t(
+          'refine_undo_hint',
+          'Każda iteracja jest zapisana w historii — cofnij przez Ctrl+Z.'
+        )}
+      </p>
+    </div>
+  );
+};
