@@ -237,6 +237,7 @@ model Media {
   thumbnail          String?
   alt                String?
   thumbnailTimestamp Int?
+  designSpec         Json?
   organization       Organization        @relation(fields: [organizationId], references: [id])
   agencies           SocialMediaAgency[]
   userPicture        User[]
