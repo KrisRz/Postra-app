@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, MutableRefObject, useCallback, useEffect, useState } from 'react';
+import { FC, MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import * as fabric from 'fabric';
 import JSZip from 'jszip';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
@@ -150,20 +150,45 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
     }
   }, [renders, fetch, setMedia, onClose, closeParent, t, toaster]);
 
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const previousActive = document.activeElement as HTMLElement | null;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !uploading) {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    closeButtonRef.current?.focus();
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      previousActive?.focus?.();
+    };
+  }, [onClose, uploading]);
+
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm"
       onClick={() => !uploading && onClose()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="multi-format-modal-title"
     >
       <div
         className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-newBgColorInner rounded-lg shadow-2xl flex flex-col overflow-hidden border border-newBorder"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-newBorder flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-textColor">
+          <h2
+            id="multi-format-modal-title"
+            className="text-lg font-semibold text-textColor"
+          >
             📐 {t('multi_format_title', 'Eksportuj do wszystkich platform')}
           </h2>
           <button
+            ref={closeButtonRef}
             onClick={() => !uploading && onClose()}
             disabled={uploading}
             className="text-textColor/60 hover:text-textColor text-2xl leading-none disabled:opacity-30"

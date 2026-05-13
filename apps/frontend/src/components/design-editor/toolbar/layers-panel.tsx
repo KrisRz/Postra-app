@@ -1,6 +1,14 @@
 'use client';
 
-import { FC, MutableRefObject, useCallback, useEffect, useState } from 'react';
+import {
+  FC,
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import * as fabric from 'fabric';
 import clsx from 'clsx';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -56,13 +64,21 @@ const objectLabel = (
 
 export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
   const t = useT();
-  const [, forceUpdate] = useState(0);
+  const [version, setVersion] = useState(0);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+
+  const bump = useCallback(() => {
+    if (rafRef.current !== null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      setVersion((n) => n + 1);
+    });
+  }, []);
 
   useEffect(() => {
     const c = canvas.current;
     if (!c) return;
-    const refresh = () => forceUpdate((n) => n + 1);
     const events = [
       'object:added',
       'object:removed',
@@ -71,38 +87,47 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
       'selection:updated',
       'selection:cleared',
     ] as const;
-    events.forEach((e) => c.on(e, refresh));
-    return () => events.forEach((e) => c.off(e, refresh));
-  }, [canvas]);
+    events.forEach((e) => c.on(e, bump));
+    return () => {
+      events.forEach((e) => c.off(e, bump));
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    };
+  }, [canvas, bump]);
 
   const c = canvas.current;
-  const objects = c ? c.getObjects() : [];
-  const activeIds = c
-    ? new Set(c.getActiveObjects().map((o) => (o as unknown as { __id?: string }).__id))
-    : new Set();
-
-  const layers: LayerEntry[] = objects
-    .map((obj) => {
-      const meta = objectLabel(obj, t);
-      return {
-        obj,
-        type: meta.type,
-        label: `${meta.icon}  ${meta.label}`,
-        visible: obj.visible !== false,
-        locked: !obj.selectable || !obj.evented,
-        active: activeIds.has((obj as unknown as { __id?: string }).__id),
-      };
-    })
-    .reverse();
+  const { layers, activeIds } = useMemo(() => {
+    if (!c) return { layers: [] as LayerEntry[], activeIds: new Set<unknown>() };
+    const ids = new Set(
+      c.getActiveObjects().map((o) => (o as unknown as { __id?: string }).__id)
+    );
+    const list: LayerEntry[] = c
+      .getObjects()
+      .map((obj) => {
+        const meta = objectLabel(obj, t);
+        return {
+          obj,
+          type: meta.type,
+          label: `${meta.icon}  ${meta.label}`,
+          visible: obj.visible !== false,
+          locked: !obj.selectable || !obj.evented,
+          active: ids.has((obj as unknown as { __id?: string }).__id),
+        };
+      })
+      .reverse();
+    return { layers: list, activeIds: ids };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [c, version, t]);
+  void activeIds;
 
   const handleSelect = useCallback(
     (entry: LayerEntry) => {
       if (!c || entry.locked) return;
       c.setActiveObject(entry.obj);
       c.renderAll();
-      forceUpdate((n) => n + 1);
+      bump();
     },
-    [c]
+    [c, bump]
   );
 
   const handleToggleVisibility = useCallback(
@@ -112,9 +137,9 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
       entry.obj.set({ visible: !entry.visible });
       c.discardActiveObject();
       c.renderAll();
-      forceUpdate((n) => n + 1);
+      bump();
     },
-    [c]
+    [c, bump]
   );
 
   const handleToggleLock = useCallback(
@@ -129,9 +154,9 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
       });
       if (willLock) c.discardActiveObject();
       c.renderAll();
-      forceUpdate((n) => n + 1);
+      bump();
     },
-    [c]
+    [c, bump]
   );
 
   const handleDelete = useCallback(
@@ -141,9 +166,9 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
       c.remove(entry.obj);
       c.discardActiveObject();
       c.renderAll();
-      forceUpdate((n) => n + 1);
+      bump();
     },
-    [c]
+    [c, bump]
   );
 
   const handleDragStart = useCallback((index: number) => {
@@ -168,9 +193,9 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
       newOrder.forEach((obj, idx) => c.moveObjectTo(obj, idx));
       c.renderAll();
       setDragIndex(null);
-      forceUpdate((n) => n + 1);
+      bump();
     },
-    [c, dragIndex, layers]
+    [c, dragIndex, layers, bump]
   );
 
   if (layers.length === 0) {
