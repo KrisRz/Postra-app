@@ -28,6 +28,20 @@ export class PostsRepository {
     private _errors: PrismaRepository<'errors'>
   ) {}
 
+  async getRecentPostBodies(orgId: string, take: number): Promise<string[]> {
+    const rows = await this._post.model.post.findMany({
+      where: {
+        organizationId: orgId,
+        deletedAt: null,
+        parentPostId: null,
+      },
+      orderBy: { publishDate: 'desc' },
+      take,
+      select: { content: true },
+    });
+    return rows.map((r) => r.content).filter((c): c is string => !!c);
+  }
+
   searchForMissingThreeHoursPosts() {
     return this._post.model.post.findMany({
       where: {
