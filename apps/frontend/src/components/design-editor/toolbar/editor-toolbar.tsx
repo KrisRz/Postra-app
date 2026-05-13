@@ -391,27 +391,34 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     [activeTool, setTool, addText]
   );
 
+  const hasPanel = activeTool !== 'select';
+
   return (
-    <div className="w-[220px] border-r border-newBorder flex flex-col bg-newBgColorInner h-full min-h-0">
-      <div className="flex flex-col gap-1 p-2 shrink-0">
+    <div className="flex h-full min-h-0 bg-newBgColorInner border-r border-newBorder shrink-0">
+      <div className="w-[76px] flex flex-col gap-1 p-2 shrink-0 overflow-y-auto border-r border-newBorder">
         {TOOLS.map((tool) => (
           <button
             key={tool.key}
             onClick={() => handleToolClick(tool.key)}
+            title={t(tool.labelKey, tool.fallback)}
+            aria-label={t(tool.labelKey, tool.fallback)}
             className={clsx(
-              'flex items-center gap-2.5 px-3 py-2.5 rounded-md text-sm transition-colors text-left',
+              'flex flex-col items-center gap-1 px-1 py-2 rounded-md transition-colors',
               activeTool === tool.key
                 ? 'bg-forth text-white'
                 : 'text-textColor hover:bg-newColColor'
             )}
           >
-            <span className="w-5 text-center text-base">{tool.icon}</span>
-            <span>{t(tool.labelKey, tool.fallback)}</span>
+            <span className="text-lg leading-none">{tool.icon}</span>
+            <span className="text-[9px] leading-tight text-center break-words">
+              {t(tool.labelKey, tool.fallback)}
+            </span>
           </button>
         ))}
       </div>
 
-      <div className="border-t border-newBorder p-3 flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto">
+      {hasPanel && (
+        <div className="w-[280px] shrink-0 p-3 flex flex-col gap-3 min-h-0 overflow-y-auto">
         {activeTool === 'ai' && <AiGeneratePanel canvas={canvas} />}
 
         {activeTool === 'refine' && <AiRefinePanel canvas={canvas} />}
@@ -564,7 +571,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
             />
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
