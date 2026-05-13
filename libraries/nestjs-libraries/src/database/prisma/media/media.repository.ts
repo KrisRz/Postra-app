@@ -1,6 +1,8 @@
 import { PrismaRepository } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { SaveMediaInformationDto } from '@gitroom/nestjs-libraries/dtos/media/save.media.information.dto';
+import { StudioSpec } from '@gitroom/nestjs-libraries/studio/studio-spec';
 
 @Injectable()
 export class MediaRepository {
@@ -34,6 +36,14 @@ export class MediaRepository {
       where: {
         id,
       },
+    });
+  }
+
+  saveDesignSpec(org: string, id: string, spec: StudioSpec) {
+    return this._media.model.media.update({
+      where: { id, organizationId: org },
+      data: { designSpec: spec as unknown as Prisma.InputJsonValue },
+      select: { id: true },
     });
   }
 

@@ -10,7 +10,26 @@ import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
 import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
+import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.repository';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+import {
+  StudioAiService,
+  BrandVoiceResult,
+  VariantsResult,
+  rankBySimilarity,
+} from '@gitroom/nestjs-libraries/studio/studio-ai.service';
+import {
+  StudioPatch,
+  StudioPlatformKey,
+  StudioSpec,
+} from '@gitroom/nestjs-libraries/studio/studio-spec';
+import {
+  BrandVoiceCheckDto,
+  DecomposeImageDto,
+  GenerateVariantsDto,
+  RefineDesignDto,
+  TemplateSearchDto,
+} from '@gitroom/nestjs-libraries/studio/studio.dto';
 import {
   AuthorizationActions,
   Sections,
@@ -18,6 +37,8 @@ import {
 } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
 
 const POST_DESIGN_BG_CACHE_TTL = 60 * 60 * 24 * 7; // 7 days
+const TEMPLATE_EMBED_CACHE_TTL = 60 * 60 * 24 * 30; // 30 days
+const RECENT_POSTS_FOR_VOICE = 5;
 
 @Injectable()
 export class MediaService {
@@ -28,7 +49,9 @@ export class MediaService {
     private _openAi: OpenaiService,
     private _subscriptionService: SubscriptionService,
     private _videoManager: VideoManager,
-    private _brandKitService: BrandKitService
+    private _brandKitService: BrandKitService,
+    private _studioAi: StudioAiService,
+    private _postsRepository: PostsRepository
   ) {}
 
   async deleteMedia(org: string, id: string) {
@@ -200,5 +223,182 @@ export class MediaService {
     }
 
     return functionToCall(body);
+  }
+
+  async refineDesign(org: Organization, body: RefineDesignDto) {
+    await this.requireAiImageCredit(org);
+    const spec = body.spec as StudioSpec;
+
+    return this._subscriptionService.useCredit(org, 'ai_images', async () => {
+      const result = await this._studioAi.refineSpec(
+        spec,
+        body.instruction,
+        body.screenshot
+      );
+      return {
+        patch: result.patch,
+        nextSpec: result.nextSpec,
+        explanation: result.explanation,
+      };
+    });
+  }
+
+  async generateVariants(
+    org: Organization,
+    body: GenerateVariantsDto
+  ): Promise<VariantsResult & { backgroundUrl: string | null; cacheHit: boolean }> {
+    await this.requireAiImageCredit(org);
+    const brandKit = (await this._brandKitService.getNormalized(org.id)) ?? undefined;
+    const brand = brandKit
+      ? {
+          primary: brandKit.colors.primary,
+          secondary: brandKit.colors.secondary,
+          text: brandKit.colors.text,
+          fontFamily: brandKit.font,
+          tone: brandKit.tone,
+        }
+      : undefined;
+
+    return this._subscriptionService.useCredit(org, 'ai_images', async () => {
+      const variants = await this._studioAi.generateVariants(
+        body.prompt,
+        body.platform as StudioPlatformKey,
+        brand
+      );
+
+      const cacheKey = `bg:variants:${createHash('md5')
+        .update(body.prompt.trim().toLowerCase())
+        .digest('hex')}`;
+      let backgroundUrl = await ioRedis.get(cacheKey);
+      const cacheHit = !!backgroundUrl;
+
+      if (!backgroundUrl) {
+        try {
+          backgroundUrl = await this._openAi.generateImage(
+            `Social media background for: ${body.prompt}. Empty space for text overlay, dark gradient at bottom, modern minimal, no text in image.`,
+            true
+          );
+          if (backgroundUrl) {
+            await ioRedis.set(cacheKey, backgroundUrl, 'EX', POST_DESIGN_BG_CACHE_TTL);
+          }
+        } catch (err) {
+          console.warn('Variants background generation failed', err);
+        }
+      }
+
+      return { ...variants, backgroundUrl: backgroundUrl ?? null, cacheHit };
+    });
+  }
+
+  async checkBrandVoice(
+    org: Organization,
+    body: BrandVoiceCheckDto
+  ): Promise<BrandVoiceResult> {
+    await this.requireAiImageCredit(org);
+    const brandKit = await this._brandKitService.getNormalized(org.id);
+    const recentPosts = await this.getRecentPostBodies(org.id);
+
+    return this._subscriptionService.useCredit(org, 'ai_images', () =>
+      this._studioAi.checkBrandVoice({
+        caption: body.caption,
+        recentPosts,
+        brand: brandKit
+          ? {
+              primary: brandKit.colors.primary,
+              secondary: brandKit.colors.secondary,
+              text: brandKit.colors.text,
+              fontFamily: brandKit.font,
+              tone: brandKit.tone,
+            }
+          : undefined,
+      })
+    );
+  }
+
+  async decomposeImage(
+    org: Organization,
+    body: DecomposeImageDto
+  ): Promise<StudioSpec> {
+    await this.requireAiImageCredit(org);
+    const brandKit = (await this._brandKitService.getNormalized(org.id)) ?? undefined;
+    const brand = brandKit
+      ? {
+          primary: brandKit.colors.primary,
+          secondary: brandKit.colors.secondary,
+          text: brandKit.colors.text,
+          fontFamily: brandKit.font,
+          tone: brandKit.tone,
+        }
+      : undefined;
+
+    return this._subscriptionService.useCredit(org, 'ai_images', () =>
+      this._studioAi.decomposeImage(
+        body.imageDataUrl,
+        body.platform as StudioPlatformKey,
+        brand
+      )
+    );
+  }
+
+  /**
+   * Embeddings cost ~$0.000003 per query — skip useCredit. Templates are
+   * embedded once and cached in Redis so the cost per query is just one
+   * query embedding.
+   */
+  async searchTemplates(
+    body: TemplateSearchDto
+  ): Promise<{ id: string; score: number }[]> {
+    if (!body.templates.length) return [];
+
+    const templateIds = body.templates
+      .map((t) => t.id)
+      .sort()
+      .join('|');
+    const corpusHash = createHash('md5').update(templateIds).digest('hex');
+    const cacheKey = `studio:tpl-embeds:${corpusHash}`;
+
+    let embeddings: { id: string; embedding: number[] }[] | null = null;
+    const cached = await ioRedis.get(cacheKey);
+    if (cached) {
+      try {
+        embeddings = JSON.parse(cached);
+      } catch {
+        embeddings = null;
+      }
+    }
+
+    if (!embeddings) {
+      const texts = body.templates.map((t) => t.text);
+      const vectors = await this._studioAi.embedBatch(texts);
+      embeddings = body.templates.map((t, i) => ({ id: t.id, embedding: vectors[i] }));
+      await ioRedis.set(
+        cacheKey,
+        JSON.stringify(embeddings),
+        'EX',
+        TEMPLATE_EMBED_CACHE_TTL
+      );
+    }
+
+    const queryEmbedding = await this._studioAi.embedText(body.query);
+    return rankBySimilarity(queryEmbedding, embeddings);
+  }
+
+  saveDesignSpec(org: string, mediaId: string, spec: StudioSpec) {
+    return this._mediaRepository.saveDesignSpec(org, mediaId, spec);
+  }
+
+  private async requireAiImageCredit(org: Organization): Promise<void> {
+    if (!process.env.STRIPE_PUBLISHABLE_KEY) return;
+    const total = await this._subscriptionService.checkCredits(org, 'ai_images');
+    if (total.credits <= 0) {
+      throw new HttpException(
+        'No image generation credits remaining for this billing cycle',
+        402
+      );
+    }
+  }
+
+  private getRecentPostBodies(orgId: string): Promise<string[]> {
+    return this._postsRepository.getRecentPostBodies(orgId, RECENT_POSTS_FOR_VOICE);
   }
 }

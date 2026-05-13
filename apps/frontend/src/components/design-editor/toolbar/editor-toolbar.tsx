@@ -7,6 +7,9 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { AiGeneratePanel } from './ai-generate-panel';
+import { AiRefinePanel } from './ai-refine-panel';
+import { AiVariantsPanel } from './ai-variants-panel';
+import { MagicLayersPanel } from './magic-layers-panel';
 import { BrandKitPanel } from './brand-kit-panel';
 import { IconsPanel } from './icons-panel';
 import { LayersPanel } from './layers-panel';
@@ -16,6 +19,7 @@ import {
   removeBackgroundFromImage,
   replaceImageOnCanvas,
 } from '../utils/background-removal';
+import { smartCrop } from '../utils/smart-crop';
 import clsx from 'clsx';
 
 interface ToolbarProps {
@@ -68,6 +72,9 @@ const BG_COLORS = [
 
 const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string }[] = [
   { key: 'ai', icon: '✨', labelKey: 'tool_ai', fallback: 'AI Generate' },
+  { key: 'refine', icon: '🪄', labelKey: 'tool_refine', fallback: 'AI Popraw' },
+  { key: 'variants', icon: '🎲', labelKey: 'tool_variants', fallback: 'Warianty A/B' },
+  { key: 'magic', icon: '🧩', labelKey: 'tool_magic', fallback: 'Magic Layers' },
   { key: 'templates', icon: '📐', labelKey: 'tool_templates', fallback: 'Szablony' },
   { key: 'brand', icon: '🎨', labelKey: 'tool_brand', fallback: 'Brand Kit' },
   { key: 'select', icon: '↖', labelKey: 'tool_select', fallback: 'Select' },
@@ -79,7 +86,7 @@ const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string
 ];
 
 export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
-  const { activeTool, setTool, bgColor, setBgColor } = useEditorStore();
+  const { activeTool, setTool, bgColor, setBgColor, platform } = useEditorStore();
   const t = useT();
   const fetch = useFetch();
   const toaster = useToaster();
@@ -90,6 +97,34 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   );
   const [removingBg, setRemovingBg] = useState(false);
   const [bgProgress, setBgProgress] = useState(0);
+
+  const cropSelectedImage = useCallback(async () => {
+    if (!canvas.current) return;
+    const active = canvas.current.getActiveObject();
+    if (!active || !(active instanceof fabric.FabricImage)) {
+      toaster.show(
+        t('crop_no_image', 'Zaznacz obraz na canvas'),
+        'warning'
+      );
+      return;
+    }
+    const el = active.getElement();
+    if (!(el instanceof HTMLImageElement) || !el.src) {
+      toaster.show(t('crop_no_image', 'Zaznacz obraz na canvas'), 'warning');
+      return;
+    }
+
+    try {
+      const targetAspect = platform.width / platform.height;
+      const { dataUrl } = await smartCrop(el.src, targetAspect);
+      await replaceImageOnCanvas(canvas.current, active, dataUrl);
+    } catch {
+      toaster.show(
+        t('crop_failed', 'Smart crop nie powiódł się.'),
+        'warning'
+      );
+    }
+  }, [canvas, platform, toaster, t]);
 
   const removeImageBackground = useCallback(async () => {
     if (!canvas.current || removingBg) return;
@@ -379,6 +414,12 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       <div className="border-t border-newBorder p-3 flex flex-col gap-3 flex-1 min-h-0 overflow-y-auto">
         {activeTool === 'ai' && <AiGeneratePanel canvas={canvas} />}
 
+        {activeTool === 'refine' && <AiRefinePanel canvas={canvas} />}
+
+        {activeTool === 'variants' && <AiVariantsPanel canvas={canvas} />}
+
+        {activeTool === 'magic' && <MagicLayersPanel canvas={canvas} />}
+
         {activeTool === 'brand' && <BrandKitPanel />}
 
         {activeTool === 'icons' && <IconsPanel canvas={canvas} />}
@@ -477,6 +518,13 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
               {removingBg
                 ? `${t('bg_remove_loading', 'Usuwanie…')} ${Math.round(bgProgress * 100)}%`
                 : `✂ ${t('bg_remove_button', 'Usuń tło')}`}
+            </button>
+
+            <button
+              onClick={cropSelectedImage}
+              className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors"
+            >
+              ✂ {t('crop_smart', 'Smart crop do platformy')}
             </button>
             <p className="text-[10px] text-textColor/40 leading-snug">
               {t(

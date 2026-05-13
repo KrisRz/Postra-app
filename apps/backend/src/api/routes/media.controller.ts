@@ -26,6 +26,14 @@ import { SaveMediaInformationDto } from '@gitroom/nestjs-libraries/dtos/media/sa
 import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { VideoFunctionDto } from '@gitroom/nestjs-libraries/dtos/videos/video.function.dto';
 import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
+import {
+  BrandVoiceCheckDto,
+  DecomposeImageDto,
+  GenerateVariantsDto,
+  RefineDesignDto,
+  TemplateSearchDto,
+} from '@gitroom/nestjs-libraries/studio/studio.dto';
+import { StudioSpec } from '@gitroom/nestjs-libraries/studio/studio-spec';
 
 @ApiTags('Media')
 @Controller('/media')
@@ -91,6 +99,52 @@ export class MediaController {
     @Body() body: GeneratePostDesignDto
   ) {
     return this._mediaService.generatePostDesign(org, body);
+  }
+
+  @Post('/refine-design')
+  refineDesign(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: RefineDesignDto
+  ) {
+    return this._mediaService.refineDesign(org, body);
+  }
+
+  @Post('/generate-variants')
+  generateVariants(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: GenerateVariantsDto
+  ) {
+    return this._mediaService.generateVariants(org, body);
+  }
+
+  @Post('/brand-voice-check')
+  brandVoiceCheck(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: BrandVoiceCheckDto
+  ) {
+    return this._mediaService.checkBrandVoice(org, body);
+  }
+
+  @Post('/decompose-image')
+  decomposeImage(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: DecomposeImageDto
+  ) {
+    return this._mediaService.decomposeImage(org, body);
+  }
+
+  @Post('/search-templates')
+  searchTemplates(@Body() body: TemplateSearchDto) {
+    return this._mediaService.searchTemplates(body);
+  }
+
+  @Post('/:id/design-spec')
+  saveDesignSpec(
+    @GetOrgFromRequest() org: Organization,
+    @Param('id') id: string,
+    @Body() body: { spec: StudioSpec }
+  ) {
+    return this._mediaService.saveDesignSpec(org.id, id, body.spec);
   }
 
   @Post('/upload-server')
