@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, MutableRefObject, useCallback } from 'react';
+import { FC, MutableRefObject, useCallback, useEffect, useRef } from 'react';
 import * as fabric from 'fabric';
 import { useEditorStore } from '../editor.store';
 import { renderDesignSpec, PostDesignSpec } from '../utils/canvas-renderer';
@@ -34,39 +34,77 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const allowed = !!user?.tier?.image_generator;
   const holidays = usePolishHolidays();
   const upcoming = getUpcomingHolidays(holidays, 3, 120);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const generate = useCallback(async () => {
-    if (!canvas.current) return;
+    if (!canvas.current || isGenerating) return;
     if (!aiPrompt.trim()) {
-      toaster.show(t('ai_prompt_required', 'Please describe what you want to generate'), 'warning');
+      toaster.show(t('ai_prompt_required', 'Opisz co chcesz wygenerować'), 'warning');
       return;
     }
 
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     setGenerating(true);
     try {
       const res = await fetch('/media/generate-post-design', {
         method: 'POST',
         body: JSON.stringify({ prompt: aiPrompt, platform: platform.key }),
+        signal: ctrl.signal,
       });
 
       if (!res.ok) {
+        let serverMessage = '';
+        try {
+          const body = await res.json();
+          serverMessage = typeof body?.message === 'string' ? body.message : '';
+        } catch {
+          // backend returned non-JSON — ignore, fall through to generic copy
+        }
+
         if (res.status === 402) {
-          toaster.show(t('ai_no_credits', 'No image generation credits left this month. Upgrade your plan.'), 'warning');
+          toaster.show(
+            t('ai_no_credits', 'Skończyły się kredyty AI w tym miesiącu. Zwiększ plan lub poczekaj do nowego cyklu.'),
+            'warning'
+          );
+        } else if (res.status === 401 || res.status === 403) {
+          toaster.show(
+            t('ai_forbidden', 'AI nie jest dostępne w Twoim planie. Sprawdź ustawienia subskrypcji.'),
+            'warning'
+          );
+        } else if (res.status === 429) {
+          toaster.show(
+            t('ai_rate_limited', 'Zbyt wiele żądań — poczekaj kilka sekund i spróbuj ponownie.'),
+            'warning'
+          );
         } else {
-          toaster.show(t('ai_generate_failed', 'AI generation failed. Try a different prompt.'), 'warning');
+          toaster.show(
+            serverMessage ||
+              t('ai_generate_failed', 'Generowanie AI nie powiodło się. Spróbuj inny prompt lub sprawdź połączenie.'),
+            'warning'
+          );
         }
         return;
       }
 
       const spec = (await res.json()) as PostDesignSpec;
+      if (ctrl.signal.aborted) return;
       await renderDesignSpec(canvas.current, spec, platform);
       pushHistory(JSON.stringify(canvas.current.toJSON()));
-    } catch {
-      toaster.show(t('ai_generate_failed', 'AI generation failed. Try a different prompt.'), 'warning');
+    } catch (err) {
+      if ((err as { name?: string })?.name === 'AbortError') return;
+      toaster.show(
+        t('ai_generate_failed', 'Generowanie AI nie powiodło się. Spróbuj inny prompt lub sprawdź połączenie.'),
+        'warning'
+      );
     } finally {
+      if (abortRef.current === ctrl) abortRef.current = null;
       setGenerating(false);
     }
-  }, [canvas, aiPrompt, platform, fetch, toaster, t, setGenerating, pushHistory]);
+  }, [canvas, aiPrompt, platform, isGenerating, fetch, toaster, t, setGenerating, pushHistory]);
 
   if (!allowed) {
     return (
