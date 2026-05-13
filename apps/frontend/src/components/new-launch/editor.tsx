@@ -25,6 +25,7 @@ import {
 } from '@gitroom/frontend/components/new-launch/store';
 import { useShallow } from 'zustand/react/shallow';
 import { AddPostButton } from '@gitroom/frontend/components/new-launch/add.post.button';
+import { BrandVoiceRibbon } from '@gitroom/frontend/components/new-launch/brand-voice-ribbon';
 import { MultiMediaComponent } from '@gitroom/frontend/components/media/media.component';
 import { UpDownArrow } from '@gitroom/frontend/components/launches/up.down.arrow';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
@@ -518,6 +519,7 @@ export const EditorWrapper: FC<{
                 )}
               </div>
             )}
+            {index === 0 && canEdit && <BrandVoiceRibbon content={g.content} />}
           </div>
         </div>
       ))}
