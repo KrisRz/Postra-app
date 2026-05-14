@@ -7,13 +7,15 @@ import { useToaster } from '@gitroom/react/toaster/toaster';
 import { Button } from '@gitroom/react/form/button';
 import { VideoTrimmer } from './video-trimmer';
 import { VideoMultiFormat, VideoFormat } from './video-multi-format';
+import { VideoCaptions } from './video-captions';
+import { VideoMusic, PixabayTrack } from './video-music';
 
 interface VideoStudioProps {
   setMedia: (params: { id: string; path: string }[]) => void;
   closeModal: () => void;
 }
 
-type Tab = 'trim' | 'formats';
+type Tab = 'trim' | 'formats' | 'captions' | 'music';
 
 export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const t = useT();
@@ -23,6 +25,8 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
 
   const [file, setFile] = useState<File | null>(null);
   const [trimmedBlob, setTrimmedBlob] = useState<Blob | null>(null);
+  const [uploadedMedia, setUploadedMedia] = useState<{ id: string; path: string } | null>(null);
+  const [selectedTrack, setSelectedTrack] = useState<PixabayTrack | null>(null);
   const [tab, setTab] = useState<Tab>('trim');
   const [isUploading, setIsUploading] = useState(false);
   const [browserSupported, setBrowserSupported] = useState(true);
@@ -42,6 +46,8 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     }
     setFile(f);
     setTrimmedBlob(null);
+    setUploadedMedia(null);
+    setSelectedTrack(null);
     setTab('trim');
   };
 
@@ -67,23 +73,45 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const handleTrimmedExport = useCallback(
     async (blob: Blob) => {
       setTrimmedBlob(blob);
-      setTab('formats');
+      setUploadedMedia(null);
     },
     []
   );
 
-  const handleUploadTrimmedToPost = useCallback(async () => {
-    if (!trimmedBlob) return;
+  const ensureUploaded = useCallback(async (): Promise<{ id: string; path: string } | null> => {
+    if (uploadedMedia) return uploadedMedia;
+    if (!trimmedBlob) return null;
     setIsUploading(true);
     const result = await uploadBlob(trimmedBlob, `trimmed-${Date.now()}.mp4`);
     setIsUploading(false);
-    if (result) {
-      setMedia([result]);
+    if (result) setUploadedMedia(result);
+    return result;
+  }, [uploadedMedia, trimmedBlob, uploadBlob]);
+
+  const handleSwitchToCaptions = useCallback(async () => {
+    const m = await ensureUploaded();
+    if (!m) {
+      toaster.show(t('video_upload_first', 'Najpierw wytnij i upload wideo.'), 'warning');
+      return;
+    }
+    setTab('captions');
+  }, [ensureUploaded, toaster, t]);
+
+  const handleUseInPost = useCallback(async () => {
+    if (uploadedMedia) {
+      setMedia([uploadedMedia]);
+      closeModal();
+      return;
+    }
+    if (!trimmedBlob) return;
+    const m = await ensureUploaded();
+    if (m) {
+      setMedia([m]);
       closeModal();
     } else {
       toaster.show(t('video_upload_failed', 'Upload nie powiódł się.'), 'warning');
     }
-  }, [trimmedBlob, uploadBlob, setMedia, closeModal, toaster, t]);
+  }, [uploadedMedia, trimmedBlob, ensureUploaded, setMedia, closeModal, toaster, t]);
 
   const handleFormatsExported = useCallback(
     async (results: { format: VideoFormat; blob: Blob }[]) => {
@@ -104,6 +132,15 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     [uploadBlob, setMedia, closeModal, toaster, t]
   );
 
+  const handleCaptionedReady = useCallback(
+    (newMedia: { id: string; path: string }) => {
+      setUploadedMedia(newMedia);
+      setMedia([newMedia]);
+      closeModal();
+    },
+    [setMedia, closeModal]
+  );
+
   if (!browserSupported) {
     return (
       <div className="flex flex-col gap-3 p-6">
@@ -119,31 +156,31 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     );
   }
 
+  const tabs: { key: Tab; label: string; icon: string; needsTrim: boolean; onClick?: () => void }[] = [
+    { key: 'trim', label: t('video_tab_trim', 'Wytnij'), icon: '✂', needsTrim: false },
+    { key: 'formats', label: t('video_tab_formats', 'Formaty'), icon: '📐', needsTrim: true },
+    { key: 'captions', label: t('video_tab_captions', 'Napisy AI'), icon: '💬', needsTrim: true, onClick: handleSwitchToCaptions },
+    { key: 'music', label: t('video_tab_music', 'Muzyka'), icon: '🎵', needsTrim: true },
+  ];
+
   return (
     <div className="flex flex-col h-full bg-newBgColorInner rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-newBorder">
-        <div className="flex gap-3">
-          <button
-            onClick={() => setTab('trim')}
-            className={`text-xs px-3 py-1 rounded transition-colors ${
-              tab === 'trim'
-                ? 'bg-newAccent text-white'
-                : 'bg-newColColor text-textColor hover:bg-forth'
-            }`}
-          >
-            ✂ {t('video_tab_trim', 'Wytnij')}
-          </button>
-          <button
-            onClick={() => setTab('formats')}
-            disabled={!trimmedBlob}
-            className={`text-xs px-3 py-1 rounded transition-colors ${
-              tab === 'formats'
-                ? 'bg-newAccent text-white'
-                : 'bg-newColColor text-textColor hover:bg-forth'
-            } disabled:opacity-40`}
-          >
-            📐 {t('video_tab_formats', 'Formaty')}
-          </button>
+        <div className="flex gap-2 flex-wrap">
+          {tabs.map((tDef) => (
+            <button
+              key={tDef.key}
+              onClick={() => (tDef.onClick ? tDef.onClick() : setTab(tDef.key))}
+              disabled={tDef.needsTrim && !trimmedBlob}
+              className={`text-xs px-3 py-1 rounded transition-colors ${
+                tab === tDef.key
+                  ? 'bg-newAccent text-white'
+                  : 'bg-newColColor text-textColor hover:bg-forth'
+              } disabled:opacity-40`}
+            >
+              {tDef.icon} {tDef.label}
+            </button>
+          ))}
         </div>
         <div className="flex gap-2">
           <input
@@ -167,21 +204,26 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
           <VideoTrimmer file={file} onTrimmed={handleTrimmedExport} />
         )}
         {tab === 'formats' && (
-          <VideoMultiFormat
-            source={trimmedBlob}
-            onExported={handleFormatsExported}
-          />
+          <VideoMultiFormat source={trimmedBlob} onExported={handleFormatsExported} />
+        )}
+        {tab === 'captions' && (
+          <VideoCaptions mediaId={uploadedMedia?.id ?? null} onCaptioned={handleCaptionedReady} />
+        )}
+        {tab === 'music' && (
+          <VideoMusic selectedTrack={selectedTrack} onSelect={setSelectedTrack} />
         )}
       </div>
 
-      {trimmedBlob && tab === 'trim' && (
+      {trimmedBlob && (tab === 'trim' || tab === 'music') && (
         <div className="px-4 py-2 border-t border-newBorder flex items-center justify-between">
           <div className="text-[11px] text-textColor/60">
-            {t('video_trim_done', 'Wycięto. Kliknij dalej, aby wybrać formaty lub użyć pojedynczego pliku.')}
+            {selectedTrack
+              ? t('video_music_attached', '🎵 Muzyka wybrana — kliknij aby użyć w poście (audio dodawane przy publikacji)')
+              : t('video_trim_done', 'Wycięto. Kliknij dalej, aby wybrać formaty lub użyć pojedynczego pliku.')}
           </div>
           <Button
             loading={isUploading}
-            onClick={handleUploadTrimmedToPost}
+            onClick={handleUseInPost}
             className="!h-[28px] !text-xs"
           >
             {t('video_use_in_post', 'Użyj w poście')}

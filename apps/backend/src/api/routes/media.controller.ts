@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   Param,
   Post,
   Put,
@@ -28,6 +29,7 @@ import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { VideoFunctionDto } from '@gitroom/nestjs-libraries/dtos/videos/video.function.dto';
 import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
 import { GeneratePostCarouselDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.carousel.dto';
+import { CaptionsService } from '@gitroom/nestjs-libraries/videos/captions/captions.service';
 import {
   BrandVoiceCheckDto,
   DecomposeImageDto,
@@ -43,7 +45,8 @@ export class MediaController {
   private storage = UploadFactory.createStorage();
   constructor(
     private _mediaService: MediaService,
-    private _subscriptionService: SubscriptionService
+    private _subscriptionService: SubscriptionService,
+    private _captionsService: CaptionsService
   ) {}
 
   @Delete('/:id')
@@ -126,6 +129,55 @@ export class MediaController {
     @Param('id') id: string
   ) {
     return this._mediaService.getMediaForEdit(org.id, id);
+  }
+
+  @Post('/:id/auto-caption')
+  async autoCaption(
+    @GetOrgFromRequest() org: Organization,
+    @Param('id') id: string,
+    @Body() body: { language?: string }
+  ) {
+    const media = await this._mediaService.getMediaForEdit(org.id, id);
+    if (!media?.path) {
+      throw new HttpException('Media not found', 404);
+    }
+    const srt = await this._captionsService.generateSrtFromVideoUrl(media.path, body.language);
+    return { srt };
+  }
+
+  @Post('/:id/burn-captions')
+  async burnCaptions(
+    @GetOrgFromRequest() org: Organization,
+    @Param('id') id: string,
+    @Body() body: { srt: string }
+  ) {
+    const media = await this._mediaService.getMediaForEdit(org.id, id);
+    if (!media?.path) {
+      throw new HttpException('Media not found', 404);
+    }
+    if (!body.srt?.trim()) {
+      throw new HttpException('Empty SRT', 400);
+    }
+    const result = await this._captionsService.burnCaptionsIntoVideo(media.path, body.srt);
+    return this._mediaService.saveFile(org.id, result.path.split('/').pop() ?? 'captioned.mp4', result.path);
+  }
+
+  @Get('/pixabay-music')
+  async pixabayMusic(
+    @Query('q') q: string,
+    @Query('page') page = '1'
+  ) {
+    const apiKey = process.env.PIXABAY_API_KEY;
+    if (!apiKey) {
+      return { hits: [], note: 'PIXABAY_API_KEY not configured' };
+    }
+    const safe = encodeURIComponent((q || '').slice(0, 100));
+    const url = `https://pixabay.com/api/music/?key=${apiKey}&q=${safe}&page=${Number(page) || 1}&per_page=20`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new HttpException(`Pixabay error ${res.status}`, 502);
+    }
+    return res.json();
   }
 
   @Post('/refine-design')

@@ -3,6 +3,8 @@ import OpenAI from 'openai';
 import { shuffle } from 'lodash';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
+import { createReadStream } from 'fs';
+import { stat } from 'fs/promises';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
@@ -18,6 +20,20 @@ const VoicePrompt = z.object({
 
 @Injectable()
 export class OpenaiService {
+  async transcribeAudioToSrt(audioFilePath: string, language?: string): Promise<string> {
+    const info = await stat(audioFilePath);
+    if (info.size > 25 * 1024 * 1024) {
+      throw new Error('Audio file exceeds Whisper 25MB limit — trim before transcribing');
+    }
+    const result = await openai.audio.transcriptions.create({
+      file: createReadStream(audioFilePath),
+      model: 'whisper-1',
+      response_format: 'srt',
+      language,
+    });
+    return typeof result === 'string' ? result : '';
+  }
+
   async generateImage(prompt: string, isUrl: boolean, isVertical = false) {
     const generate = (
       await openai.images.generate({
