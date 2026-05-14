@@ -304,6 +304,96 @@ ${brandHint}`,
     throw new Error('Failed to generate post design after 3 attempts');
   }
 
+  async generatePostCarousel(
+    prompt: string,
+    platform: string,
+    slidesCount: number,
+    brandKit?: {
+      colors?: { primary?: string; secondary?: string; text?: string };
+      font?: string;
+      tone?: string;
+    }
+  ) {
+    const SlideSchema = z.object({
+      headline: z.string().max(60),
+      subtext: z.string().max(120),
+      cta: z.string().max(30),
+      layout: z.enum(['centered-stack', 'left-aligned', 'bottom-stack', 'top-banner']),
+    });
+
+    const CarouselSchema = z.object({
+      imagePrompt: z
+        .string()
+        .describe(
+          'ONE shared DALL-E 3 background prompt for all slides. Visually appealing scene with empty space for text overlay. End with: "dark gradient overlay at the bottom for text readability, modern minimalist composition, no text in image".'
+        ),
+      colors: z.object({
+        background: z.string(),
+        accent: z.string(),
+        text: z.string(),
+      }),
+      slides: z
+        .array(SlideSchema)
+        .min(slidesCount)
+        .max(slidesCount)
+        .describe(
+          `Exactly ${slidesCount} slides forming a coherent narrative. Slide 1 = hook, last slide = CTA, middle slides = body points (one idea per slide).`
+        ),
+    });
+
+    const brandHint = brandKit?.colors
+      ? `BRAND CONSTRAINTS — respect strictly:
+- Background color: ${brandKit.colors.secondary || 'designer choice'}
+- Accent color: ${brandKit.colors.primary || 'designer choice'}
+- Text color: ${brandKit.colors.text || '#ffffff'}
+- Font family: ${brandKit.font || 'sans-serif'}
+- Tone: ${brandKit.tone || 'professional'}`
+      : '';
+
+    for (let i = 0; i < 3; i++) {
+      try {
+        const parsed = (
+          await openai.chat.completions.parse({
+            model: 'gpt-4.1',
+            messages: [
+              {
+                role: 'system',
+                content: `You are an expert social media graphic designer creating a carousel post for ${platform}.
+
+LANGUAGE: Detect the language of the user's prompt. Generate ALL text fields (headline, subtext, cta) in that SAME language. If Polish prompt → Polish text. Never mix languages within one carousel.
+
+NARRATIVE:
+- Slide 1: hook — catchy headline that stops the scroll
+- Middle slides: one body point each, building the argument
+- Last slide: clear CTA (call-to-action)
+
+PER-SLIDE RULES:
+- headline: short, impactful, max ~5 words
+- subtext: supporting detail, 1 sentence
+- cta: short call-to-action ("Sprawdź", "Kup teraz", "Zobacz więcej" or English equivalent). On non-final slides this can be a transition like "Dalej →" / "Następny slajd".
+- layout: pick the best layout for the content (vary across slides for visual rhythm — don't use the same layout for all)
+
+SHARED:
+- imagePrompt: one background that works visually behind every slide. Leave space for text overlay.
+- colors: high-contrast, accessible (WCAG AA min). Same palette across all slides for brand consistency.
+
+${brandHint}`,
+              },
+              { role: 'user', content: prompt },
+            ],
+            response_format: zodResponseFormat(CarouselSchema, 'carousel'),
+          })
+        ).choices[0].message.parsed;
+
+        if (parsed) return parsed;
+      } catch (err) {
+        console.log('generatePostCarousel attempt failed:', err);
+      }
+    }
+
+    throw new Error('Failed to generate carousel after 3 attempts');
+  }
+
   async generateSlidesFromText(text: string) {
     for (let i = 0; i < 3; i++) {
       try {

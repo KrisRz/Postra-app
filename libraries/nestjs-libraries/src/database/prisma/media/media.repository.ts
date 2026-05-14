@@ -47,6 +47,14 @@ export class MediaRepository {
     });
   }
 
+  saveCanvasJson(org: string, id: string, canvasJson: string) {
+    return this._media.model.media.update({
+      where: { id, organizationId: org },
+      data: { canvasJson },
+      select: { id: true },
+    });
+  }
+
   deleteMedia(org: string, id: string) {
     return this._media.model.media.update({
       where: {

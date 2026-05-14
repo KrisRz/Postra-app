@@ -1,8 +1,9 @@
 'use client';
 
-import { FC, MutableRefObject, useCallback, useEffect, useRef } from 'react';
+import { FC, MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import * as fabric from 'fabric';
 import { useEditorStore } from '../editor.store';
+import { useCarouselStore, CarouselSlide } from '../carousel.store';
 import { renderDesignSpec, PostDesignSpec } from '../utils/canvas-renderer';
 import {
   usePolishHolidays,
@@ -35,6 +36,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const holidays = usePolishHolidays();
   const upcoming = getUpcomingHolidays(holidays, 3, 120);
   const abortRef = useRef<AbortController | null>(null);
+  const [slidesCount, setSlidesCount] = useState(1);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -50,11 +52,22 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
     abortRef.current = ctrl;
     setGenerating(true);
     try {
-      const res = await fetch('/media/generate-post-design', {
-        method: 'POST',
-        body: JSON.stringify({ prompt: aiPrompt, platform: platform.key }),
-        signal: ctrl.signal,
-      });
+      const isCarousel = slidesCount > 1;
+      const res = isCarousel
+        ? await fetch('/media/generate-carousel-design', {
+            method: 'POST',
+            body: JSON.stringify({
+              prompt: aiPrompt,
+              platform: platform.key,
+              slidesCount,
+            }),
+            signal: ctrl.signal,
+          })
+        : await fetch('/media/generate-post-design', {
+            method: 'POST',
+            body: JSON.stringify({ prompt: aiPrompt, platform: platform.key }),
+            signal: ctrl.signal,
+          });
 
       if (!res.ok) {
         let serverMessage = '';
@@ -90,10 +103,33 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
         return;
       }
 
-      const spec = (await res.json()) as PostDesignSpec;
+      const data = await res.json();
       if (ctrl.signal.aborted) return;
-      await renderDesignSpec(canvas.current, spec, platform);
-      pushHistory(JSON.stringify(canvas.current.toJSON()));
+
+      if (isCarousel) {
+        const slideSpecs = (data?.slides ?? []) as PostDesignSpec[];
+        if (!slideSpecs.length) {
+          toaster.show(
+            t('ai_generate_failed', 'Generowanie AI nie powiodło się. Spróbuj inny prompt lub sprawdź połączenie.'),
+            'warning'
+          );
+          return;
+        }
+        const slides: CarouselSlide[] = [];
+        for (let i = 0; i < slideSpecs.length; i += 1) {
+          await renderDesignSpec(canvas.current, slideSpecs[i], platform);
+          slides.push({
+            id: `slide-${Date.now().toString(36)}-${i}`,
+            canvasJson: JSON.stringify(canvas.current.toJSON()),
+          });
+        }
+        useCarouselStore.getState().replaceAllSlides(slides);
+        pushHistory(slides[0].canvasJson!);
+      } else {
+        const spec = data as PostDesignSpec;
+        await renderDesignSpec(canvas.current, spec, platform);
+        pushHistory(JSON.stringify(canvas.current.toJSON()));
+      }
     } catch (err) {
       if ((err as { name?: string })?.name === 'AbortError') return;
       toaster.show(
@@ -104,7 +140,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       if (abortRef.current === ctrl) abortRef.current = null;
       setGenerating(false);
     }
-  }, [canvas, aiPrompt, platform, isGenerating, fetch, toaster, t, setGenerating, pushHistory]);
+  }, [canvas, aiPrompt, platform, isGenerating, fetch, toaster, t, setGenerating, pushHistory, slidesCount]);
 
   if (!allowed) {
     return (
@@ -171,6 +207,29 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
         disabled={isGenerating}
         className="text-xs p-2 rounded bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 resize-none focus:outline-none focus:border-forth disabled:opacity-50"
       />
+      <div className="flex items-center gap-2">
+        <label className="text-[10px] uppercase tracking-wide text-textColor/60">
+          {t('ai_slides_count', 'Slajdy')}
+        </label>
+        <select
+          value={slidesCount}
+          onChange={(e) => setSlidesCount(Number(e.target.value))}
+          disabled={isGenerating}
+          className="text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth disabled:opacity-50"
+          title={t('ai_slides_hint', 'Wybierz liczbę slajdów dla carousel (1 = pojedynczy post, 2-10 = carousel)')}
+        >
+          <option value={1}>1 ({t('ai_single_post', 'pojedynczy')})</option>
+          <option value={2}>2</option>
+          <option value={3}>3</option>
+          <option value={4}>4</option>
+          <option value={5}>5 ({t('ai_recommended', 'polecane')})</option>
+          <option value={6}>6</option>
+          <option value={7}>7</option>
+          <option value={8}>8</option>
+          <option value={9}>9</option>
+          <option value={10}>10 ({t('ai_max', 'max')})</option>
+        </select>
+      </div>
       <Button
         loading={isGenerating}
         onClick={generate}
@@ -178,7 +237,9 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       >
         {isGenerating
           ? t('ai_generating', 'Generating…')
-          : t('ai_generate_button', '✨ Generate Design')}
+          : slidesCount > 1
+            ? t('ai_generate_carousel_button', '🎴 Wygeneruj carousel ({n})').replace('{n}', String(slidesCount))
+            : t('ai_generate_button', '✨ Generate Design')}
       </Button>
       <div className="rounded-md bg-yellow-500/10 border border-yellow-500/30 px-2 py-1.5 text-[10px] leading-snug text-textColor/80">
         ⚠️{' '}

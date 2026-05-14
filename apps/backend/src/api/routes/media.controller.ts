@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   Req,
   Res,
@@ -26,6 +27,7 @@ import { SaveMediaInformationDto } from '@gitroom/nestjs-libraries/dtos/media/sa
 import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { VideoFunctionDto } from '@gitroom/nestjs-libraries/dtos/videos/video.function.dto';
 import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
+import { GeneratePostCarouselDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.carousel.dto';
 import {
   BrandVoiceCheckDto,
   DecomposeImageDto,
@@ -99,6 +101,23 @@ export class MediaController {
     @Body() body: GeneratePostDesignDto
   ) {
     return this._mediaService.generatePostDesign(org, body);
+  }
+
+  @Post('/generate-carousel-design')
+  generateCarouselDesign(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: GeneratePostCarouselDto
+  ) {
+    return this._mediaService.generatePostCarousel(org, body);
+  }
+
+  @Put('/:id/canvas')
+  saveCanvasJson(
+    @GetOrgFromRequest() org: Organization,
+    @Param('id') id: string,
+    @Body() body: { canvasJson: string }
+  ) {
+    return this._mediaService.saveCanvasJson(org.id, id, body.canvasJson);
   }
 
   @Post('/refine-design')
