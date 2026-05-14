@@ -11,8 +11,17 @@ interface PixabayTrack {
   duration: number;
   audio: string;
   user: string;
+  user_id?: number;
   tags: string;
 }
+
+const pixabayTrackUrl = (track: PixabayTrack): string => {
+  if (track.user_id && track.user) {
+    const slug = track.user.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return `https://pixabay.com/users/${slug}-${track.user_id}/`;
+  }
+  return 'https://pixabay.com/music/';
+};
 
 interface VideoMusicProps {
   selectedTrack: PixabayTrack | null;
@@ -74,7 +83,15 @@ export const VideoMusic: FC<VideoMusicProps> = ({ selectedTrack, onSelect }) => 
         {t(
           'video_music_explainer',
           'Wyszukaj royalty-free muzykę z Pixabay i dodaj jako ścieżkę audio do wideo.'
-        )}
+        )}{' '}
+        <a
+          href="https://pixabay.com/service/license-summary/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-newAccent hover:underline"
+        >
+          {t('video_music_license', 'Pixabay License')} ↗
+        </a>
       </div>
       <div className="flex gap-2">
         <input
@@ -132,8 +149,20 @@ export const VideoMusic: FC<VideoMusicProps> = ({ selectedTrack, onSelect }) => 
               </button>
               <div className="flex-1 min-w-0">
                 <div className="text-xs text-textColor truncate">{track.tags}</div>
-                <div className="text-[10px] text-textColor/50">
-                  {track.user} · {Math.round(track.duration)}s
+                <div className="text-[10px] text-textColor/50 flex items-center gap-1">
+                  <span>
+                    {track.user} · {Math.round(track.duration)}s
+                  </span>
+                  <a
+                    href={pixabayTrackUrl(track)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-newAccent hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                    title={t('video_music_attrib_track', 'Otwórz autora na Pixabay')}
+                  >
+                    📷 Pixabay ↗
+                  </a>
                 </div>
               </div>
               {previewId === track.id && (

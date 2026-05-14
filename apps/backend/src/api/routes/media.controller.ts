@@ -30,6 +30,8 @@ import { VideoFunctionDto } from '@gitroom/nestjs-libraries/dtos/videos/video.fu
 import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
 import { GeneratePostCarouselDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.carousel.dto';
 import { CaptionsService } from '@gitroom/nestjs-libraries/videos/captions/captions.service';
+import { createHash } from 'crypto';
+import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import {
   BrandVoiceCheckDto,
   DecomposeImageDto,
@@ -171,13 +173,25 @@ export class MediaController {
     if (!apiKey) {
       return { hits: [], note: 'PIXABAY_API_KEY not configured' };
     }
-    const safe = encodeURIComponent((q || '').slice(0, 100));
-    const url = `https://pixabay.com/api/music/?key=${apiKey}&q=${safe}&page=${Number(page) || 1}&per_page=20`;
+    const safeQuery = (q || '').slice(0, 100).trim().toLowerCase();
+    const safePage = Math.max(1, Number(page) || 1);
+    // Pixabay license requires caching responses for 24h to avoid duplicate calls.
+    const cacheKey = `pixabay:music:${createHash('md5').update(`${safeQuery}|${safePage}`).digest('hex')}`;
+    const cached = await ioRedis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const url = `https://pixabay.com/api/music/?key=${apiKey}&q=${encodeURIComponent(safeQuery)}&page=${safePage}&per_page=20`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new HttpException(`Pixabay error ${res.status}`, 502);
     }
-    return res.json();
+    const remaining = Number(res.headers.get('x-ratelimit-remaining') ?? '999');
+    const data = await res.json();
+    // 24h cache per Pixabay TOS. Tighten when rate limit is nearly exhausted.
+    const ttl = remaining < 5 ? 60 * 60 * 48 : 60 * 60 * 24;
+    await ioRedis.set(cacheKey, JSON.stringify(data), 'EX', ttl);
+    return data;
   }
 
   @Post('/refine-design')
