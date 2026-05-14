@@ -756,6 +756,20 @@ export const MultiMediaComponent: FC<{
     }
   }, [changeMedia, t]);
 
+  const openPolotno = useCallback(() => {
+    if (!dummy) {
+      modals.openModal({
+        askClose: false,
+        title: t('design_media', 'Design Media'),
+        size: '80%',
+        height: '750px',
+        children: (close) => (
+          <Polonto setMedia={changeMedia} closeModal={close} />
+        ),
+      });
+    }
+  }, [changeMedia, t]);
+
   return (
     <>
       <div className="b1 flex flex-col gap-[8px] rounded-bl-[8px] select-none w-full">
@@ -840,6 +854,19 @@ export const MultiMediaComponent: FC<{
                   </div>
                   <div className="text-[10px] font-[600] maxMedia:hidden block">
                     {t('insert_media', 'Insert Media')}
+                  </div>
+                </div>
+              </div>
+              <div
+                onClick={openPolotno}
+                className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors"
+              >
+                <div className="flex gap-[5px] items-center">
+                  <div>
+                    <DesignMediaIcon />
+                  </div>
+                  <div className="text-[10px] font-[600] iconBreak:hidden block">
+                    Polotno
                   </div>
                 </div>
               </div>
