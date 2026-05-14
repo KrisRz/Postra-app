@@ -890,6 +890,12 @@ importers:
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
+      mediabunny:
+        specifier: ^1.45
+        version: 1.45.2
+      wavesurfer.js:
+        specifier: ^7
+        version: 7.12.7
 
   apps/orchestrator: {}
 
@@ -14012,6 +14018,9 @@ packages:
   mediabunny@1.40.1:
     resolution: {integrity: sha512-HU/stGzAkdWaJIly6ypbUVgAUvT9kt39DIg0IaErR7/1fwtTmgUYs4i8uEPYcgcjPjbB9gtBmUXOLnXi6J2LDw==}
 
+  mediabunny@1.45.2:
+    resolution: {integrity: sha512-lm34wGClgC263x8SEH5+79Z6aeDcHetoCKMSAeqDhn6Qn4a3A24Bs8uJf9Lxt9h0MEa/uJqZ/5soial/V9TSwQ==}
+
   memfs@3.5.3:
     resolution: {integrity: sha512-UERzLsxzllchadvbPs5aolHh65ISpKpM+ccLbOJ8/vvpBKmAWf+la7dXFy7Mr0ySHbdHrFv5kGFCUHHe6GFEmw==}
     engines: {node: '>= 4.0.0'}
@@ -18088,6 +18097,9 @@ packages:
   watchpack@2.5.1:
     resolution: {integrity: sha512-Zn5uXdcFNIA1+1Ei5McRd+iRzfhENPCe7LeABkJtNulSxjma+l7ltNx55BWZkRlwRnpOgHqxnjyaDgJnNXnqzg==}
     engines: {node: '>=10.13.0'}
+
+  wavesurfer.js@7.12.7:
+    resolution: {integrity: sha512-TIe7hB6OCZysNOZ2cn2NR8Qpko22POWel6rauNcqOammFoH65NYQUM35unNLLMIlUMVYvjJ6w/TTl/G/m+w0nA==}
 
   wcwidth@1.0.1:
     resolution: {integrity: sha512-XHPEwS0q6TaxcvG85+8EYkbiCux2XtWG2mkc47Ng2A77BQu9+DqIOJldST4HgPkuea7dvKSj5VgX3P1d4rW8Tg==}
@@ -34969,6 +34981,11 @@ snapshots:
       '@types/dom-mediacapture-transform': 0.1.11
       '@types/dom-webcodecs': 0.1.13
 
+  mediabunny@1.45.2:
+    dependencies:
+      '@types/dom-mediacapture-transform': 0.1.11
+      '@types/dom-webcodecs': 0.1.13
+
   memfs@3.5.3:
     dependencies:
       fs-monkey: 1.1.0
@@ -39948,6 +39965,8 @@ snapshots:
     dependencies:
       glob-to-regexp: 0.4.1
       graceful-fs: 4.2.11
+
+  wavesurfer.js@7.12.7: {}
 
   wcwidth@1.0.1:
     dependencies:

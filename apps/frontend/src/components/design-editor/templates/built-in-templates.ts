@@ -869,6 +869,205 @@ const communityThanks: DesignTemplate = {
   },
 };
 
+const reelCoverHook: DesignTemplate = {
+  key: 'reel-cover-hook',
+  category: 'reel-cover',
+  label: 'Cover: Hak (How-to)',
+  description: 'Duży nagłówek z liczbą sekund — najlepszy do tutoriali',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addRect(canvas, {
+      left: 0,
+      top: 0,
+      width: p.width,
+      height: p.height,
+      fill: new fabric.Gradient({
+        type: 'linear',
+        coords: { x1: 0, y1: 0, x2: 0, y2: p.height },
+        colorStops: [
+          { offset: 0, color: brand.background },
+          { offset: 1, color: brand.primary },
+        ],
+      }),
+      selectable: false,
+      evented: false,
+    });
+
+    addTextbox(canvas, 'JAK ZROBIĆ', {
+      left: cx,
+      top: p.height * 0.18,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.085,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: '600',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'X w 60s', {
+      left: cx,
+      top: p.height * 0.32,
+      width: p.width * 0.95,
+      fontSize: p.width * 0.22,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, '👇', {
+      left: cx,
+      top: p.height * 0.78,
+      width: p.width * 0.3,
+      fontSize: p.width * 0.18,
+      originX: 'center',
+      textAlign: 'center',
+    });
+  },
+};
+
+const reelCoverReveal: DesignTemplate = {
+  key: 'reel-cover-reveal',
+  category: 'reel-cover',
+  label: 'Cover: Zaskoczyło mnie',
+  description: 'Bold tekst z emoji — high-CTR pattern',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.05,
+      width: p.width * 0.7,
+      height: p.height * 0.06,
+      fill: brand.primary,
+      originX: 'center',
+      rx: p.height * 0.03,
+      ry: p.height * 0.03,
+    });
+    addTextbox(canvas, 'NIE UWIERZYSZ', {
+      left: cx,
+      top: p.height * 0.06,
+      width: p.width * 0.7,
+      fontSize: p.width * 0.04,
+      fill: brand.background,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      charSpacing: 150,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Co się\nstało gdy\nspróbowałem\ntego?', {
+      left: cx,
+      top: p.height * 0.25,
+      width: p.width * 0.92,
+      fontSize: p.width * 0.13,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      lineHeight: 1.05,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, '🤯', {
+      left: cx,
+      top: p.height * 0.82,
+      width: p.width * 0.3,
+      fontSize: p.width * 0.18,
+      originX: 'center',
+      textAlign: 'center',
+    });
+  },
+};
+
+const reelCoverList: DesignTemplate = {
+  key: 'reel-cover-list',
+  category: 'reel-cover',
+  label: 'Cover: Lista (5 tipów)',
+  description: 'Numer + temat — szybko czytelne w feedzie',
+  apply: (canvas, p, brand) => {
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addCircle(canvas, {
+      left: cx,
+      top: p.height * 0.18,
+      radius: p.width * 0.12,
+      fill: brand.primary,
+      originX: 'center',
+      originY: 'center',
+    });
+    addTextbox(canvas, '5', {
+      left: cx,
+      top: p.height * 0.13,
+      width: p.width * 0.3,
+      fontSize: p.width * 0.18,
+      fill: brand.background,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'TIPÓW', {
+      left: cx,
+      top: p.height * 0.38,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.06,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: '600',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+      opacity: 0.8,
+    });
+
+    addTextbox(canvas, 'Na produktywność\npracy zdalnej', {
+      left: cx,
+      top: p.height * 0.5,
+      width: p.width * 0.92,
+      fontSize: p.width * 0.1,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      lineHeight: 1.1,
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.82,
+      width: p.width * 0.55,
+      height: p.height * 0.06,
+      fill: brand.primary,
+      rx: p.height * 0.03,
+      ry: p.height * 0.03,
+      originX: 'center',
+    });
+    addTextbox(canvas, 'PRZESUŃ →', {
+      left: cx,
+      top: p.height * 0.835,
+      width: p.width * 0.55,
+      fontSize: p.width * 0.035,
+      fill: brand.background,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      charSpacing: 150,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
 export const BUILT_IN_TEMPLATES: DesignTemplate[] = [
   promoModern,
   promoBadge,
@@ -884,6 +1083,9 @@ export const BUILT_IN_TEMPLATES: DesignTemplate[] = [
   eventSaveDate,
   communityWelcome,
   communityThanks,
+  reelCoverHook,
+  reelCoverReveal,
+  reelCoverList,
 ];
 
 export const applyTemplate = (

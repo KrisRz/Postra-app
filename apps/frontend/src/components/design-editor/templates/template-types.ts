@@ -8,7 +8,8 @@ export type TemplateCategory =
   | 'stats'
   | 'tip'
   | 'event'
-  | 'community';
+  | 'community'
+  | 'reel-cover';
 
 export interface BrandStyle {
   primary: string;
@@ -38,6 +39,7 @@ export const TEMPLATE_CATEGORIES: {
   { key: 'tip', labelKey: 'tpl_cat_tip', fallback: 'Tip', emoji: '💡' },
   { key: 'event', labelKey: 'tpl_cat_event', fallback: 'Wydarzenie', emoji: '🎉' },
   { key: 'community', labelKey: 'tpl_cat_community', fallback: 'Społeczność', emoji: '🤝' },
+  { key: 'reel-cover', labelKey: 'tpl_cat_reel_cover', fallback: 'Cover Reels', emoji: '📱' },
 ];
 
 export const DEFAULT_BRAND: BrandStyle = {
