@@ -33,6 +33,7 @@ interface PostDesignEditorProps {
   width?: number;
   height?: number;
   mode?: 'composer' | 'studio';
+  loadMediaId?: string;
 }
 
 const CANVAS_VIEWPORT_HEIGHT = 560;
@@ -43,6 +44,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   width,
   height,
   mode = 'composer',
+  loadMediaId,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
@@ -157,6 +159,51 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   }, []);
 
   useEffect(() => {
+    if (!loadMediaId) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await (await fetch(`/media/${loadMediaId}`)).json();
+        if (cancelled || !fabricRef.current) return;
+        if (data?.canvasJson) {
+          restoreState(data.canvasJson);
+          return;
+        }
+        if (data?.path) {
+          const url = `${process.env.NEXT_PUBLIC_UPLOAD_STATIC_DIRECTORY || ''}${data.path}`;
+          const img = await fabric.Image.fromURL(url, { crossOrigin: 'anonymous' });
+          const c = fabricRef.current;
+          const w = c.getWidth() / c.getZoom();
+          const h = c.getHeight() / c.getZoom();
+          const scale = Math.min(w / (img.width || 1), h / (img.height || 1));
+          img.set({
+            left: w / 2,
+            top: h / 2,
+            originX: 'center',
+            originY: 'center',
+            scaleX: scale,
+            scaleY: scale,
+            selectable: true,
+          });
+          c.add(img);
+          c.renderAll();
+          saveStateRef.current?.();
+        }
+      } catch {
+        toaster.show(
+          t('load_media_failed', 'Nie udało się załadować media do edycji.'),
+          'warning'
+        );
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadMediaId]);
+
+  useEffect(() => {
     return useCarouselStore.subscribe((state, prev) => {
       if (state.pendingSlideSwitch === null) return;
       if (state.pendingSlideSwitch === prev.pendingSlideSwitch) return;
@@ -238,6 +285,10 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
               body: formData,
             })
           ).json();
+          await fetch(`/media/${data.id}/canvas`, {
+            method: 'PUT',
+            body: JSON.stringify({ canvasJson: slide.canvasJson }),
+          });
           uploaded.push({ id: data.id, path: data.path });
         }
 
@@ -264,6 +315,12 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
           body: formData,
         })
       ).json();
+
+      const canvasJson = JSON.stringify(fabricRef.current.toJSON());
+      await fetch(`/media/${data.id}/canvas`, {
+        method: 'PUT',
+        body: JSON.stringify({ canvasJson }),
+      });
 
       setMedia([{ id: data.id, path: data.path }]);
       closeModal();

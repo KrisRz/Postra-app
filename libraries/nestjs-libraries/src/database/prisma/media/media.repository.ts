@@ -39,6 +39,13 @@ export class MediaRepository {
     });
   }
 
+  getMediaByIdForOrg(org: string, id: string) {
+    return this._media.model.media.findFirst({
+      where: { id, organizationId: org },
+      select: { id: true, path: true, canvasJson: true },
+    });
+  }
+
   saveDesignSpec(org: string, id: string, spec: StudioSpec) {
     return this._media.model.media.update({
       where: { id, organizationId: org },

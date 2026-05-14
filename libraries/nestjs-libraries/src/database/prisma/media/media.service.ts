@@ -196,6 +196,10 @@ export class MediaService {
     return this._mediaRepository.saveCanvasJson(org, id, canvasJson);
   }
 
+  getMediaForEdit(org: string, id: string) {
+    return this._mediaRepository.getMediaByIdForOrg(org, id);
+  }
+
   saveFile(org: string, fileName: string, filePath: string, originalName?: string) {
     return this._mediaRepository.saveFile(org, fileName, filePath, originalName);
   }

@@ -120,6 +120,14 @@ export class MediaController {
     return this._mediaService.saveCanvasJson(org.id, id, body.canvasJson);
   }
 
+  @Get('/:id')
+  getMediaForEdit(
+    @GetOrgFromRequest() org: Organization,
+    @Param('id') id: string
+  ) {
+    return this._mediaService.getMediaForEdit(org.id, id);
+  }
+
   @Post('/refine-design')
   refineDesign(
     @GetOrgFromRequest() org: Organization,

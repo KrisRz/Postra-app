@@ -832,6 +832,43 @@ export const MultiMediaComponent: FC<{
                       )}
                     </div>
 
+                    {!dummy && media?.path && media.path.indexOf('mp4') === -1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          modals.openModal({
+                            askClose: false,
+                            title: t('design_media_edit', 'Edytuj projekt'),
+                            size: '80%',
+                            height: '750px',
+                            children: (close) => (
+                              <PostDesignEditor
+                                loadMediaId={media.id}
+                                setMedia={(replacements) => {
+                                  if (!replacements?.length) return;
+                                  const repl = replacements[0];
+                                  onChange({
+                                    target: {
+                                      name: 'upload',
+                                      value: currentMedia.map((p) =>
+                                        p.id === media.id ? { ...p, id: repl.id, path: repl.path } : p
+                                      ),
+                                    },
+                                  });
+                                }}
+                                closeModal={close}
+                              />
+                            ),
+                          });
+                        }}
+                        className="absolute -end-[4px] -bottom-[4px] z-[20] w-[16px] h-[16px] rounded-full bg-newAccent text-white text-[9px] flex items-center justify-center hover:bg-forth"
+                        title={t('design_media_edit_hint', 'Edytuj projekt — otwórz w Studio')}
+                      >
+                        ✏
+                      </button>
+                    )}
+
                     <CloseCircleIcon
                       onClick={clearMedia(index)}
                       className="absolute -end-[4px] -top-[4px] z-[20] rounded-full bg-white"

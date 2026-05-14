@@ -135,6 +135,13 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
             body: formData,
           })
         ).json();
+        if (r.canvasJson) {
+          // eslint-disable-next-line no-await-in-loop
+          await fetch(`/media/${data.id}/canvas`, {
+            method: 'PUT',
+            body: JSON.stringify({ canvasJson: r.canvasJson }),
+          });
+        }
         uploaded.push({ id: data.id, path: data.path });
         setUploadProgress({ done: i + 1, total: renders.length });
       }
