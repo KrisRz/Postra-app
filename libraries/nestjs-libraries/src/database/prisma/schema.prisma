@@ -238,6 +238,7 @@ model Media {
   alt                String?
   thumbnailTimestamp Int?
   designSpec         Json?
+  canvasJson         String?             @db.Text
   organization       Organization        @relation(fields: [organizationId], references: [id])
   agencies           SocialMediaAgency[]
   userPicture        User[]
