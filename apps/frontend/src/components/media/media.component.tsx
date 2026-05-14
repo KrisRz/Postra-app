@@ -844,21 +844,7 @@ export const MultiMediaComponent: FC<{
                 </div>
               </div>
               <div
-                title="Polotno SDK — niedostępne (płatna licencja $79-299/msc). Zastąpione własnym edytorem opartym na Fabric.js."
-                className="h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] opacity-40 pointer-events-none cursor-not-allowed"
-              >
-                <div className="flex gap-[5px] items-center">
-                  <div>
-                    <DesignMediaIcon />
-                  </div>
-                  <div className="text-[10px] font-[600] iconBreak:hidden block">
-                    Polotno SDK
-                  </div>
-                </div>
-              </div>
-              <div
                 onClick={designMedia}
-                title="Edytor projektów graficznych — ✨ AI Generuj (GPT-4.1 + DALL-E), 🎨 Brand Kit (kolory + logo + font), tekst, kształty, obrazy, eksport PNG. Zastępuje Polotno SDK."
                 className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors"
               >
                 <div className="flex gap-[5px] items-center">
