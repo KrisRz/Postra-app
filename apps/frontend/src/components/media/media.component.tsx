@@ -59,6 +59,11 @@ const PostDesignEditor = dynamic(
   () => import('@gitroom/frontend/components/design-editor/post-design-editor'),
   { ssr: false }
 );
+const VideoStudio = dynamic(
+  () =>
+    import('@gitroom/frontend/components/video-studio/video-studio').then((m) => m.VideoStudio),
+  { ssr: false }
+);
 const showModalEmitter = new EventEmitter();
 export const Pagination: FC<{
   current: number;
@@ -756,6 +761,20 @@ export const MultiMediaComponent: FC<{
     }
   }, [changeMedia, t]);
 
+  const openVideoStudio = useCallback(() => {
+    if (!dummy) {
+      modals.openModal({
+        askClose: false,
+        title: t('video_studio_title', '🎬 Video Studio'),
+        size: '80%',
+        height: '750px',
+        children: (close) => (
+          <VideoStudio setMedia={changeMedia} closeModal={close} />
+        ),
+      });
+    }
+  }, [changeMedia, t]);
+
   const openPolotno = useCallback(() => {
     if (!dummy) {
       modals.openModal({
@@ -917,6 +936,18 @@ export const MultiMediaComponent: FC<{
                   </div>
                   <div className="text-[10px] font-[600] iconBreak:hidden block">
                     {t('design_media', 'Design Media')}
+                  </div>
+                </div>
+              </div>
+              <div
+                onClick={openVideoStudio}
+                className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors"
+                title={t('video_studio_hint', 'Wytnij wideo i wyeksportuj do formatów IG/TikTok/YouTube')}
+              >
+                <div className="flex gap-[5px] items-center">
+                  <div className="text-[14px]">🎬</div>
+                  <div className="text-[10px] font-[600] iconBreak:hidden block">
+                    {t('video_studio', 'Video')}
                   </div>
                 </div>
               </div>
