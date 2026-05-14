@@ -66,10 +66,10 @@ jobs:
               "set -e",
               "cd /opt/postra",
               "aws ecr get-login-password --region \($region) | docker login --username AWS --password-stdin \($registry)",
+              "docker image prune -af || true",
               "docker pull \($image)",
               "cat > docker-compose.override.yml <<EOF\nservices:\n  app:\n    image: \($image)\nEOF",
-              "docker compose up -d app",
-              "docker image prune -af --filter '\''until=24h'\'' || true"
+              "docker compose up -d app"
             ]
           }')
           COMMAND_ID=$(
@@ -117,8 +117,14 @@ jobs:
           exit 1
 
       - name: Health check
+        env:
+          INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
         run: |
-          for attempt in $(seq 1 30); do
+          # First-boot pm2 backend intermittently hangs without binding port 3000.
+          # `docker restart postra-app` clears it. Try for 3 min, restart, then wait
+          # up to 10 min total before giving up.
+          RESTART_DONE=0
+          for attempt in $(seq 1 60); do
             STATUS=$(curl -s -o /tmp/postra-health.txt -w "%{http_code}" https://app-dev.postra.pl/api/monitor/queue/main || true)
             if [ "$STATUS" = "200" ]; then
               cat /tmp/postra-health.txt
@@ -126,8 +132,24 @@ jobs:
             fi
 
             echo "Health check attempt ${attempt} failed with status: ${STATUS}"
+
+            if [ "$attempt" = "18" ] && [ "$RESTART_DONE" = "0" ]; then
+              echo "Backend still unhealthy after 3 min — triggering 'docker restart postra-app' to clear pm2 first-boot hang"
+              RESTART_CMD=$(aws ssm send-command \
+                --instance-ids "$INSTANCE_ID" \
+                --document-name "AWS-RunShellScript" \
+                --comment "Auto-recover pm2 first-boot hang" \
+                --parameters 'commands=["docker restart postra-app"]' \
+                --query "Command.CommandId" \
+                --output text)
+              echo "Restart SSM command: ${RESTART_CMD}"
+              RESTART_DONE=1
+              sleep 20
+              continue
+            fi
+
             sleep 10
           done
 
-          echo "Health check failed"
+          echo "Health check failed after 10 min (including post-restart retries)"
           exit 1
