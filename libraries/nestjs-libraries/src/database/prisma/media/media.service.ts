@@ -200,6 +200,27 @@ export class MediaService {
     return this._mediaRepository.getMediaByIdForOrg(org, id);
   }
 
+  async importPixabayVideo(org: string, sourceUrl: string, sourceId?: number) {
+    const res = await fetch(sourceUrl);
+    if (!res.ok) {
+      throw new HttpException(`Failed to fetch Pixabay video (${res.status})`, 502);
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const fakeFile = {
+      buffer,
+      originalname: `pixabay-${sourceId ?? Date.now()}.mp4`,
+      mimetype: 'video/mp4',
+      size: buffer.length,
+    } as unknown as Express.Multer.File;
+    const uploaded = await this.storage.uploadFile(fakeFile);
+    return this._mediaRepository.saveFile(
+      org,
+      uploaded.originalname,
+      uploaded.path,
+      `pixabay-${sourceId ?? 'unknown'}`
+    );
+  }
+
   saveFile(org: string, fileName: string, filePath: string, originalName?: string) {
     return this._mediaRepository.saveFile(org, fileName, filePath, originalName);
   }

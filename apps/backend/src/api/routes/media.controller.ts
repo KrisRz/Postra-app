@@ -164,8 +164,8 @@ export class MediaController {
     return this._mediaService.saveFile(org.id, result.path.split('/').pop() ?? 'captioned.mp4', result.path);
   }
 
-  @Get('/pixabay-music')
-  async pixabayMusic(
+  @Get('/pixabay-videos')
+  async pixabayVideos(
     @Query('q') q: string,
     @Query('page') page = '1'
   ) {
@@ -176,12 +176,12 @@ export class MediaController {
     const safeQuery = (q || '').slice(0, 100).trim().toLowerCase();
     const safePage = Math.max(1, Number(page) || 1);
     // Pixabay license requires caching responses for 24h to avoid duplicate calls.
-    const cacheKey = `pixabay:music:${createHash('md5').update(`${safeQuery}|${safePage}`).digest('hex')}`;
+    const cacheKey = `pixabay:videos:${createHash('md5').update(`${safeQuery}|${safePage}`).digest('hex')}`;
     const cached = await ioRedis.get(cacheKey);
     if (cached) {
       return JSON.parse(cached);
     }
-    const url = `https://pixabay.com/api/music/?key=${apiKey}&q=${encodeURIComponent(safeQuery)}&page=${safePage}&per_page=20`;
+    const url = `https://pixabay.com/api/videos/?key=${apiKey}&q=${encodeURIComponent(safeQuery)}&page=${safePage}&per_page=20&safesearch=true`;
     const res = await fetch(url);
     if (!res.ok) {
       throw new HttpException(`Pixabay error ${res.status}`, 502);
@@ -192,6 +192,18 @@ export class MediaController {
     const ttl = remaining < 5 ? 60 * 60 * 48 : 60 * 60 * 24;
     await ioRedis.set(cacheKey, JSON.stringify(data), 'EX', ttl);
     return data;
+  }
+
+  @Post('/pixabay-videos/import')
+  async pixabayVideosImport(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: { url: string; sourceId?: number }
+  ) {
+    if (!body.url || !/^https:\/\/(cdn\.)?pixabay\.com\//.test(body.url)) {
+      throw new HttpException('Invalid Pixabay video URL', 400);
+    }
+    // Pixabay TOS: store video on our server rather than hotlinking.
+    return this._mediaService.importPixabayVideo(org.id, body.url, body.sourceId);
   }
 
   @Post('/refine-design')
