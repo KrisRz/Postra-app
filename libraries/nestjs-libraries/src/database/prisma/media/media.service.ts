@@ -9,6 +9,7 @@ import { VideoManager } from '@gitroom/nestjs-libraries/videos/video.manager';
 import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
+import { GeneratePostCarouselDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.carousel.dto';
 import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
 import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.repository';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
@@ -132,6 +133,71 @@ export class MediaService {
       cacheHit,
       brandKit: brandKit ? { logoPath: brandKit.logoPath ?? null } : null,
     };
+  }
+
+  async generatePostCarousel(org: Organization, dto: GeneratePostCarouselDto) {
+    const total = await this._subscriptionService.checkCredits(org);
+    if (process.env.STRIPE_PUBLISHABLE_KEY && total.credits <= 0) {
+      throw new HttpException(
+        'No image generation credits remaining for this billing cycle',
+        402
+      );
+    }
+
+    const brandKit =
+      dto.brandKit ?? (await this._brandKitService.getNormalized(org.id)) ?? undefined;
+
+    const carousel = await this._openAi.generatePostCarousel(
+      dto.prompt,
+      dto.platform,
+      dto.slidesCount,
+      brandKit
+    );
+
+    const cacheKey = `bg:${createHash('md5')
+      .update(carousel.imagePrompt.trim().toLowerCase())
+      .digest('hex')}`;
+
+    let backgroundUrl = await ioRedis.get(cacheKey);
+    let cacheHit = !!backgroundUrl;
+
+    if (!backgroundUrl) {
+      backgroundUrl = await this._subscriptionService.useCredit(
+        org,
+        'ai_images',
+        async () => {
+          const dalleUrl = await this._openAi.generateImage(
+            carousel.imagePrompt,
+            true
+          );
+          if (!dalleUrl) {
+            throw new HttpException('DALL-E generation failed', 502);
+          }
+          return await this.storage.uploadSimple(dalleUrl);
+        }
+      );
+
+      await ioRedis.set(cacheKey, backgroundUrl, 'EX', POST_DESIGN_BG_CACHE_TTL);
+    }
+
+    return {
+      slides: carousel.slides.map((s) => ({
+        ...s,
+        imagePrompt: carousel.imagePrompt,
+        colors: carousel.colors,
+        backgroundUrl,
+        cacheHit,
+        brandKit: brandKit ? { logoPath: brandKit.logoPath ?? null } : null,
+      })),
+    };
+  }
+
+  async saveCanvasJson(org: string, id: string, canvasJson: string) {
+    return this._mediaRepository.saveCanvasJson(org, id, canvasJson);
+  }
+
+  getMediaForEdit(org: string, id: string) {
+    return this._mediaRepository.getMediaByIdForOrg(org, id);
   }
 
   saveFile(org: string, fileName: string, filePath: string, originalName?: string) {

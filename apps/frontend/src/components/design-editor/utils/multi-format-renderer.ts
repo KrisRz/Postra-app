@@ -4,6 +4,7 @@ import { PLATFORM_SIZES, PlatformSize } from '../editor.store';
 export interface FormatRender {
   platform: PlatformSize;
   dataUrl: string;
+  canvasJson?: string;
 }
 
 const BG_COVERAGE_THRESHOLD = 0.5;
@@ -138,7 +139,7 @@ export const renderCanvasAtSize = async (
   srcW: number,
   srcH: number,
   target: PlatformSize
-): Promise<string> => {
+): Promise<{ dataUrl: string; canvasJson: string }> => {
   const el = document.createElement('canvas');
   el.width = target.width;
   el.height = target.height;
@@ -158,8 +159,9 @@ export const renderCanvasAtSize = async (
 
   c.renderAll();
   const dataUrl = c.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
+  const repositionedJson = JSON.stringify(c.toJSON());
   c.dispose();
-  return dataUrl;
+  return { dataUrl, canvasJson: repositionedJson };
 };
 
 export const renderAllFormats = async (
@@ -174,8 +176,13 @@ export const renderAllFormats = async (
   for (let i = 0; i < targets.length; i += 1) {
     const target = targets[i];
     // eslint-disable-next-line no-await-in-loop
-    const dataUrl = await renderCanvasAtSize(canvasJson, srcW, srcH, target);
-    results.push({ platform: target, dataUrl });
+    const { dataUrl, canvasJson: repositioned } = await renderCanvasAtSize(
+      canvasJson,
+      srcW,
+      srcH,
+      target
+    );
+    results.push({ platform: target, dataUrl, canvasJson: repositioned });
     onProgress?.(i + 1, targets.length);
   }
 

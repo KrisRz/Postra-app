@@ -3,8 +3,10 @@
 import { FC, lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import * as fabric from 'fabric';
 import { useEditorStore, PLATFORM_SIZES, PlatformSize } from './editor.store';
+import { useCarouselStore } from './carousel.store';
 import { EditorToolbar } from './toolbar/editor-toolbar';
 import { FormatBar } from './toolbar/format-bar';
+import { CarouselStrip } from './carousel-strip';
 import { WelcomeModal } from './welcome-modal';
 import { repositionObjectFromTo } from './utils/multi-format-renderer';
 import {
@@ -31,6 +33,7 @@ interface PostDesignEditorProps {
   width?: number;
   height?: number;
   mode?: 'composer' | 'studio';
+  loadMediaId?: string;
 }
 
 const CANVAS_VIEWPORT_HEIGHT = 560;
@@ -41,6 +44,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   width,
   height,
   mode = 'composer',
+  loadMediaId,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
@@ -54,6 +58,9 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     useEditorStore();
   const canUndo = useEditorStore((s) => s.historyIndex > 0);
   const canRedo = useEditorStore((s) => s.historyIndex < s.history.length - 1);
+  const carouselSlideCount = useCarouselStore((s) =>
+    s.isCarouselMode ? s.slides.length : 0
+  );
 
   const getScale = useCallback(
     (p: PlatformSize) => {
@@ -103,6 +110,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       fabricRef.current = null;
       saveStateRef.current = null;
       setCanvasReady(false);
+      useCarouselStore.getState().exitCarouselMode();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -150,6 +158,76 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       });
   }, []);
 
+  useEffect(() => {
+    if (!loadMediaId) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await (await fetch(`/media/${loadMediaId}`)).json();
+        if (cancelled || !fabricRef.current) return;
+        if (data?.canvasJson) {
+          restoreState(data.canvasJson);
+          return;
+        }
+        if (data?.path) {
+          const url = `${process.env.NEXT_PUBLIC_UPLOAD_STATIC_DIRECTORY || ''}${data.path}`;
+          const img = await fabric.Image.fromURL(url, { crossOrigin: 'anonymous' });
+          const c = fabricRef.current;
+          const w = c.getWidth() / c.getZoom();
+          const h = c.getHeight() / c.getZoom();
+          const scale = Math.min(w / (img.width || 1), h / (img.height || 1));
+          img.set({
+            left: w / 2,
+            top: h / 2,
+            originX: 'center',
+            originY: 'center',
+            scaleX: scale,
+            scaleY: scale,
+            selectable: true,
+          });
+          c.add(img);
+          c.renderAll();
+          saveStateRef.current?.();
+        }
+      } catch {
+        toaster.show(
+          t('load_media_failed', 'Nie udało się załadować media do edycji.'),
+          'warning'
+        );
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadMediaId]);
+
+  useEffect(() => {
+    return useCarouselStore.subscribe((state, prev) => {
+      if (state.pendingSlideSwitch === null) return;
+      if (state.pendingSlideSwitch === prev.pendingSlideSwitch) return;
+      const c = fabricRef.current;
+      if (!c) return;
+      const targetIndex = state.pendingSlideSwitch;
+      const targetSlide = state.slides[targetIndex];
+      const currentJson = JSON.stringify(c.toJSON());
+      useCarouselStore.getState().commitSlideSwitch(currentJson);
+      if (targetSlide?.canvasJson) {
+        restoreState(targetSlide.canvasJson);
+      } else {
+        const handler = saveStateRef.current;
+        isRestoringRef.current = true;
+        if (handler) HISTORY_EVENTS.forEach((evt) => c.off(evt, handler));
+        c.clear();
+        c.backgroundColor = useEditorStore.getState().bgColor;
+        c.renderAll();
+        isRestoringRef.current = false;
+        if (handler) HISTORY_EVENTS.forEach((evt) => c.on(evt, handler));
+      }
+    });
+  }, [restoreState]);
+
   const handleUndo = useCallback(() => {
     restoreState(useEditorStore.getState().undo());
   }, [restoreState]);
@@ -158,11 +236,68 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     restoreState(useEditorStore.getState().redo());
   }, [restoreState]);
 
+  const renderSlideToBlob = useCallback(
+    async (canvasJson: string, width: number, height: number): Promise<Blob> => {
+      const tempEl = document.createElement('canvas');
+      tempEl.width = width;
+      tempEl.height = height;
+      const c = new fabric.StaticCanvas(tempEl, {
+        width,
+        height,
+        backgroundColor: '#1a1a2e',
+      });
+      try {
+        await c.loadFromJSON(canvasJson);
+        c.renderAll();
+        const dataUrl = c.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
+        return await (await window.fetch(dataUrl)).blob();
+      } finally {
+        c.dispose();
+      }
+    },
+    []
+  );
+
   const handleExport = useCallback(async () => {
     if (!fabricRef.current) return;
     setExporting(true);
 
     try {
+      const carouselState = useCarouselStore.getState();
+      const isCarousel = carouselState.isCarouselMode && carouselState.slides.length > 1;
+
+      if (isCarousel) {
+        const currentJson = JSON.stringify(fabricRef.current.toJSON());
+        const slides = carouselState.slides.map((s, i) =>
+          i === carouselState.currentSlideIndex ? { ...s, canvasJson: currentJson } : s
+        );
+
+        const uploaded: { id: string; path: string }[] = [];
+        for (let i = 0; i < slides.length; i += 1) {
+          const slide = slides[i];
+          if (!slide.canvasJson) continue;
+          const blob = await renderSlideToBlob(slide.canvasJson, platform.width, platform.height);
+          const formData = new FormData();
+          formData.append('file', blob, `slide-${i + 1}.png`);
+          const data = await (
+            await fetch('/media/upload-simple', {
+              method: 'POST',
+              body: formData,
+            })
+          ).json();
+          await fetch(`/media/${data.id}/canvas`, {
+            method: 'PUT',
+            body: JSON.stringify({ canvasJson: slide.canvasJson }),
+          });
+          uploaded.push({ id: data.id, path: data.path });
+        }
+
+        setMedia(uploaded);
+        useCarouselStore.getState().exitCarouselMode();
+        closeModal();
+        return;
+      }
+
       const scale = 1 / fabricRef.current.getZoom();
       const dataUrl = fabricRef.current.toDataURL({
         format: 'png',
@@ -181,6 +316,12 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
         })
       ).json();
 
+      const canvasJson = JSON.stringify(fabricRef.current.toJSON());
+      await fetch(`/media/${data.id}/canvas`, {
+        method: 'PUT',
+        body: JSON.stringify({ canvasJson }),
+      });
+
       setMedia([{ id: data.id, path: data.path }]);
       closeModal();
     } catch (err) {
@@ -188,7 +329,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     } finally {
       setExporting(false);
     }
-  }, [fetch, setMedia, closeModal, toaster, t]);
+  }, [fetch, setMedia, closeModal, toaster, t, platform.width, platform.height, renderSlideToBlob]);
 
   const handleDownload = useCallback(() => {
     if (!fabricRef.current) return;
@@ -291,7 +432,12 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                   onClick={handleExport}
                   className="!h-[32px] !text-xs"
                 >
-                  {t('use_in_post', 'Use in Post')}
+                  {carouselSlideCount > 1
+                    ? t('use_carousel_in_post', 'Eksportuj {n} slajdów').replace(
+                        '{n}',
+                        String(carouselSlideCount)
+                      )
+                    : t('use_in_post', 'Use in Post')}
                 </Button>
               )}
             </div>
@@ -302,6 +448,8 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
               <canvas ref={canvasRef} />
             </div>
           </div>
+
+          <CarouselStrip fabricRef={fabricRef} />
 
           <FormatBar />
         </div>
