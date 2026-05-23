@@ -1094,7 +1094,7 @@ const CalendarItem: FC<{
             'group-hover:hidden cursor-pointer'
           )}
         >
-          {post.tags.map((p) => p.tag.name).join(', ')}
+          {(post?.tags ?? []).map((p) => p.tag.name).join(', ')}
         </div>
         {copyDebugJson && (
           <div
