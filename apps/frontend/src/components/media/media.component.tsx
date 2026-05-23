@@ -1014,10 +1014,9 @@ export const MediaComponent: FC<{
       setCurrentMedia(settings);
     }
   }, []);
-  // `value` (the media list) is optional and undefined for an item with no
-  // media yet. Default to [] so currentMedia stays an array — the unguarded
-  // currentMedia.map in render crashed the composer on paste (Ctrl+V image).
-  const [currentMedia, setCurrentMedia] = useState(value ?? []);
+  // MediaComponent holds a SINGLE media object (value?: {path,id}), accessed as
+  // currentMedia.path — not an array, so no [] default here (that broke the type).
+  const [currentMedia, setCurrentMedia] = useState(value);
   const modals = useModals();
   const mediaDirectory = useMediaDirectory();
 
