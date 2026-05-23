@@ -416,12 +416,9 @@ export const MonthView = () => {
   // Use dayjs to get localized day names
   const localizedDays = useMemo(() => {
     const currentLanguage = i18next.resolvedLanguage || 'en';
-    dayjs.locale(currentLanguage);
-
     const days = [];
-    // Starting from Monday (1) to Sunday (7)
     for (let i = 1; i <= 7; i++) {
-      days.push(newDayjs().day(i).format('dddd'));
+      days.push(dayjs().locale(currentLanguage).day(i).format('dddd'));
     }
     return days;
   }, [i18next.resolvedLanguage]);
