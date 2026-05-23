@@ -69,7 +69,8 @@ jobs:
               "docker image prune -af || true",
               "docker pull \($image)",
               "cat > docker-compose.override.yml <<EOF\nservices:\n  app:\n    image: \($image)\nEOF",
-              "docker compose up -d app"
+              "docker compose up -d app",
+              "sleep 3 && docker exec -u root postra-app chown -R www:www /uploads || true"
             ]
           }')
           COMMAND_ID=$(
