@@ -25,6 +25,19 @@ export class LocalStorage implements IUploadProvider {
   constructor(private uploadDirectory: string) {}
 
   async uploadSimple(path: string) {
+    // Inline data: URLs (e.g. base64 from gpt-image-1). Decode and store
+    // directly — these are not network requests, so the https/SSRF guard and
+    // fetch below don't apply.
+    if (path.startsWith('data:')) {
+      const match = path.match(/^data:([^;,]+);base64,(.*)$/s);
+      if (!match) {
+        throw new Error('Invalid data URL');
+      }
+      const buffer = Buffer.from(match[2], 'base64');
+      const findExtension = mime.getExtension(match[1]) || 'png';
+      return this.writeBuffer(buffer, findExtension);
+    }
+
     if (!(await isSafePublicHttpsUrl(path))) {
       throw new Error('Unsafe URL');
     }
@@ -36,6 +49,13 @@ export class LocalStorage implements IUploadProvider {
       path.split('?')[0].split('#')[0].split('.').pop() ||
       'bin';
 
+    return this.writeBuffer(
+      Buffer.from(await loadImage.arrayBuffer()),
+      findExtension
+    );
+  }
+
+  private writeBuffer(buffer: Buffer, findExtension: string) {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -52,8 +72,7 @@ export class LocalStorage implements IUploadProvider {
 
     const filePath = `${dir}/${randomName}.${findExtension}`;
     const publicPath = `${innerPath}/${randomName}.${findExtension}`;
-    // Logic to save the file to the filesystem goes here
-    writeFileSync(filePath, Buffer.from(await loadImage.arrayBuffer()));
+    writeFileSync(filePath, buffer);
 
     return process.env.FRONTEND_URL + '/uploads' + publicPath;
   }

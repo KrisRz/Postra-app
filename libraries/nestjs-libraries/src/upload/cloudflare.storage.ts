@@ -77,14 +77,25 @@ class CloudflareStorage implements IUploadProvider {
   }
 
   async uploadSimple(path: string) {
-    if (!(await isSafePublicHttpsUrl(path))) {
-      throw new Error('Unsafe URL');
+    let body: Buffer;
+    if (path.startsWith('data:')) {
+      // Inline data: URL (e.g. base64 from gpt-image-1) — decode directly,
+      // skipping the network fetch + SSRF guard which only apply to remote URLs.
+      const match = path.match(/^data:([^;,]+);base64,(.*)$/s);
+      if (!match) {
+        throw new Error('Invalid data URL');
+      }
+      body = Buffer.from(match[2], 'base64');
+    } else {
+      if (!(await isSafePublicHttpsUrl(path))) {
+        throw new Error('Unsafe URL');
+      }
+      const loadImage = await fetch(path, {
+        // @ts-ignore — undici option, not in lib.dom fetch types
+        dispatcher: ssrfSafeDispatcher,
+      });
+      body = Buffer.from(await loadImage.arrayBuffer());
     }
-    const loadImage = await fetch(path, {
-      // @ts-ignore — undici option, not in lib.dom fetch types
-      dispatcher: ssrfSafeDispatcher,
-    });
-    const body = Buffer.from(await loadImage.arrayBuffer());
     const detected = await fromBuffer(body);
     if (!detected || !ALLOWED_MIME_TYPES.has(detected.mime)) {
       throw new Error('Unsupported file type.');

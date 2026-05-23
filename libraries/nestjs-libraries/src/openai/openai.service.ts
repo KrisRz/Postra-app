@@ -63,17 +63,26 @@ export class OpenaiService {
     return typeof result === 'string' ? result : '';
   }
 
-  async generateImage(prompt: string, isUrl: boolean, isVertical = false) {
+  // dall-e-3 is retired on the API and `response_format` was removed for image
+  // generation — both produce 400s. gpt-image-1 is the current model and always
+  // returns base64 (no hosted url). We wrap it in a data: URL; callers pass the
+  // result to storage.uploadSimple(), which now decodes data: URLs to a hosted
+  // file. `isUrl` is kept for signature compatibility but no longer used.
+  async generateImage(
+    prompt: string,
+    _isUrl: boolean,
+    isVertical = false
+  ): Promise<string | undefined> {
     const generate = (
       await openai.images.generate({
         prompt,
-        response_format: isUrl ? 'url' : 'b64_json',
-        model: 'dall-e-3',
-        ...(isVertical ? { size: '1024x1792' } : {}),
+        model: 'gpt-image-1',
+        size: isVertical ? '1024x1536' : '1024x1024',
       })
-    ).data[0];
+    ).data?.[0];
 
-    return isUrl ? generate.url : generate.b64_json;
+    const b64 = generate?.b64_json;
+    return b64 ? `data:image/png;base64,${b64}` : undefined;
   }
 
   async generatePromptForPicture(prompt: string) {

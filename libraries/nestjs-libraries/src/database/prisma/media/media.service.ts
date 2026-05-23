@@ -76,7 +76,13 @@ export class MediaService {
           prompt = await this._openAi.generatePromptForPicture(prompt);
           console.log('Prompt:', prompt);
         }
-        return this._openAi.generateImage(prompt, !!generatePromptFirst);
+        const dataUrl = await this._openAi.generateImage(
+          prompt,
+          !!generatePromptFirst
+        );
+        // gpt-image-1 returns a base64 data: URL — persist it to storage and
+        // return the hosted URL (callers expect a real URL, not raw base64).
+        return dataUrl ? await this.storage.uploadSimple(dataUrl) : dataUrl;
       }
     );
 
@@ -361,10 +367,13 @@ export class MediaService {
 
       if (!backgroundUrl) {
         try {
-          backgroundUrl = await this._openAi.generateImage(
+          const generated = await this._openAi.generateImage(
             `Social media background for: ${body.prompt}. Empty space for text overlay, dark gradient at bottom, modern minimal, no text in image.`,
             true
           );
+          backgroundUrl = generated
+            ? await this.storage.uploadSimple(generated)
+            : null;
           if (backgroundUrl) {
             await ioRedis.set(cacheKey, backgroundUrl, 'EX', POST_DESIGN_BG_CACHE_TTL);
           }
