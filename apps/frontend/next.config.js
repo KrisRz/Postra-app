@@ -5,6 +5,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   experimental: {
     proxyTimeout: 90_000,
+    optimizePackageImports: ['@mantine/core', '@mantine/hooks', 'lodash', 'dayjs'],
   },
   // Document-Policy header for browser profiling
   async headers() {
