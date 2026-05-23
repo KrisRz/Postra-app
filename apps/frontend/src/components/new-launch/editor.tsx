@@ -189,11 +189,15 @@ export const EditorWrapper: FC<{
   }, [current, internal]);
 
   const items = useMemo(() => {
+    // Always an array: internal.integrationValue / global can be undefined for
+    // a freshly added channel or mid store-update, and `items` is mapped
+    // unguarded in render (items.map / items.length) — undefined crashed the
+    // whole editor with "Cannot read properties of undefined (reading 'map')".
     if (internal) {
-      return internal.integrationValue;
+      return internal.integrationValue ?? [];
     }
 
-    return global;
+    return global ?? [];
   }, [internal, global]);
 
   const setValue = useCallback(
@@ -776,7 +780,6 @@ export const Editor: FC<{
                       chars={chars}
                       totalChars={valueWithoutHtml.length}
                       totalAllowedChars={props.totalChars}
-                      text={valueWithoutHtml}
                     />
                   }
                   toolBar={

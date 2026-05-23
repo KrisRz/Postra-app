@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN addgroup --system www \
  && adduser --system --ingroup www --home /www --shell /usr/sbin/nologin www \
- && mkdir -p /www /var/cache/nginx /var/log/nginx \
- && chown -R www:www /www /var/lib/nginx /var/log/nginx /var/cache/nginx
+ && mkdir -p /www /var/cache/nginx /var/log/nginx /uploads \
+ && chown -R www:www /www /var/lib/nginx /var/log/nginx /var/cache/nginx /uploads
 
 
 RUN npm --no-update-notifier --no-fund --global install pnpm@10.6.1 pm2

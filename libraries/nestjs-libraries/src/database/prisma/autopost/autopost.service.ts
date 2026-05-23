@@ -310,9 +310,17 @@ export class AutopostService {
     const { generatedTextToBeSentToDallE } =
       await ChatPromptTemplate.fromTemplate(
         `
-        You are an assistant that gets description and generate a prompt that will be sent to DallE to generate pictures.
+        You generate a DALL-E prompt for a social media post image.
         
-        content:
+        Rules:
+        - Style: professional editorial photography, shot on Canon EOS R5, natural lighting
+        - NO text, watermarks, logos, or UI elements in the image
+        - NO obvious AI artifacts (extra fingers, distorted faces, floating objects)
+        - Prefer: clean compositions, shallow depth of field, muted corporate color palette
+        - If topic is abstract (software, data, AI) — use metaphorical real-world objects (desk setup, office, city, nature)
+        - Aspect ratio: 16:9 landscape
+        
+        Article topic:
         {content}
       `
       )
