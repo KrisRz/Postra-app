@@ -11,9 +11,11 @@ import {
   Req,
   Res,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
+import { AccountAgeGuard } from '@gitroom/backend/services/auth/account-age.guard';
 import { Request, Response } from 'express';
 import { GetOrgFromRequest } from '@gitroom/nestjs-libraries/user/org.from.request';
 import { Organization } from '@prisma/client';
@@ -57,15 +59,16 @@ export class MediaController {
   }
 
   @Post('/generate-video')
+  @UseGuards(AccountAgeGuard)
   generateVideo(
     @GetOrgFromRequest() org: Organization,
     @Body() body: VideoDto
   ) {
-    console.log('hello');
     return this._mediaService.generateVideo(org, body);
   }
 
   @Post('/generate-image')
+  @UseGuards(AccountAgeGuard)
   async generateImage(
     @GetOrgFromRequest() org: Organization,
     @Req() req: Request,
@@ -85,6 +88,7 @@ export class MediaController {
   }
 
   @Post('/generate-image-with-prompt')
+  @UseGuards(AccountAgeGuard)
   async generateImageFromText(
     @GetOrgFromRequest() org: Organization,
     @Req() req: Request,
@@ -101,6 +105,7 @@ export class MediaController {
   }
 
   @Post('/generate-post-design')
+  @UseGuards(AccountAgeGuard)
   generatePostDesign(
     @GetOrgFromRequest() org: Organization,
     @Body() body: GeneratePostDesignDto
@@ -109,6 +114,7 @@ export class MediaController {
   }
 
   @Post('/generate-carousel-design')
+  @UseGuards(AccountAgeGuard)
   generateCarouselDesign(
     @GetOrgFromRequest() org: Organization,
     @Body() body: GeneratePostCarouselDto
@@ -207,6 +213,7 @@ export class MediaController {
   }
 
   @Post('/refine-design')
+  @UseGuards(AccountAgeGuard)
   refineDesign(
     @GetOrgFromRequest() org: Organization,
     @Body() body: RefineDesignDto
@@ -215,6 +222,7 @@ export class MediaController {
   }
 
   @Post('/generate-variants')
+  @UseGuards(AccountAgeGuard)
   generateVariants(
     @GetOrgFromRequest() org: Organization,
     @Body() body: GenerateVariantsDto
@@ -223,6 +231,7 @@ export class MediaController {
   }
 
   @Post('/brand-voice-check')
+  @UseGuards(AccountAgeGuard)
   brandVoiceCheck(
     @GetOrgFromRequest() org: Organization,
     @Body() body: BrandVoiceCheckDto
@@ -231,6 +240,7 @@ export class MediaController {
   }
 
   @Post('/decompose-image')
+  @UseGuards(AccountAgeGuard)
   decomposeImage(
     @GetOrgFromRequest() org: Organization,
     @Body() body: DecomposeImageDto

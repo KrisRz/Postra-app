@@ -9,6 +9,7 @@ Runtime.install({ shutdownSignals: [] });
 
 process.env.TZ = 'UTC';
 
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
@@ -59,6 +60,10 @@ async function start() {
     json({ limit: '50mb' })(req, res, next);
   });
 
+  app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  }));
   app.use(cookieParser());
   app.use(compression());
   app.useGlobalFilters(new SubscriptionExceptionFilter());

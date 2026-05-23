@@ -64,6 +64,15 @@ export class UsersRepository {
     });
   }
 
+  getUserByNormalizedEmail(normalizedEmail: string) {
+    return this._user.model.user.findFirst({
+      where: {
+        emailNormalized: normalizedEmail,
+        providerName: Provider.LOCAL,
+      },
+    });
+  }
+
   activateUser(id: string) {
     return this._user.model.user.update({
       where: {

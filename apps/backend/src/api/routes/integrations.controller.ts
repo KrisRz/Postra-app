@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Post,
   Put,
@@ -279,7 +280,7 @@ export class IntegrationsController {
     try {
       newList = (await this.functionIntegration(org, body)) || [];
     } catch (err) {
-      console.log(err);
+      Logger.error('Integration function failed', err);
     }
 
     if (!Array.isArray(newList) && newList?.none) {

@@ -16,6 +16,10 @@ export class UsersService {
     return this._usersRepository.getUserByEmail(email);
   }
 
+  getUserByNormalizedEmail(normalizedEmail: string) {
+    return this._usersRepository.getUserByNormalizedEmail(normalizedEmail);
+  }
+
   getUserById(id: string) {
     return this._usersRepository.getUserById(id);
   }

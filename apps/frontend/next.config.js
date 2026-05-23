@@ -5,6 +5,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   experimental: {
     proxyTimeout: 90_000,
+    optimizePackageImports: ['@mantine/core', '@mantine/hooks', 'lodash', 'dayjs'],
   },
   // Document-Policy header for browser profiling
   async headers() {
@@ -23,7 +24,7 @@ const nextConfig = {
   reactStrictMode: false,
   transpilePackages: ['crypto-hash'],
   // Enable production sourcemaps for Sentry
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
 
   // Custom webpack config to ensure sourcemaps are generated properly
   webpack: (config, { buildId, dev, isServer, defaultLoaders }) => {

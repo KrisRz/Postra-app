@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Provider, User } from '@prisma/client';
 import { CreateOrgUserDto } from '@gitroom/nestjs-libraries/dtos/auth/create.org.user.dto';
 import { LoginUserDto } from '@gitroom/nestjs-libraries/dtos/auth/login.user.dto';
@@ -11,6 +11,8 @@ import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/n
 import { ForgotReturnPasswordDto } from '@gitroom/nestjs-libraries/dtos/auth/forgot-return.password.dto';
 import { EmailService } from '@gitroom/nestjs-libraries/services/email.service';
 import { NewsletterService } from '@gitroom/nestjs-libraries/newsletter/newsletter.service';
+import { normalizeEmail } from '@gitroom/helpers/utils/email.normalize';
+import disposableDomains from 'disposable-email-domains';
 
 @Injectable()
 export class AuthService {
@@ -40,11 +42,19 @@ export class AuthService {
     addToOrg?: boolean | { orgId: string; role: 'USER' | 'ADMIN'; id: string }
   ) {
     if (provider === Provider.LOCAL) {
-      if (process.env.DISALLOW_PLUS && body.email.includes('+')) {
-        throw new Error('Email with plus sign is not allowed');
-      }
       if (body instanceof CreateOrgUserDto) {
         body.email = body.email.toLowerCase();
+
+        const domain = body.email.split('@')[1];
+        if (domain && disposableDomains.includes(domain)) {
+          throw new Error('Temporary email addresses are not allowed');
+        }
+
+        const normalized = normalizeEmail(body.email);
+        const existingNormalized = await this._userService.getUserByNormalizedEmail(normalized);
+        if (existingNormalized) {
+          throw new Error('Email already exists');
+        }
       }
       const user = await this._userService.getUserByEmail(body.email);
       if (body instanceof CreateOrgUserDto) {

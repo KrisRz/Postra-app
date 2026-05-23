@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import { CreateOrgUserDto } from '@gitroom/nestjs-libraries/dtos/auth/create.org.user.dto';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
+import { normalizeEmail } from '@gitroom/helpers/utils/email.normalize';
 
 @Injectable()
 export class OrganizationRepository {
@@ -276,6 +277,7 @@ export class OrganizationRepository {
               create: {
                 activated: body.provider !== 'LOCAL' || !hasEmail,
                 email: body.email,
+                emailNormalized: normalizeEmail(body.email),
                 password: body.password
                   ? AuthService.hashPassword(body.password)
                   : '',

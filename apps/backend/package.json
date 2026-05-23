@@ -10,5 +10,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "disposable-email-domains": "^1.0.62",
+    "helmet": "^8.2.0"
+  }
 }

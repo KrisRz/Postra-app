@@ -70,7 +70,7 @@ export async function proxy(request: NextRequest) {
         ? {
             secure: true,
             httpOnly: true,
-            sameSite: false,
+            sameSite: 'lax',
           }
         : {}),
       maxAge: -1,
@@ -118,7 +118,7 @@ export async function proxy(request: NextRequest) {
               path: '/',
               secure: true,
               httpOnly: true,
-              sameSite: false,
+              sameSite: 'lax',
               domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
             }
           : {}),
@@ -148,7 +148,7 @@ export async function proxy(request: NextRequest) {
                 path: '/',
                 secure: true,
                 httpOnly: true,
-                sameSite: false,
+                sameSite: 'lax',
                 domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
               }
             : {}),

@@ -8,6 +8,7 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Response, Request } from 'express';
 
 import { CreateOrgUserDto } from '@gitroom/nestjs-libraries/dtos/auth/create.org.user.dto';
@@ -40,6 +41,7 @@ export class AuthController {
   }
 
   @Post('/register')
+  @Throttle({ default: { ttl: 86400000, limit: 3 } })
   async register(
     @Req() req: Request,
     @Body() body: CreateOrgUserDto,
@@ -75,7 +77,7 @@ export class AuthController {
           ? {
               secure: true,
               httpOnly: true,
-              sameSite: 'none',
+              sameSite: 'lax',
             }
           : {}),
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
@@ -92,7 +94,7 @@ export class AuthController {
             ? {
                 secure: true,
                 httpOnly: true,
-                sameSite: 'none',
+                sameSite: 'lax',
               }
             : {}),
           expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
@@ -114,6 +116,7 @@ export class AuthController {
   }
 
   @Post('/login')
+  @Throttle({ default: { ttl: 900000, limit: 5 } })
   async login(
     @Req() req: Request,
     @Body() body: LoginUserDto,
@@ -140,7 +143,7 @@ export class AuthController {
           ? {
               secure: true,
               httpOnly: true,
-              sameSite: 'none',
+              sameSite: 'lax',
             }
           : {}),
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
@@ -157,7 +160,7 @@ export class AuthController {
             ? {
                 secure: true,
                 httpOnly: true,
-                sameSite: 'none',
+                sameSite: 'lax',
               }
             : {}),
           expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
@@ -178,6 +181,7 @@ export class AuthController {
   }
 
   @Post('/forgot')
+  @Throttle({ default: { ttl: 900000, limit: 3 } })
   async forgot(@Body() body: ForgotPasswordDto) {
     try {
       await this._authService.forgot(body.email);
