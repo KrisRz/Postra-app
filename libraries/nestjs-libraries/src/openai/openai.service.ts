@@ -20,6 +20,35 @@ const VoicePrompt = z.object({
 
 @Injectable()
 export class OpenaiService {
+  // openai-node 6.x: chat.completions.parse() rejects `response_format`
+  // ("Unknown parameter") because it routes to the Responses API. Use .create()
+  // with the same zodResponseFormat() body — the server still enforces the JSON
+  // schema (strict) — and JSON.parse the content ourselves, preserving the
+  // { choices: [{ message: { parsed } }] } shape so call sites stay unchanged.
+  private async parseChat(
+    body: any
+  ): Promise<{
+    choices: Array<{ message: { parsed: any; content: string | null } }>;
+  }> {
+    const completion = (await openai.chat.completions.create(body)) as unknown as {
+      choices: Array<{ message: { content: string | null } }>;
+    };
+    return {
+      choices: completion.choices.map((c) => {
+        const content = c.message?.content ?? null;
+        let parsed: any = null;
+        if (content) {
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            parsed = null;
+          }
+        }
+        return { message: { parsed, content } };
+      }),
+    };
+  }
+
   async transcribeAudioToSrt(audioFilePath: string, language?: string): Promise<string> {
     const info = await stat(audioFilePath);
     if (info.size > 25 * 1024 * 1024) {
@@ -50,7 +79,7 @@ export class OpenaiService {
   async generatePromptForPicture(prompt: string) {
     return (
       (
-        await openai.chat.completions.parse({
+        await this.parseChat({
           model: 'gpt-4.1',
           messages: [
             {
@@ -71,7 +100,7 @@ export class OpenaiService {
   async generateVoiceFromText(prompt: string) {
     return (
       (
-        await openai.chat.completions.parse({
+        await this.parseChat({
           model: 'gpt-4.1',
           messages: [
             {
@@ -179,7 +208,7 @@ export class OpenaiService {
 
     const posts =
       (
-        await openai.chat.completions.parse({
+        await this.parseChat({
           model: 'gpt-4.1',
           messages: [
             {
@@ -212,7 +241,7 @@ export class OpenaiService {
             try {
               return (
                 (
-                  await openai.chat.completions.parse({
+                  await this.parseChat({
                     model: 'gpt-4.1',
                     messages: [
                       {
@@ -285,7 +314,7 @@ export class OpenaiService {
     for (let i = 0; i < 3; i++) {
       try {
         const parsed = (
-          await openai.chat.completions.parse({
+          await this.parseChat({
             model: 'gpt-4.1',
             messages: [
               {
@@ -369,7 +398,7 @@ ${brandHint}`,
     for (let i = 0; i < 3; i++) {
       try {
         const parsed = (
-          await openai.chat.completions.parse({
+          await this.parseChat({
             model: 'gpt-4.1',
             messages: [
               {
@@ -416,7 +445,7 @@ ${brandHint}`,
         const message = `You are an assistant that takes a text and break it into slides, each slide should have an image prompt and voice text to be later used to generate a video and voice, image prompt should capture the essence of the slide and also have a back dark gradient on top, image prompt should not contain text in the picture, generate between 3-5 slides maximum`;
         const parse =
           (
-            await openai.chat.completions.parse({
+            await this.parseChat({
               model: 'gpt-4.1',
               messages: [
                 {

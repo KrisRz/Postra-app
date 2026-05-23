@@ -117,8 +117,18 @@ export class IntegrationService {
       } else {
         try {
           uploadedPicture = await this.storage.uploadSimple(picture);
-        } catch {
-          uploadedPicture = picture;
+        } catch (err) {
+          // Download to our storage failed — do NOT persist the external
+          // hotlink. Provider CDN URLs (e.g. Facebook scontent) expire/block
+          // hotlinking and later 403 in the browser. Leave it undefined so the
+          // UI falls back to /no-picture.jpg. The repository upsert sets picture
+          // conditionally (`...(picture ? { picture } : {})`), so an existing
+          // avatar is preserved on refresh rather than wiped.
+          console.warn(
+            `[integration] avatar download failed for provider "${provider}" — skipping picture:`,
+            (err as Error)?.message
+          );
+          uploadedPicture = undefined;
         }
       }
     }
