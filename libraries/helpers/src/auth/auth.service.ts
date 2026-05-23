@@ -39,8 +39,8 @@ export class AuthService {
   static comparePassword(password: string, hash: string) {
     return compareSync(password, hash);
   }
-  static signJWT(value: object, options?: { expiresIn?: string }) {
-    return sign(value, process.env.JWT_SECRET!, {
+  static signJWT(value: object, options?: { expiresIn?: string | number }) {
+    return sign(value, process.env.JWT_SECRET as string, {
       expiresIn: options?.expiresIn ?? '30d',
     });
   }
