@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpException,
+  Logger,
   Param,
   Post,
   UseFilters,
@@ -128,7 +129,7 @@ export class NoAuthIntegrationsController {
         }
 
         if (refresh && integrationProvider.reConnect) {
-          console.log('reconnect');
+          Logger.log('Provider reconnect triggered');
           try {
             const newAuth = await integrationProvider.reConnect(
               auth.id,
@@ -242,7 +243,7 @@ export class NoAuthIntegrationsController {
     this._refreshIntegrationService
       .startRefreshWorkflow(org.id, createUpdate.id, integrationProvider)
       .catch((err) => {
-        console.log(err);
+        Logger.error('Refresh workflow failed', err);
       });
 
     // Fetch pages if this is a two-step provider and not a refresh
@@ -262,7 +263,7 @@ export class NoAuthIntegrationsController {
           pages = await integrationProvider[fetchMethod](accessToken);
         }
       } catch (err) {
-        console.log('Failed to fetch pages:', err);
+        Logger.warn('Failed to fetch pages', err);
       }
     }
 

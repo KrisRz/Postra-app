@@ -61,7 +61,6 @@ export class MediaController {
     @GetOrgFromRequest() org: Organization,
     @Body() body: VideoDto
   ) {
-    console.log('hello');
     return this._mediaService.generateVideo(org, body);
   }
 
