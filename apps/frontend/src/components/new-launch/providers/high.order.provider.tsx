@@ -202,7 +202,7 @@ export const withProvider = function <T extends object>(params: {
             err: form.formState.errors,
             errors: checkValidity
               ? await checkValidity(
-                  value.map((p) => p.media || []),
+                  (value ?? []).map((p) => p.media || []),
                   settings,
                   JSON.parse(
                     selectedIntegration.integration.additionalSettings || '[]'
@@ -250,7 +250,7 @@ export const withProvider = function <T extends object>(params: {
           date,
           integration: selectedIntegration.integration,
           allIntegrations,
-          value: value.map((p) => ({
+          value: (value ?? []).map((p) => ({
             id: p.id,
             content: p.content,
             image: p.media,
