@@ -638,6 +638,7 @@ model AutoPost {
   active          Boolean
   addPicture      Boolean
   generateContent Boolean
+  tone            String?
   integrations    String
   deletedAt       DateTime?
   createdAt       DateTime     @default(now())
