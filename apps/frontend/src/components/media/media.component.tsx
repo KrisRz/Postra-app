@@ -14,7 +14,6 @@ import React, {
 import { Button } from '@gitroom/react/form/button';
 import useSWR from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
-import { hasExtension } from '@gitroom/helpers/utils/has.extension';
 import { Media } from '@prisma/client';
 import { useMediaDirectory } from '@gitroom/react/helpers/use.media.directory';
 import { useSettings } from '@gitroom/frontend/components/launches/helpers/use.values';
@@ -361,7 +360,7 @@ export const MediaBox: FC<{
         top: 10,
         children: (
           <div className="w-full h-full p-[50px]">
-            {hasExtension(media.path, 'mp4') ? (
+            {media.path.indexOf('mp4') > -1 ? (
               <VideoFrame
                 autoplay={true}
                 url={mediaDirectory.set(media.path)}
@@ -535,9 +534,9 @@ export const MediaBox: FC<{
             {data?.results
               ?.filter((f: any) => {
                 if (type === 'video') {
-                  return hasExtension(f.path, 'mp4');
+                  return f.path.indexOf('mp4') > -1;
                 } else if (type === 'image') {
-                  return !hasExtension(f.path, 'mp4');
+                  return f.path.indexOf('mp4') === -1;
                 }
                 return true;
               })
@@ -589,7 +588,7 @@ export const MediaBox: FC<{
                           </svg>
                         </div>
                       </div>
-                      {hasExtension(media.path, 'mp4') ? (
+                      {media.path.indexOf('mp4') > -1 ? (
                         <VideoFrame url={mediaDirectory.set(media.path)} />
                       ) : (
                         <img
@@ -842,7 +841,7 @@ export const MultiMediaComponent: FC<{
                       >
                         <MediaSettingsIcon className="cursor-pointer relative z-[200]" />
                       </div>
-                      {hasExtension(media?.path, 'mp4') ? (
+                      {media?.path?.indexOf('mp4') > -1 ? (
                         <VideoFrame url={mediaDirectory.set(media?.path)} />
                       ) : (
                         <img
