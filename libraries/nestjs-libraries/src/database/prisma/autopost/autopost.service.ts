@@ -21,11 +21,20 @@ import {
 } from '@gitroom/nestjs-libraries/temporal/temporal.search.attribute';
 const parser = new Parser();
 
+interface PlatformContent {
+  linkedin: string;
+  twitter: string;
+  instagram: string;
+  facebook: string;
+  generic: string;
+}
+
 interface WorkflowChannelsState {
   messages: BaseMessage[];
   integrations: Integration[];
   body: AutoPost;
   description: string;
+  platformContent?: PlatformContent;
   image: string;
   id: string;
   load: {
@@ -50,6 +59,24 @@ const generateContent = z.object({
   socialMediaPostContent: z
     .string()
     .describe('Content for social media posts max 120 chars'),
+});
+
+const generatePlatformContent = z.object({
+  linkedin: z
+    .string()
+    .describe('LinkedIn post: professional tone, 150-200 words, line breaks between paragraphs, end with engaging question'),
+  twitter: z
+    .string()
+    .describe('X/Twitter post: max 250 chars, punchy hook, include 1-2 hashtags at end'),
+  instagram: z
+    .string()
+    .describe('Instagram caption: scroll-stopping first line, 2-3 paragraphs, CTA, then 5 relevant hashtags after line break'),
+  facebook: z
+    .string()
+    .describe('Facebook post: casual friendly tone, 2-3 sentences, CTA to read full article'),
+  generic: z
+    .string()
+    .describe('Generic social post: engaging, 1-2 sentences, universal'),
 });
 
 const dallePrompt = z.object({
@@ -175,6 +202,7 @@ export class AutopostService {
         },
         body: null,
         description: null,
+        platformContent: null,
         load: null,
         image: null,
         integrations: null,
@@ -215,18 +243,27 @@ export class AutopostService {
       };
     }
 
-    const structuredOutput = model.withStructuredOutput(generateContent);
-    const { socialMediaPostContent } = await ChatPromptTemplate.fromTemplate(
+    const toneInstruction = state.body.tone
+      ? `- Ton wypowiedzi: ${state.body.tone}`
+      : '- Ton: profesjonalny ale przystępny';
+
+    const structuredOutput = model.withStructuredOutput(generatePlatformContent);
+    const platformContent = await ChatPromptTemplate.fromTemplate(
       `
-        You are an assistant that gets raw 'description' of a content and generate a social media post content.
-        Rules:
-        - Maximum 100 chars
-        - Try to make it a short as possible to fit any social media
-        - Add line breaks between sentences (\\n) 
-        - Don't add hashtags
-        - Add emojis when needed
+        Jesteś asystentem social media. Na podstawie artykułu generujesz posty dostosowane do każdej platformy.
         
-        'description':
+        Zasady:
+        - Pisz w tym samym języku co artykuł (jeśli artykuł po polsku — posty po polsku, jeśli po angielsku — po angielsku)
+        ${toneInstruction}
+        - LinkedIn: profesjonalny ton, 150-200 słów, krótkie akapity z line breaks (\\n\\n), zakończ angażującym pytaniem
+        - X/Twitter: max 250 znaków, chwytliwy hook, 1-2 hashtagi na końcu
+        - Instagram: scroll-stopping pierwszy wiersz, 2-3 akapity wartości, CTA, potem \\n\\n i 5 hashtagów
+        - Facebook: swobodny przyjazny ton, 2-3 zdania, CTA do przeczytania artykułu
+        - Generic: uniwersalny, 1-2 zdania, angażujący
+        - Używaj emoji tam gdzie pasują
+        - NIE dodawaj linku do artykułu — link zostanie dołączony automatycznie
+        
+        Artykuł:
         {content}
       `
     )
@@ -237,11 +274,38 @@ export class AutopostService {
 
     return {
       ...state,
-      description: socialMediaPostContent,
+      description: platformContent.generic,
+      platformContent,
     };
   }
 
+  private async extractOgImage(url: string): Promise<string | null> {
+    try {
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'PostraBot/1.0' },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!response.ok) return null;
+      const html = await response.text();
+      const ogMatch = html.match(
+        /<meta[^>]*property=["']og:image["'][^>]*content=["']([^"']+)["']/i
+      );
+      if (ogMatch?.[1]) return ogMatch[1];
+      const twitterMatch = html.match(
+        /<meta[^>]*name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i
+      );
+      return twitterMatch?.[1] || null;
+    } catch {
+      return null;
+    }
+  }
+
   async generatePicture(state: WorkflowChannelsState) {
+    const ogImage = await this.extractOgImage(state.load.url);
+    if (ogImage) {
+      return { ...state, image: ogImage };
+    }
+
     const structuredOutput = model.withStructuredOutput(dallePrompt);
     const { generatedTextToBeSentToDallE } =
       await ChatPromptTemplate.fromTemplate(
@@ -260,6 +324,30 @@ export class AutopostService {
     const image = await dalle.invoke(generatedTextToBeSentToDallE);
 
     return { ...state, image };
+  }
+
+  private getContentForProvider(
+    providerIdentifier: string,
+    state: WorkflowChannelsState
+  ): string {
+    if (!state.platformContent) {
+      return state.description || '';
+    }
+    const providerMap: Record<string, keyof PlatformContent> = {
+      linkedin: 'linkedin',
+      'linkedin-page': 'linkedin',
+      twitter: 'twitter',
+      x: 'twitter',
+      instagram: 'instagram',
+      facebook: 'facebook',
+      'facebook-page': 'facebook',
+      threads: 'instagram',
+      tiktok: 'generic',
+      youtube: 'generic',
+      pinterest: 'generic',
+    };
+    const key = providerMap[providerIdentifier] || 'generic';
+    return state.platformContent[key] || state.description || '';
   }
 
   async schedulePost(state: WorkflowChannelsState) {
@@ -287,7 +375,7 @@ export class AutopostService {
             id: makeId(10),
             delay: 0,
             content:
-              state.description.replace(/\n/g, '\n\n') +
+              this.getContentForProvider(i.providerIdentifier, state) +
               '\n\n' +
               state.load.url,
             image: !state.image
@@ -303,7 +391,7 @@ export class AutopostService {
           },
         ],
       })),
-    });
+    }, 'AUTOPOST');
   }
 
   async updateUrl(state: WorkflowChannelsState) {

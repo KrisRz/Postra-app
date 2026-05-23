@@ -131,6 +131,7 @@ export const Autopost: FC = () => {
 const details = object().shape({
   title: string().required(),
   content: string(),
+  tone: string(),
   onSlot: boolean().required(),
   syncLast: boolean().required(),
   url: string().url().required(),
@@ -197,6 +198,7 @@ export const AddOrEditWebhook: FC<{
     values: {
       title: data?.title || '',
       content: data?.content || '',
+      tone: data?.tone || '',
       onSlot: data?.onSlot || false,
       syncLast: data?.syncLast || false,
       url: data?.url || '',
@@ -370,6 +372,14 @@ export const AddOrEditWebhook: FC<{
                   }}
                 />
               </>
+            )}
+            {generateContent && (
+              <Input
+                label="Tone / Style (optional)"
+                translationKey="label_tone"
+                placeholder="e.g. professional, casual, humorous, inspirational"
+                {...form.register('tone')}
+              />
             )}
             <Select
               label="Generate Picture?"

@@ -7,7 +7,14 @@ import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts
 import { CreatePostDto } from '@gitroom/nestjs-libraries/dtos/posts/create.post.dto';
 import dayjs from 'dayjs';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
-import { Integration, Post, Media, From, State } from '@prisma/client';
+import {
+  Integration,
+  Post,
+  Media,
+  From,
+  CreationMethod,
+  State,
+} from '@prisma/client';
 import { GetPostsDto } from '@gitroom/nestjs-libraries/dtos/posts/get.posts.dto';
 import { GetPostsListDto } from '@gitroom/nestjs-libraries/dtos/posts/get.posts.list.dto';
 import { shuffle } from 'lodash';
@@ -18,7 +25,10 @@ import utc from 'dayjs/plugin/utc';
 import { MediaService } from '@gitroom/nestjs-libraries/database/prisma/media/media.service';
 import { ShortLinkService } from '@gitroom/nestjs-libraries/short-linking/short.link.service';
 import { CreateTagDto } from '@gitroom/nestjs-libraries/dtos/posts/create.tag.dto';
-import { minifyPostsList, minifyPosts } from '@gitroom/helpers/utils/posts.list.minify';
+import {
+  minifyPostsList,
+  minifyPosts,
+} from '@gitroom/helpers/utils/posts.list.minify';
 import axios from 'axios';
 import sharp from 'sharp';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
@@ -37,6 +47,8 @@ import { timer } from '@gitroom/helpers/utils/timer';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import { RefreshToken } from '@gitroom/nestjs-libraries/integrations/social.abstract';
 import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integrations/refresh.integration.service';
+import { hasExtension } from '@gitroom/helpers/utils/has.extension';
+import { stripLinks } from '@gitroom/helpers/utils/strip.links';
 
 type PostWithConditionals = Post & {
   integration?: Integration;
@@ -123,6 +135,10 @@ export class PostsService {
     }
 
     return [];
+  }
+
+  async getPostById(postId: string, orgId: string) {
+    return this._postRepository.getPostById(postId, orgId);
   }
 
   async updateReleaseId(orgId: string, postId: string, releaseId: string) {
@@ -359,7 +375,7 @@ export class PostsService {
               return m;
             }
 
-            if (m.path.indexOf('.png') > -1) {
+            if (hasExtension(m.path, 'png')) {
               imageUpdateNeeded = true;
               const response = await axios.get(m.url, {
                 responseType: 'arraybuffer',
@@ -706,7 +722,7 @@ export class PostsService {
     try {
       await this._temporalService.client
         .getRawClient()
-        ?.workflow.start('postWorkflowV102', {
+        ?.workflow.start('postWorkflowV105', {
           workflowId: `post_${postId}`,
           taskQueue: 'main',
           workflowIdConflictPolicy: 'TERMINATE_EXISTING',
@@ -731,17 +747,31 @@ export class PostsService {
     } catch (err) {}
   }
 
-  async createPost(orgId: string, body: CreatePostDto): Promise<any[]> {
+  async createPost(
+    orgId: string,
+    body: CreatePostDto,
+    creationMethod: CreationMethod
+  ): Promise<any[]> {
     const postList = [];
     for (const post of body.posts) {
+      const provider = this._integrationManager.getSocialIntegration(
+        (post.settings as any)?.__type
+      );
+      const removeLinks = !!provider?.stripLinks?.();
+
       const messages = (post.value || []).map((p) => p.content);
-      const updateContent = !body.shortLink
-        ? messages
-        : await this._shortLinkService.convertTextToShortLinks(orgId, messages);
+      // No point shortlinking links on platforms that strip them out anyway
+      const updateContent =
+        !body.shortLink || removeLinks
+          ? messages
+          : await this._shortLinkService.convertTextToShortLinks(
+              orgId,
+              messages
+            );
 
       post.value = (post.value || []).map((p, i) => ({
         ...p,
-        content: updateContent[i],
+        content: removeLinks ? stripLinks(updateContent[i]) : updateContent[i],
       }));
 
       const { posts } = await this._postRepository.createOrUpdatePost(
@@ -750,6 +780,7 @@ export class PostsService {
         body.type === 'now' ? dayjs().format('YYYY-MM-DDTHH:mm:00') : body.date,
         post,
         body.tags,
+        creationMethod,
         body.inter
       );
 
@@ -830,7 +861,9 @@ export class PostsService {
     if (action === 'schedule') {
       try {
         await this.startWorkflow(
-          getPostById.integration.providerIdentifier.split('-')[0].toLowerCase(),
+          getPostById.integration.providerIdentifier
+            .split('-')[0]
+            .toLowerCase(),
           getPostById.id,
           orgId,
           getPostById.state === 'DRAFT' ? 'DRAFT' : 'QUEUE'
@@ -881,43 +914,47 @@ export class PostsService {
         const group = makeId(10);
         const randomDate = findTime();
 
-        await this.createPost(orgId, {
-          type: 'draft',
-          date: randomDate,
-          order: '',
-          shortLink: false,
-          tags: [],
-          posts: [
-            {
-              group,
-              integration: {
-                id: integration.id,
-              },
-              settings: {
-                __type: integration.providerIdentifier as any,
-                title: '',
-                tags: [],
-                subreddit: [],
-              },
-              value: [
-                ...toPost.list.map((l) => ({
-                  id: '',
-                  content: l.post,
-                  delay: 0,
-                  image: [],
-                })),
-                {
-                  id: '',
-                  delay: 0,
-                  content: `Check out the full story here:\n${
-                    body.postId || body.url
-                  }`,
-                  image: [],
+        await this.createPost(
+          orgId,
+          {
+            type: 'draft',
+            date: randomDate,
+            order: '',
+            shortLink: false,
+            tags: [],
+            posts: [
+              {
+                group,
+                integration: {
+                  id: integration.id,
                 },
-              ],
-            },
-          ],
-        });
+                settings: {
+                  __type: integration.providerIdentifier as any,
+                  title: '',
+                  tags: [],
+                  subreddit: [],
+                },
+                value: [
+                  ...toPost.list.map((l) => ({
+                    id: '',
+                    content: l.post,
+                    delay: 0,
+                    image: [],
+                  })),
+                  {
+                    id: '',
+                    delay: 0,
+                    content: `Check out the full story here:\n${
+                      body.postId || body.url
+                    }`,
+                    image: [],
+                  },
+                ],
+              },
+            ],
+          },
+          'WEB'
+        );
       }
     }
   }

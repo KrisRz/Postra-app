@@ -87,6 +87,7 @@ export class AutopostRepository {
         syncLast: body.syncLast,
         onSlot: body.onSlot,
         lastUrl: body.lastUrl,
+        tone: body.tone,
       },
       update: {
         url: body.url,
@@ -99,6 +100,7 @@ export class AutopostRepository {
         syncLast: body.syncLast,
         onSlot: body.onSlot,
         lastUrl: body.lastUrl,
+        tone: body.tone,
       },
     });
 
