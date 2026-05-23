@@ -110,6 +110,17 @@ export class IntegrationService {
     timezone?: number,
     customInstanceDetails?: string
   ) {
+    const existingChannel = await this._integrationRepository.findActiveByProviderIdentifier(
+      provider,
+      internalId
+    );
+    if (existingChannel && existingChannel.organizationId !== org) {
+      throw new HttpException(
+        'This channel is already connected to another organization',
+        HttpStatus.CONFLICT
+      );
+    }
+
     let uploadedPicture: string | undefined;
     if (picture) {
       if (picture.indexOf('imagedelivery.net') > -1) {

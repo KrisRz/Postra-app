@@ -19,6 +19,20 @@ export class IntegrationRepository {
     private _mentions: PrismaRepository<'mentions'>
   ) {}
 
+  findActiveByProviderIdentifier(provider: string, internalId: string) {
+    return this._integration.model.integration.findFirst({
+      where: {
+        providerIdentifier: provider,
+        internalId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        organizationId: true,
+      },
+    });
+  }
+
   getMentions(platform: string, q: string) {
     return this._mentions.model.mentions.findMany({
       where: {
