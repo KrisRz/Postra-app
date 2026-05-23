@@ -1,4 +1,4 @@
-import { sign, verify } from 'jsonwebtoken';
+import { sign, verify, type SignOptions } from 'jsonwebtoken';
 import { hashSync, compareSync } from 'bcrypt';
 import crypto from 'crypto';
 // @ts-ignore
@@ -39,13 +39,22 @@ export class AuthService {
   static comparePassword(password: string, hash: string) {
     return compareSync(password, hash);
   }
-  static signJWT(value: object, options?: { expiresIn?: string | number }) {
-    return sign(value, process.env.JWT_SECRET as string, {
-      expiresIn: options?.expiresIn ?? '30d',
+  static signJWT(value: object, options?: SignOptions) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    return sign(value, secret, {
+      expiresIn: '30d',
+      ...options,
     });
   }
   static verifyJWT(token: string) {
-    return verify(token, process.env.JWT_SECRET!);
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined');
+    }
+    return verify(token, secret);
   }
 
   static fixedEncryption(value: string) {
