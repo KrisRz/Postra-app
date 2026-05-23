@@ -693,7 +693,10 @@ export const MultiMediaComponent: FC<{
     }
   }, [value]);
 
-  const [currentMedia, setCurrentMedia] = useState(value);
+  // `value` (the media list) is optional and undefined for an item with no
+  // media yet. Default to [] so currentMedia stays an array — the unguarded
+  // currentMedia.map in render crashed the composer on paste (Ctrl+V image).
+  const [currentMedia, setCurrentMedia] = useState(value ?? []);
   const mediaDirectory = useMediaDirectory();
   const changeMedia = useCallback(
     (
@@ -1011,7 +1014,10 @@ export const MediaComponent: FC<{
       setCurrentMedia(settings);
     }
   }, []);
-  const [currentMedia, setCurrentMedia] = useState(value);
+  // `value` (the media list) is optional and undefined for an item with no
+  // media yet. Default to [] so currentMedia stays an array — the unguarded
+  // currentMedia.map in render crashed the composer on paste (Ctrl+V image).
+  const [currentMedia, setCurrentMedia] = useState(value ?? []);
   const modals = useModals();
   const mediaDirectory = useMediaDirectory();
 
