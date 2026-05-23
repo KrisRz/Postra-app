@@ -96,6 +96,7 @@ model TagsPosts {
 model User {
   id                    String               @id @default(uuid())
   email                 String
+  emailNormalized       String?
   password              String?
   providerName          Provider
   name                  String?
@@ -132,6 +133,7 @@ model User {
   oauthAuthorizations   OAuthAuthorization[]
 
   @@unique([email, providerName])
+  @@unique([emailNormalized, providerName])
   @@index([lastReadNotifications])
   @@index([inviteId])
   @@index([account])
