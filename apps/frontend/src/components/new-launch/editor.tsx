@@ -422,7 +422,7 @@ export const EditorWrapper: FC<{
           <div className="absolute w-full h-full left-0 top-0 bg-newBackdrop opacity-60 z-[100] rounded-[12px]" />
         </>
       )}
-      {(() => { if (!items) console.warn('[Postra:editor] items is undefined! current:', current, 'internal:', !!internal); return null; })()}
+      {(() : null => { if (!items) console.warn('[Postra:editor] items is undefined! current:', current, 'internal:', !!internal); return null; })()}
       {(items ?? []).map((g, index) => (
         <div
           key={g.id}
