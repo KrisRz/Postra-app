@@ -381,11 +381,13 @@ export const applyPatchToCanvas = async (
 };
 
 /**
- * Capture a low-resolution PNG of the current canvas for GPT-4 vision input.
- * We deliberately downscale — vision tokens scale with image size and we don't
- * need photo-quality.
+ * Capture a low-resolution JPEG of the current canvas for GPT-4 vision input.
+ * We deliberately downscale and use JPEG — vision tokens scale with image size,
+ * we don't need photo-quality, and PNG ignores `quality` so a photographic
+ * background blows the payload up to several MB (→ 413 on the upload). JPEG at
+ * 0.8 keeps a 768px screenshot well under a few hundred KB.
  */
 export const screenshotForVision = (canvas: fabric.Canvas): string => {
   const scale = Math.min(1, 768 / Math.max(canvas.getWidth(), canvas.getHeight()));
-  return canvas.toDataURL({ format: 'png', quality: 0.85, multiplier: scale });
+  return canvas.toDataURL({ format: 'jpeg', quality: 0.8, multiplier: scale });
 };
