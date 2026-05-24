@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getPolishOccasions } from './polish-occasions';
 
 const NAGER_BASE = 'https://date.nager.at/api/v3/PublicHolidays';
 const CACHE_KEY = 'postra:pl-holidays';
@@ -58,13 +59,26 @@ export const daysUntil = (isoDate: string): number => {
   return Math.round((target.getTime() - today.getTime()) / 86400000);
 };
 
-export const usePolishHolidays = () => {
-  const [holidays, setHolidays] = useState<PolishHoliday[] | null>(() =>
-    loadFromCache()
+// Dedupe by date — public holidays (Nager) win over occasions on a collision,
+// so the official name is kept if a marketing occasion lands on the same day.
+const mergeHolidays = (
+  occasions: PolishHoliday[],
+  publicHolidays: PolishHoliday[]
+): PolishHoliday[] => {
+  const byDate = new Map<string, PolishHoliday>();
+  for (const o of occasions) byDate.set(o.date, o);
+  for (const h of publicHolidays) byDate.set(h.date, h);
+  return [...byDate.values()];
+};
+
+export const usePolishHolidays = (): PolishHoliday[] => {
+  // Only the Nager network result is cached; occasions are computed fresh.
+  const [publicHolidays, setPublicHolidays] = useState<PolishHoliday[] | null>(
+    () => loadFromCache()
   );
 
   useEffect(() => {
-    if (holidays) return;
+    if (publicHolidays) return;
     let cancelled = false;
     const load = async () => {
       try {
@@ -75,20 +89,25 @@ export const usePolishHolidays = () => {
         ]);
         const combined = [...current, ...next];
         if (!cancelled) {
-          setHolidays(combined);
+          setPublicHolidays(combined);
           saveToCache(combined);
         }
       } catch {
-        if (!cancelled) setHolidays([]);
+        if (!cancelled) setPublicHolidays([]);
       }
     };
     load();
     return () => {
       cancelled = true;
     };
-  }, [holidays]);
+  }, [publicHolidays]);
 
-  return holidays;
+  // Occasions are always available (no network) — list shows instantly and
+  // still works if Nager is down; public holidays merge in once fetched.
+  return useMemo(
+    () => mergeHolidays(getPolishOccasions(), publicHolidays ?? []),
+    [publicHolidays]
+  );
 };
 
 export const getUpcomingHoliday = (

@@ -296,7 +296,7 @@ export class OpenaiService {
       imagePrompt: z
         .string()
         .describe(
-          'DALL-E 3 prompt for the background image. Describe a visually appealing scene with empty space (left, center, or bottom-third) for text overlay. Always end with: "dark gradient overlay at the bottom for text readability, modern minimalist composition, no text in image".'
+          'Prompt for the background image. Style: professional editorial photography or clean minimal art direction — realistic lighting, natural color grade, intentional composition. AVOID the obvious "AI render" look (over-saturated, plasticky 3D, surreal artifacts, warped details). Absolutely NO text, letters, words, logos or watermarks in the image. Leave empty space (left, center, or bottom-third) for text overlay. End with: "dark gradient overlay at the bottom for text readability".'
         ),
       colors: z.object({
         background: z.string().describe('hex color, e.g. #1a1a2e'),
@@ -337,9 +337,14 @@ CONTENT RULES:
 - headline: short, impactful, max ~5 words
 - subtext: supporting detail, 1 sentence
 - cta: short call-to-action (e.g. "Sprawdź", "Kup teraz", "Zobacz więcej", or English equivalent)
-- imagePrompt: rich visual description for DALL-E 3 background. Leave space for text. End with "dark gradient overlay at the bottom for text readability, modern minimalist composition, no text in image".
+- imagePrompt: rich visual description for the background. Professional editorial/photographic style, NOT the obvious "AI render" look. No text/letters/logos in the image. Leave space for text. End with "dark gradient overlay at the bottom for text readability".
 - colors: high-contrast, accessible (WCAG AA min)
 - layout: pick the best layout for the content
+
+COPY QUALITY — write like a senior brand copywriter, NOT like an AI:
+- Concrete and specific to the user's prompt — no generic filler.
+- Ban AI clichés: "Unlock", "Elevate", "Discover the power of", "Take it to the next level", "Game-changer", "In today's fast-paced world".
+- No emoji unless the user explicitly asked. Every word earns its place.
 
 ${brandHint}`,
               },
@@ -379,7 +384,7 @@ ${brandHint}`,
       imagePrompt: z
         .string()
         .describe(
-          'ONE shared DALL-E 3 background prompt for all slides. Visually appealing scene with empty space for text overlay. End with: "dark gradient overlay at the bottom for text readability, modern minimalist composition, no text in image".'
+          'ONE shared background prompt for all slides. Style: professional editorial photography or clean minimal art direction — realistic lighting, natural color grade, intentional composition. AVOID the obvious "AI render" look (over-saturated, plasticky 3D, surreal artifacts, warped details). Absolutely NO text, letters, words, logos or watermarks in the image. Leave clear negative space for text overlay. End with: "dark gradient overlay at the bottom for text readability".'
         ),
       colors: z.object({
         background: z.string(),
@@ -404,6 +409,21 @@ ${brandHint}`,
 - Tone: ${brandKit.tone || 'professional'}`
       : '';
 
+    // OpenAI structured outputs ignore array min/max in strict mode, so the
+    // model can return the wrong number of slides. Validate the count, prefer an
+    // exact match, and normalize the best result so the user always gets exactly
+    // what they asked for.
+    const normalizeSlides = <T extends object>(slides: T[], n: number): T[] => {
+      if (slides.length >= n) return slides.slice(0, n);
+      const out = [...slides];
+      while (out.length < n && slides.length) {
+        out.push({ ...slides[slides.length - 1] });
+      }
+      return out;
+    };
+
+    let best: { imagePrompt: string; colors: any; slides: any[] } | null = null;
+
     for (let i = 0; i < 3; i++) {
       try {
         const parsed = (
@@ -414,12 +434,19 @@ ${brandHint}`,
                 role: 'system',
                 content: `You are an expert social media graphic designer creating a carousel post for ${platform}.
 
+SLIDE COUNT: The "slides" array MUST contain EXACTLY ${slidesCount} slides — not fewer, not more. This is a hard requirement.
+
 LANGUAGE: Detect the language of the user's prompt. Generate ALL text fields (headline, subtext, cta) in that SAME language. If Polish prompt → Polish text. Never mix languages within one carousel.
 
-NARRATIVE:
+NARRATIVE (adapt to ${slidesCount} slides):
 - Slide 1: hook — catchy headline that stops the scroll
-- Middle slides: one body point each, building the argument
+- Middle slides: one body point each, building the argument (skip if only 2 slides)
 - Last slide: clear CTA (call-to-action)
+
+COPY QUALITY — write like a senior brand copywriter, NOT like an AI:
+- Concrete and specific to the user's prompt — no generic filler.
+- Ban AI clichés: "Unlock", "Elevate", "Discover the power of", "Take it to the next level", "Game-changer", "In today's fast-paced world".
+- No emoji unless the user explicitly asked. Every word earns its place.
 
 PER-SLIDE RULES:
 - headline: short, impactful, max ~5 words
@@ -428,21 +455,33 @@ PER-SLIDE RULES:
 - layout: pick the best layout for the content (vary across slides for visual rhythm — don't use the same layout for all)
 
 SHARED:
-- imagePrompt: one background that works visually behind every slide. Leave space for text overlay.
+- imagePrompt: one background that works visually behind every slide. Professional editorial/photographic style, NOT the obvious "AI render" look. No text/letters/logos in the image. Leave space for text overlay.
 - colors: high-contrast, accessible (WCAG AA min). Same palette across all slides for brand consistency.
 
 ${brandHint}`,
               },
-              { role: 'user', content: prompt },
+              {
+                role: 'user',
+                content: `${prompt}\n\n(Return EXACTLY ${slidesCount} slides in the "slides" array.)`,
+              },
             ],
             response_format: zodResponseFormat(CarouselSchema, 'carousel'),
           })
         ).choices[0].message.parsed;
 
-        if (parsed) return parsed;
+        if (parsed?.slides?.length) {
+          // Exact match — return immediately.
+          if (parsed.slides.length === slidesCount) return parsed;
+          // Otherwise keep the first usable result as a fallback and retry.
+          if (!best) best = parsed;
+        }
       } catch (err) {
         console.log('generatePostCarousel attempt failed:', err);
       }
+    }
+
+    if (best) {
+      return { ...best, slides: normalizeSlides(best.slides, slidesCount) };
     }
 
     throw new Error('Failed to generate carousel after 3 attempts');

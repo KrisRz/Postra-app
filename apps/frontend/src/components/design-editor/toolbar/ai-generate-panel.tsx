@@ -34,7 +34,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const user = useUser();
   const allowed = !!user?.tier?.image_generator;
   const holidays = usePolishHolidays();
-  const upcoming = getUpcomingHolidays(holidays, 3, 120);
+  const upcoming = getUpcomingHolidays(holidays, 4, 90);
   const abortRef = useRef<AbortController | null>(null);
   const [slidesCount, setSlidesCount] = useState(1);
 
@@ -124,6 +124,11 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
           });
         }
         useCarouselStore.getState().replaceAllSlides(slides);
+        // The loop leaves the canvas on the LAST slide, but the strip activates
+        // slide 1 — reload slide 1 so the canvas matches the highlighted thumbnail
+        // (otherwise clicking thumbnail 1 is a no-op and the canvas looks stuck).
+        await canvas.current.loadFromJSON(slides[0].canvasJson!);
+        canvas.current.renderAll();
         pushHistory(slides[0].canvasJson!);
       } else {
         const spec = data as PostDesignSpec;
@@ -166,7 +171,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       {upcoming.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <span className="text-[10px] uppercase tracking-wide text-textColor/50">
-            🗓 {t('holiday_suggestions', 'Nadchodzące święta')}
+            🗓 {t('holiday_suggestions', 'Nadchodzące okazje')}
           </span>
           <div className="flex flex-col gap-1">
             {upcoming.map((entry) => (
