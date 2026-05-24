@@ -368,7 +368,7 @@ export const EditorWrapper: FC<{
     <div
       className={clsx(
         'relative flex-col gap-[20px] flex-1',
-        (items.length === 1 || !canEdit || !comments) && 'flex',
+        (items?.length === 1 || !canEdit || !comments) && 'flex',
         ((!canEdit && !isCreateSet) || !comments) &&
           'bg-newSettings rounded-[12px]'
       )}
@@ -422,7 +422,8 @@ export const EditorWrapper: FC<{
           <div className="absolute w-full h-full left-0 top-0 bg-newBackdrop opacity-60 z-[100] rounded-[12px]" />
         </>
       )}
-      {items.map((g, index) => (
+      {(() => { if (!items) console.warn('[Postra:editor] items is undefined! current:', current, 'internal:', !!internal); return null; })()}
+      {(items ?? []).map((g, index) => (
         <div
           key={g.id}
           className={clsx(
@@ -609,18 +610,23 @@ export const Editor: FC<{
 
   const paste = useCallback(
     async (event: ClipboardEvent | File[]) => {
+      console.log('[Postra:paste] triggered', { num, comments, eventType: event?.constructor?.name });
       if (num > 0 && comments === 'no-media') {
+        console.log('[Postra:paste] blocked: no-media for num > 0');
         return;
       }
       // @ts-ignore
       const clipboardItems = event.clipboardData?.items;
+      console.log('[Postra:paste] clipboardItems count:', clipboardItems?.length ?? 'none');
       if (!clipboardItems) {
+        console.log('[Postra:paste] no clipboardData, letting TipTap handle text paste');
         return;
       }
 
       const files: File[] = [];
       // @ts-ignore
       for (const item of clipboardItems) {
+        console.log('[Postra:paste] item:', { kind: item.kind, type: item.type });
         if (item.kind === 'file') {
           const file = item.getAsFile();
           if (file) {
@@ -629,6 +635,7 @@ export const Editor: FC<{
         }
       }
 
+      console.log('[Postra:paste] files found:', files.length);
       const totalSize = files.reduce((acc, file) => acc + file.size, 0);
 
       if (totalSize > MAX_UPLOAD_SIZE) {
@@ -643,6 +650,7 @@ export const Editor: FC<{
       }
 
       if (files.length > 0) {
+        console.log('[Postra:paste] uploading files via Uppy');
         setLoading(true);
       }
 
