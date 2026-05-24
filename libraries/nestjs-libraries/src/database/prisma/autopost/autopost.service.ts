@@ -359,15 +359,16 @@ export class AutopostService {
   }
 
   async schedulePost(state: WorkflowChannelsState) {
-    const nextTime = await this._postsService.findFreeDateTime(
-      state.integrations[0].organizationId
-    );
+    const useSlot = state.body.onSlot;
+    const date = useSlot
+      ? (await this._postsService.findFreeDateTime(state.integrations[0].organizationId)) + 'Z'
+      : new Date().toISOString();
 
     await this._postsService.createPost(state.integrations[0].organizationId, {
-      date: nextTime + 'Z',
+      date,
       order: makeId(10),
       shortLink: false,
-      type: 'draft',
+      type: useSlot ? 'draft' : 'now',
       tags: [],
       posts: state.integrations.map((i) => ({
         settings: {
