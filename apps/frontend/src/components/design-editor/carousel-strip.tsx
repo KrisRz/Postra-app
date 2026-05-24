@@ -128,7 +128,14 @@ export const CarouselStrip: FC<CarouselStripProps> = ({ fabricRef }) => {
             + {t('carousel_add', 'Slajd')}
           </button>
           <button
-            onClick={() => duplicateSlide(currentSlideIndex)}
+            onClick={() =>
+              duplicateSlide(
+                currentSlideIndex,
+                fabricRef.current
+                  ? JSON.stringify(fabricRef.current.toJSON())
+                  : null
+              )
+            }
             disabled={slides.length >= 10}
             className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
             title={t('carousel_duplicate_hint', 'Skopiuj bieżący slajd')}

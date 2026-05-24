@@ -17,7 +17,7 @@ interface CarouselState {
   exitCarouselMode: () => void;
 
   addSlide: (json?: string | null) => void;
-  duplicateSlide: (index: number) => void;
+  duplicateSlide: (index: number, liveJson?: string | null) => void;
   deleteSlide: (index: number) => void;
   reorderSlides: (from: number, to: number) => void;
 
@@ -61,12 +61,22 @@ export const useCarouselStore = create<CarouselState>((set, get) => ({
     void currentSlideIndex;
   },
 
-  duplicateSlide: (index) => {
-    const { slides } = get();
-    const target = slides[index];
-    if (!target) return;
-    const dup: CarouselSlide = { id: newSlideId(), canvasJson: target.canvasJson };
-    const next = [...slides.slice(0, index + 1), dup, ...slides.slice(index + 1)];
+  duplicateSlide: (index, liveJson = null) => {
+    const { slides, currentSlideIndex } = get();
+    if (!slides[index]) return;
+    // The live canvas is only committed to the store on a slide switch, so the
+    // slide being edited holds stale (often empty) JSON. When duplicating the
+    // active slide, flush the live canvas into it first so the copy reflects
+    // what's actually on screen — otherwise the duplicate comes out blank.
+    const base =
+      liveJson != null && index === currentSlideIndex
+        ? slides.map((s, i) => (i === index ? { ...s, canvasJson: liveJson } : s))
+        : slides;
+    const dup: CarouselSlide = {
+      id: newSlideId(),
+      canvasJson: base[index].canvasJson,
+    };
+    const next = [...base.slice(0, index + 1), dup, ...base.slice(index + 1)];
     set({ slides: next, pendingSlideSwitch: index + 1 });
   },
 

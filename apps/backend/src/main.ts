@@ -56,9 +56,16 @@ async function start() {
     })
   );
 
-  app.use(['/copilot/{*splat}', '/posts'], (req: any, res: any, next: any) => {
-    json({ limit: '50mb' })(req, res, next);
-  });
+  app.use(
+    ['/copilot/{*splat}', '/posts', '/media/{*splat}'],
+    (req: any, res: any, next: any) => {
+      // Studio routes under /media (refine-design, generate-variants,
+      // decompose-image, :id/design-spec) carry canvas screenshots and JSON that
+      // exceed Express's default ~100kb limit. Multipart /upload-simple is
+      // untouched — json() skips non-application/json bodies.
+      json({ limit: '50mb' })(req, res, next);
+    }
+  );
 
   app.use(helmet({
     contentSecurityPolicy: false,
