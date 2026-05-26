@@ -13,6 +13,8 @@ export const YoutubePreview: FC<{
   const current = useLaunchStore((state) => state.current);
   const mediaDir = useMediaDirectory();
 
+  if (!topValue?.length) return null;
+
   const renderContent = topValue.map((p) => {
     const newContent = stripHtmlValidation(
       'normal',

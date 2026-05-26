@@ -11,6 +11,8 @@ export const PinterestPreview: FC<{
   const { value: topValue, integration } = useIntegration();
   const mediaDir = useMediaDirectory();
 
+  if (!topValue?.length) return null;
+
   const renderContent = topValue.map((p) => {
     const newContent = stripHtmlValidation(
       'normal',
