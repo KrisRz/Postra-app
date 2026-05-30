@@ -1,0 +1,18 @@
+Postra
+Copyright (c) 2026 KrisRz
+
+This product is a derivative work of Postiz, an open-source social media
+scheduling tool:
+
+    Postiz — https://github.com/gitroomhq/postiz-app
+    Copyright (c) Gitroom (gitroomhq)
+    Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0)
+
+Postra is distributed under the same AGPL-3.0 license. The full license text
+is in the LICENSE file. In accordance with the AGPL-3.0, the complete
+corresponding source code for Postra — including modifications to the upstream
+Postiz code — is made publicly available in this repository.
+
+Modifications by KrisRz include (non-exhaustive): Polish localization and
+PL-market branding, the Studio design editor and AI features, AWS deployment
+integration, and assorted fixes. These build on the original Postiz codebase.
