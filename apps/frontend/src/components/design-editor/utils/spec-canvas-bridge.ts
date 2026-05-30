@@ -221,7 +221,7 @@ const buildFabricFromLayer = async (
       originX: fabricOriginX(layer.originX),
       originY: fabricOriginY(layer.originY),
       width: layer.width ?? 300,
-      fontFamily: layer.fontFamily,
+      fontFamily: layer.fontFamily || 'Arial',
       fontSize: layer.fontSize,
       fontWeight: layer.fontWeight,
       fontStyle: layer.fontStyle,
@@ -313,8 +313,16 @@ export const renderSpecToCanvas = async (
   canvas.getObjects().forEach((o) => canvas.remove(o));
   canvas.backgroundColor = spec.background;
   for (const layer of spec.layers) {
-    const obj = await buildFabricFromLayer(layer);
-    if (obj) canvas.add(obj);
+    // Build each layer in isolation: a single malformed layer (e.g. a bad
+    // font that makes Fabric's text measurement throw) must NOT abort the
+    // whole render and crash the editor — skip it and keep going.
+    try {
+      const obj = await buildFabricFromLayer(layer);
+      if (obj) canvas.add(obj);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[Postra:studio] skipped a layer that failed to render:', err);
+    }
   }
   canvas.renderAll();
 };

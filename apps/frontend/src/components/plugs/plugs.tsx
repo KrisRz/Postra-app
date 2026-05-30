@@ -86,7 +86,7 @@ export const Plugs = () => {
 
   if (isLoading || plugLoading) {
     return (
-      <div className="bg-newBgColorInner p-[20px] flex flex-1 flex-col gap-[15px] transition-all items-center justify-center">
+      <div className="bg-white/[0.03] p-[20px] flex flex-1 flex-col gap-[15px] transition-all items-center justify-center">
         <LoadingComponent />
       </div>
     );
@@ -94,7 +94,7 @@ export const Plugs = () => {
 
   if (!sortedIntegrations.length && !isLoading) {
     return (
-      <div className="bg-newBgColorInner p-[20px] flex flex-1 flex-col gap-[15px] transition-all items-center justify-center">
+      <div className="bg-white/[0.03] p-[20px] flex flex-1 flex-col gap-[15px] transition-all items-center justify-center">
         <div>
           <img src="/wtyczki1.webp" className="w-full max-w-[420px] h-auto" />
         </div>
@@ -122,7 +122,7 @@ export const Plugs = () => {
     <>
       <div
         className={clsx(
-          'bg-newBgColorInner p-[20px] flex flex-col gap-[15px] transition-all',
+          'bg-white/[0.03] p-[20px] flex flex-col gap-[15px] transition-all',
           collapseMenu === '1' ? 'group sidebar w-[100px]' : 'w-[260px]'
         )}
       >
@@ -170,7 +170,7 @@ export const Plugs = () => {
                 setCurrent(index);
               }}
               className={clsx(
-                'flex gap-[8px] items-center justify-center group/profile hover:bg-boxHover rounded-e-[8px]',
+                'flex gap-[8px] items-center justify-center group/profile hover:bg-white/[0.05] rounded-e-[8px]',
                 currentIntegration.id !== integration.id &&
                   'opacity-20 hover:opacity-100 cursor-pointer'
               )}
@@ -202,7 +202,7 @@ export const Plugs = () => {
                 />
                 <SafeImage
                   src={`/icons/platforms/${integration.identifier}.png`}
-                  className="rounded-[8px] absolute z-10 bottom-[5px] -end-[5px] border border-fifth"
+                  className="rounded-[8px] absolute z-10 bottom-[5px] -end-[5px] border border-white/10"
                   alt={integration.identifier}
                   width={18.41}
                   height={18.41}
@@ -220,7 +220,7 @@ export const Plugs = () => {
           ))}
         </div>
       </div>
-      <div className="bg-newBgColorInner flex-1 flex-col flex p-[20px] gap-[12px]">
+      <div className="bg-white/[0.03] flex-1 flex-col flex p-[20px] gap-[12px]">
         <PlugsContext.Provider value={currentIntegrationPlug}>
           <Plug />
         </PlugsContext.Provider>

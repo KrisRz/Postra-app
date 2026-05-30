@@ -87,7 +87,7 @@ const SummaryCard: FC<{ label: string; value: number }> = ({
   label,
   value,
 }) => (
-  <div className="border border-newTableBorder rounded-[8px] p-[16px] bg-newBgColorInner">
+  <div className="border border-newTableBorder rounded-[8px] p-[16px] bg-white/[0.03]">
     <div className="text-[12px] opacity-70">{label}</div>
     <div className="text-[28px] font-[600]">{value.toLocaleString()}</div>
   </div>
@@ -98,7 +98,7 @@ const PerSocialTable: FC<{ title: string; block: StatsBlock }> = ({
   block,
 }) => (
   <div className="border border-newTableBorder rounded-[8px] overflow-hidden">
-    <div className="grid grid-cols-[1fr_120px] gap-[12px] px-[12px] py-[10px] bg-newBgColorInner text-[12px] uppercase opacity-70 border-b border-newTableBorder">
+    <div className="grid grid-cols-[1fr_120px] gap-[12px] px-[12px] py-[10px] bg-white/[0.03] text-[12px] uppercase opacity-70 border-b border-newTableBorder">
       <div>{title}</div>
       <div className="text-right">Count</div>
     </div>
@@ -168,7 +168,7 @@ export const AdminStatsComponent: FC = () => {
               className={`h-[32px] px-[12px] rounded-[8px] text-[13px] border cursor-pointer whitespace-nowrap ${
                 active
                   ? 'bg-forth text-white border-forth'
-                  : 'bg-newBgColorInner text-textColor border-newTableBorder hover:bg-tableBorder'
+                  : 'bg-white/[0.03] text-textColor border-newTableBorder hover:bg-tableBorder'
               }`}
             >
               {preset.label}
@@ -177,7 +177,7 @@ export const AdminStatsComponent: FC = () => {
         })}
       </div>
 
-      <div className="flex flex-wrap gap-[12px] items-end bg-newBgColorInner border border-newTableBorder rounded-[8px] p-[12px]">
+      <div className="flex flex-wrap gap-[12px] items-end bg-white/[0.03] border border-newTableBorder rounded-[8px] p-[12px]">
         <div className="flex flex-col gap-[6px]">
           <div className="text-[12px] opacity-70">From</div>
           <input
@@ -185,7 +185,7 @@ export const AdminStatsComponent: FC = () => {
             value={fromInput}
             max={toInput}
             onChange={(e) => setFromInput(e.target.value)}
-            className="bg-newBgColorInner h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor"
+            className="bg-white/[0.03] h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor"
           />
         </div>
         <div className="flex flex-col gap-[6px]">
@@ -196,7 +196,7 @@ export const AdminStatsComponent: FC = () => {
             min={fromInput}
             max={today()}
             onChange={(e) => setToInput(e.target.value)}
-            className="bg-newBgColorInner h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor"
+            className="bg-white/[0.03] h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor"
           />
         </div>
         <Button

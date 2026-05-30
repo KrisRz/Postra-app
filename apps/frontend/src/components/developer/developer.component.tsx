@@ -228,8 +228,8 @@ export const DeveloperComponent: FC = () => {
             'After a user completes the OAuth2 flow, you receive a pos_ prefixed token that works everywhere an API Key does — API, MCP, and CLI.'
           )}
         </div>
-        <div className="bg-newBgColorInner rounded-[12px] border border-newBorder overflow-hidden">
-          <div className="bg-newBgColorInner px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
+        <div className="bg-white/[0.03] rounded-[12px] border border-newBorder overflow-hidden">
+          <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
             <div>
               <div className="text-[15px] font-[600]">
                 {t('oauth_application', 'OAuth Application')}
@@ -281,8 +281,8 @@ export const DeveloperComponent: FC = () => {
             'After a user completes the OAuth2 flow, you receive a pos_ prefixed token that works everywhere an API Key does — API, MCP, and CLI.'
           )}
         </div>
-        <div className="bg-newBgColorInner rounded-[12px] border border-newBorder overflow-hidden">
-          <div className="bg-newBgColorInner px-[20px] py-[14px] border-b border-newBorder">
+        <div className="bg-white/[0.03] rounded-[12px] border border-newBorder overflow-hidden">
+          <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder">
             <div className="text-[15px] font-[600]">
               {t('create_oauth_app', 'Create OAuth App')}
             </div>
@@ -299,7 +299,7 @@ export const DeveloperComponent: FC = () => {
                 {t('app_name', 'App Name')} *
               </label>
               <input
-                className="bg-newBgColorInner border border-newBorder rounded-[8px] px-[16px] h-[44px] text-textColor outline-none"
+                className="bg-white/[0.03] border border-newBorder rounded-[8px] px-[16px] h-[44px] text-textColor outline-none"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="My Application"
@@ -311,7 +311,7 @@ export const DeveloperComponent: FC = () => {
                 {t('description', 'Description')}
               </label>
               <textarea
-                className="bg-newBgColorInner border border-newBorder rounded-[8px] p-[16px] text-textColor outline-none min-h-[80px]"
+                className="bg-white/[0.03] border border-newBorder rounded-[8px] p-[16px] text-textColor outline-none min-h-[80px]"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe what your app does"
@@ -348,7 +348,7 @@ export const DeveloperComponent: FC = () => {
                 {t('redirect_url', 'Redirect URL')} *
               </label>
               <input
-                className="bg-newBgColorInner border border-newBorder rounded-[8px] px-[16px] h-[44px] text-textColor outline-none"
+                className="bg-white/[0.03] border border-newBorder rounded-[8px] px-[16px] h-[44px] text-textColor outline-none"
                 value={redirectUrl}
                 onChange={(e) => setRedirectUrl(e.target.value)}
                 placeholder="https://yourapp.com/callback"
@@ -391,8 +391,8 @@ export const DeveloperComponent: FC = () => {
         )}
       </div>
       {/* App details / edit */}
-      <div className="bg-newBgColorInner rounded-[12px] border border-newBorder overflow-hidden">
-        <div className="bg-newBgColorInner px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
+      <div className="bg-white/[0.03] rounded-[12px] border border-newBorder overflow-hidden">
+        <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
           <div>
             <div className="text-[15px] font-[600]">
               {t('oauth_application', 'OAuth Application')}
@@ -423,7 +423,7 @@ export const DeveloperComponent: FC = () => {
                 {t('app_name', 'App Name')} *
               </label>
               <input
-                className="bg-newBgColorInner border border-newBorder rounded-[8px] px-[16px] h-[44px] text-textColor outline-none"
+                className="bg-white/[0.03] border border-newBorder rounded-[8px] px-[16px] h-[44px] text-textColor outline-none"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="My Application"
@@ -435,7 +435,7 @@ export const DeveloperComponent: FC = () => {
                 {t('description', 'Description')}
               </label>
               <textarea
-                className="bg-newBgColorInner border border-newBorder rounded-[8px] p-[16px] text-textColor outline-none min-h-[80px]"
+                className="bg-white/[0.03] border border-newBorder rounded-[8px] p-[16px] text-textColor outline-none min-h-[80px]"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe what your app does"
@@ -472,7 +472,7 @@ export const DeveloperComponent: FC = () => {
                 {t('redirect_url', 'Redirect URL')} *
               </label>
               <input
-                className="bg-newBgColorInner border border-newBorder rounded-[8px] px-[16px] h-[44px] text-textColor outline-none"
+                className="bg-white/[0.03] border border-newBorder rounded-[8px] px-[16px] h-[44px] text-textColor outline-none"
                 value={redirectUrl}
                 onChange={(e) => setRedirectUrl(e.target.value)}
                 placeholder="https://yourapp.com/callback"
@@ -539,8 +539,8 @@ export const DeveloperComponent: FC = () => {
       </div>
 
       {/* Credentials */}
-      <div className="bg-newBgColorInner rounded-[12px] border border-newBorder overflow-hidden">
-        <div className="bg-newBgColorInner px-[20px] py-[14px] border-b border-newBorder">
+      <div className="bg-white/[0.03] rounded-[12px] border border-newBorder overflow-hidden">
+        <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder">
           <div className="text-[15px] font-[600]">
             {t('credentials', 'Credentials')}
           </div>
@@ -550,7 +550,7 @@ export const DeveloperComponent: FC = () => {
             <div className="text-[13px] font-[600] text-customColor18">
               {t('client_id', 'Client ID')}
             </div>
-            <div className="bg-newBgColorInner border border-newBorder rounded-[8px] px-[16px] h-[44px] flex items-center overflow-hidden">
+            <div className="bg-white/[0.03] border border-newBorder rounded-[8px] px-[16px] h-[44px] flex items-center overflow-hidden">
               <code className="text-[14px] flex-1 truncate">{app.clientId}</code>
             </div>
           </div>
@@ -558,7 +558,7 @@ export const DeveloperComponent: FC = () => {
             <div className="text-[13px] font-[600] text-customColor18">
               {t('client_secret', 'Client Secret')}
             </div>
-            <div className="bg-newBgColorInner border border-newBorder rounded-[8px] px-[16px] h-[44px] flex items-center overflow-hidden">
+            <div className="bg-white/[0.03] border border-newBorder rounded-[8px] px-[16px] h-[44px] flex items-center overflow-hidden">
               {plaintextSecret ? (
                 <code className="text-[14px] flex-1 truncate">
                   {plaintextSecret}

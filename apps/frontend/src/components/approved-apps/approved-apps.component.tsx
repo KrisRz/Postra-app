@@ -72,7 +72,7 @@ export const ApprovedAppsComponent: FC = () => {
         </div>
       </div>
 
-      <div className="bg-sixth border-fifth border rounded-[4px] p-[24px]">
+      <div className="bg-white/[0.03] border-white/10 border rounded-[12px] p-[24px]">
         {!apps?.length ? (
           <div className="text-customColor18">
             {t('no_approved_apps', 'No approved apps yet.')}
@@ -82,7 +82,7 @@ export const ApprovedAppsComponent: FC = () => {
             {apps.map((app: any) => (
               <div
                 key={app.id}
-                className="flex items-center justify-between p-[12px] border border-fifth rounded-[4px]"
+                className="flex items-center justify-between p-[12px] border border-white/10 rounded-[12px]"
               >
                 <div className="flex items-center gap-[12px]">
                   {app.oauthApp?.picture?.path ? (

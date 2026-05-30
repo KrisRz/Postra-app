@@ -184,7 +184,7 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
       aria-labelledby="multi-format-modal-title"
     >
       <div
-        className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-newBgColorInner rounded-lg shadow-2xl flex flex-col overflow-hidden border border-newBorder"
+        className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-[rgba(15,23,42,0.92)] backdrop-blur-xl rounded-lg shadow-2xl flex flex-col overflow-hidden border border-newBorder"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-newBorder flex items-center justify-between">

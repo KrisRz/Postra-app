@@ -173,7 +173,7 @@ export const AdminOrganizationsComponent = () => {
                 </td>
                 <td className="p-[12px] text-[13px]">
                   <span
-                    className={`inline-block px-[8px] py-[2px] rounded-[4px] text-[11px] font-[500] border ${tierColor(org.subscription)}`}
+                    className={`inline-block px-[8px] py-[2px] rounded-[6px] text-[11px] font-[500] border ${tierColor(org.subscription)}`}
                   >
                     {tierLabel(org.subscription)}
                   </span>

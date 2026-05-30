@@ -72,7 +72,7 @@ export const WelcomeModal: FC = () => {
       aria-labelledby="welcome-modal-title"
     >
       <div
-        className="relative w-full max-w-md mx-4 bg-newBgColorInner rounded-lg shadow-2xl border border-newBorder p-6"
+        className="relative w-full max-w-md mx-4 bg-[rgba(15,23,42,0.92)] backdrop-blur-xl rounded-lg shadow-2xl border border-newBorder p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="text-center mb-5">

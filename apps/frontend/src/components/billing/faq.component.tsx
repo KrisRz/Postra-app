@@ -63,7 +63,7 @@ export const FAQSection: FC<{
   }, [show]);
   return (
     <div
-      className="bg-sixth p-[24px] border border-tableBorder rounded-[8px] flex flex-col"
+      className="bg-white/[0.03] p-[24px] border border-white/10 rounded-[12px] flex flex-col"
       onClick={changeShow}
     >
       <div className={`text-[20px] cursor-pointer flex justify-center`}>

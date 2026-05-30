@@ -439,7 +439,7 @@ export const MediaBox: FC<{
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('search_media_by_name', 'Search by file name')}
-              className="w-full h-[44px] px-[14px] rounded-[8px] bg-newBgColorInner border border-newColColor text-[14px] outline-none focus:border-[#612BD3]"
+              className="w-full h-[44px] px-[14px] rounded-[8px] bg-white/[0.03] border border-newColColor text-[14px] outline-none focus:border-[#612BD3]"
             />
           </div>
           <input
@@ -455,7 +455,7 @@ export const MediaBox: FC<{
           </div>
         </div>
         <div className="w-full pointer-events-none relative mt-[5px] mb-[5px]">
-          <div className="w-full h-[46px] overflow-hidden absolute left-0 bg-newBgColorInner uppyChange">
+          <div className="w-full h-[46px] overflow-hidden absolute left-0 bg-white/[0.03] uppyChange">
             <Dashboard
               height={46}
               uppy={uppy}

@@ -380,7 +380,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   }, [handleDelete, handleUndo, handleRedo]);
 
   return (
-    <div className="flex flex-col h-full min-h-[600px] bg-newBgColorInner rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full min-h-[600px] bg-white/[0.03] rounded-lg overflow-hidden">
       <div className="flex flex-1 min-h-0">
         <EditorToolbar canvas={fabricRef} />
 

@@ -71,7 +71,16 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
         );
         return;
       }
-      const data = await res.json();
+      // Guard an empty / non-JSON 200 body (auth redirect, proxy hiccup) —
+      // res.json() on an empty body throws "Unexpected end of JSON input".
+      const data = await res.json().catch(() => null);
+      if (!data) {
+        toaster.show(
+          t('video_stock_search_failed', 'Wyszukiwanie wideo nie powiodło się.'),
+          'warning'
+        );
+        return;
+      }
       if (data?.note === 'PIXABAY_API_KEY not configured') {
         setNotConfigured(true);
         return;

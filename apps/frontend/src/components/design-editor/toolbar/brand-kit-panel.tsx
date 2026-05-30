@@ -44,7 +44,9 @@ export const BrandKitPanel: FC = () => {
       try {
         const res = await fetch('/brand-kit');
         if (!res.ok) return;
-        const data = await res.json();
+        const text = await res.text();
+        if (!text) return;
+        const data = JSON.parse(text);
         if (!cancelled && data) {
           setKit({
             logoPath: data.logoPath ?? null,

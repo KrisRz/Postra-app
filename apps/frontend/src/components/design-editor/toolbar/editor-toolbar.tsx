@@ -8,11 +8,8 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { AiGeneratePanel } from './ai-generate-panel';
 import { AiRefinePanel } from './ai-refine-panel';
-import { AiVariantsPanel } from './ai-variants-panel';
-import { MagicLayersPanel } from './magic-layers-panel';
 import { BrandKitPanel } from './brand-kit-panel';
 import { IconsPanel } from './icons-panel';
-import { LayersPanel } from './layers-panel';
 import { TemplatesPanel } from './templates-panel';
 import { STUDIO_FONTS, DEFAULT_FONT, findFontByFamily } from '../fonts';
 import {
@@ -73,8 +70,6 @@ const BG_COLORS = [
 const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string }[] = [
   { key: 'ai', icon: '✨', labelKey: 'tool_ai', fallback: 'AI Generate' },
   { key: 'refine', icon: '🪄', labelKey: 'tool_refine', fallback: 'AI Popraw' },
-  { key: 'variants', icon: '🎲', labelKey: 'tool_variants', fallback: 'Warianty A/B' },
-  { key: 'magic', icon: '🧩', labelKey: 'tool_magic', fallback: 'Magic Layers' },
   { key: 'templates', icon: '📐', labelKey: 'tool_templates', fallback: 'Szablony' },
   { key: 'brand', icon: '🎨', labelKey: 'tool_brand', fallback: 'Brand Kit' },
   { key: 'select', icon: '↖', labelKey: 'tool_select', fallback: 'Select' },
@@ -82,7 +77,6 @@ const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string
   { key: 'shapes', icon: '◻', labelKey: 'tool_shapes', fallback: 'Shapes' },
   { key: 'icons', icon: '🎯', labelKey: 'tool_icons', fallback: 'Ikony' },
   { key: 'images', icon: '🖼', labelKey: 'tool_images', fallback: 'Images' },
-  { key: 'layers', icon: '📚', labelKey: 'tool_layers', fallback: 'Warstwy' },
 ];
 
 export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
@@ -394,7 +388,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   const hasPanel = activeTool !== 'select';
 
   return (
-    <div className="flex h-full min-h-0 bg-newBgColorInner border-r border-newBorder shrink-0">
+    <div className="flex h-full min-h-0 bg-white/[0.03] border-r border-newBorder shrink-0">
       <div className="w-[100px] flex flex-col gap-1 p-2 shrink-0 overflow-y-auto border-r border-newBorder">
         {TOOLS.map((tool) => (
           <button
@@ -423,17 +417,11 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
 
         {activeTool === 'refine' && <AiRefinePanel canvas={canvas} />}
 
-        {activeTool === 'variants' && <AiVariantsPanel canvas={canvas} />}
-
-        {activeTool === 'magic' && <MagicLayersPanel canvas={canvas} />}
-
         {activeTool === 'brand' && <BrandKitPanel />}
 
         {activeTool === 'icons' && <IconsPanel canvas={canvas} />}
 
         {activeTool === 'templates' && <TemplatesPanel canvas={canvas} />}
-
-        {activeTool === 'layers' && <LayersPanel canvas={canvas} />}
 
         {activeTool === 'text' && (
           <div className="flex flex-col gap-2">

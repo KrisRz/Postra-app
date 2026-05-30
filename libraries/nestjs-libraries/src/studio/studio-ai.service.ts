@@ -95,12 +95,40 @@ const LayerSchema = z.discriminatedUnion('kind', [
   ImageLayerSchema,
 ]);
 
+// Concrete updatable-fields schema. OpenAI strict structured outputs reject
+// z.record (dynamic keys → no fixed `properties`/`additionalProperties:false`),
+// which 400'd the whole refine call. List the layer fields the model may patch;
+// all optional().nullable() per the strict "every field required" rule. Null
+// values are skipped when applied (applyUpdateToFabric ignores null/undefined).
+const PatchPropsSchema = z.object({
+  text: z.string().optional().nullable(),
+  color: z.string().optional().nullable(),
+  fill: z.string().optional().nullable(),
+  stroke: z.string().optional().nullable(),
+  strokeWidth: z.number().optional().nullable(),
+  fontFamily: z.string().optional().nullable(),
+  fontSize: z.number().optional().nullable(),
+  fontWeight: z.union([z.string(), z.number()]).optional().nullable(),
+  textAlign: z.enum(['left', 'center', 'right', 'justify']).optional().nullable(),
+  x: z.number().optional().nullable(),
+  y: z.number().optional().nullable(),
+  width: z.number().optional().nullable(),
+  height: z.number().optional().nullable(),
+  rotation: z.number().optional().nullable(),
+  opacity: z.number().optional().nullable(),
+  radius: z.number().optional().nullable(),
+  rx: z.number().optional().nullable(),
+  ry: z.number().optional().nullable(),
+  lineHeight: z.number().optional().nullable(),
+  charSpacing: z.number().optional().nullable(),
+});
+
 const PatchOpSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('add'), layer: LayerSchema }),
   z.object({
     op: z.literal('update'),
     id: z.string(),
-    props: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])),
+    props: PatchPropsSchema,
   }),
   z.object({ op: z.literal('delete'), id: z.string() }),
   z.object({ op: z.literal('reorder'), ids: z.array(z.string()) }),
@@ -194,28 +222,36 @@ Rules:
       `Instruction: ${instruction}`,
     ].join('\n');
 
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: 'system', content: system },
-    ];
-    if (screenshotDataUrl) {
-      messages.push({
-        role: 'user',
-        content: [
-          { type: 'text', text: userText },
-          { type: 'image_url', image_url: { url: screenshotDataUrl } },
-        ],
-      });
-    } else {
-      messages.push({ role: 'user', content: userText });
-    }
+    const callModel = async (useImage: boolean) => {
+      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+        { role: 'system', content: system },
+        useImage && screenshotDataUrl
+          ? {
+              role: 'user',
+              content: [
+                { type: 'text', text: userText },
+                { type: 'image_url', image_url: { url: screenshotDataUrl } },
+              ],
+            }
+          : { role: 'user', content: userText },
+      ];
+      return (
+        await parseChat(openai, {
+          model: useImage ? MODEL_VISION : MODEL_GPT,
+          messages,
+          response_format: zodResponseFormat(RefinePatchSchema, 'refinePatch'),
+        })
+      ).choices[0].message.parsed;
+    };
 
-    const parsed = (
-      await parseChat(openai, {
-        model: screenshotDataUrl ? MODEL_VISION : MODEL_GPT,
-        messages,
-        response_format: zodResponseFormat(RefinePatchSchema, 'refinePatch'),
-      })
-    ).choices[0].message.parsed;
+    // Vision (gpt-4o) gives visual context but intermittently returns an
+    // empty/refusal response for structured outputs (→ "no patch"). Fall back
+    // to reliable text-only gpt-4.1 — the spec JSON already carries every
+    // layer's text/colors/positions, which is enough for most edits.
+    let parsed = await callModel(!!screenshotDataUrl);
+    if (!parsed && screenshotDataUrl) {
+      parsed = await callModel(false);
+    }
 
     if (!parsed) throw new Error('AI returned no patch');
 

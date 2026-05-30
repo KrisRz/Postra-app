@@ -64,7 +64,7 @@ export const ThirdPartyMenuComponent: FC<{
       {show && (
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`absolute top-[100%] start-0 p-[8px] px-[20px] bg-fifth flex flex-col gap-[16px] z-[100] rounded-[8px] border border-tableBorder text-nowrap`}
+          className={`absolute top-[100%] start-0 p-[8px] px-[20px] bg-[rgba(15,23,42,0.92)] backdrop-blur-xl flex flex-col gap-[16px] z-[100] rounded-[8px] border border-white/10 text-nowrap`}
         >
           <div
             className="flex gap-[12px] items-center"
@@ -116,7 +116,7 @@ export const ThirdPartyComponent = () => {
     <>
       <div
         className={clsx(
-          'bg-newBgColorInner p-[20px] flex flex-col gap-[15px] transition-all',
+          'bg-white/[0.03] p-[20px] flex flex-col gap-[15px] transition-all',
           collapseMenu === '1' ? 'group sidebar w-[100px]' : 'w-[260px]'
         )}
       >
@@ -159,7 +159,7 @@ export const ThirdPartyComponent = () => {
                   data?.map((p: any) => (
                     <div
                       key={p.id}
-                      className={clsx('flex gap-[8px] items-center group/profile hover:bg-boxHover')}
+                      className={clsx('flex gap-[8px] items-center group/profile hover:bg-white/[0.05]')}
                     >
                       <div className="h-full w-[4px] rounded-s-[3px] opacity-0 group-hover/profile:opacity-100 transition-opacity">
                         <SVGLine />
@@ -200,7 +200,7 @@ export const ThirdPartyComponent = () => {
           </div>
         </div>
       </div>
-      <div className="bg-newBgColorInner flex-1 flex-col flex p-[20px] gap-[12px]">
+      <div className="bg-white/[0.03] flex-1 flex-col flex p-[20px] gap-[12px]">
         <ThirdPartyListComponent reload={mutate} />
       </div>
     </>

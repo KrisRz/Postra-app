@@ -151,7 +151,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
           className="w-full max-h-[300px] rounded bg-black"
         />
       )}
-      <div ref={waveContainerRef} className="w-full bg-newBgColorInner rounded" />
+      <div ref={waveContainerRef} className="w-full bg-white/[0.03] rounded" />
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-[10px] uppercase tracking-wide text-textColor/60">
