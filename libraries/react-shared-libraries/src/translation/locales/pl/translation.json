@@ -870,5 +870,11 @@
   "save_as_set": "Zapisz jako zestaw",
   "set_name": "Nazwa zestawu",
   "enter_set_name": "Wpisz nazwę tego zestawu",
-  "sets_description": "Zarządzaj zestawami treści do łatwego ponownego użycia w postach."
+  "sets_description": "Zarządzaj zestawami treści do łatwego ponownego użycia w postach.",
+  "apps_you_have_authorized": "Aplikacje, którym zezwoliłeś na dostęp do Twojego konta Postra.",
+  "no_approved_apps": "Brak zatwierdzonych aplikacji.",
+  "authorized_on": "Autoryzowano",
+  "revoke": "Odbierz dostęp",
+  "access_revoked": "Dostęp odebrany",
+  "failed_to_revoke": "Nie udało się odebrać dostępu"
 }

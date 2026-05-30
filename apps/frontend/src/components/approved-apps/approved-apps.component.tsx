@@ -3,7 +3,8 @@
 import { FC, Fragment, useCallback } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -61,20 +62,20 @@ export const ApprovedAppsComponent: FC = () => {
   return (
     <div className="flex flex-col gap-[20px]">
       <div className="flex flex-col">
-        <h3 className="text-[20px]">
+        <h3 className="text-[22px] font-[650] tracking-[-0.2px] text-newTextColor">
           {t('approved_apps', 'Approved Apps')}
         </h3>
-        <div className="text-customColor18 mt-[4px]">
+        <div className="text-[12.5px] text-newTextColor/55 mt-[3px]">
           {t(
             'apps_you_have_authorized',
-            'Applications you have authorized to access your Postiz account.'
+            'Applications you have authorized to access your Postra account.'
           )}
         </div>
       </div>
 
-      <div className="bg-white/[0.03] border-white/10 border rounded-[12px] p-[24px]">
+      <Card className="p-[24px]">
         {!apps?.length ? (
-          <div className="text-customColor18">
+          <div className="text-newTextColor/55">
             {t('no_approved_apps', 'No approved apps yet.')}
           </div>
         ) : (
@@ -92,7 +93,7 @@ export const ApprovedAppsComponent: FC = () => {
                       className="w-[40px] h-[40px] rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-[40px] h-[40px] rounded-full bg-fifth flex items-center justify-center text-customColor18">
+                    <div className="w-[40px] h-[40px] rounded-full bg-fifth flex items-center justify-center text-newTextColor/55">
                       {app.oauthApp?.name?.[0]?.toUpperCase() || '?'}
                     </div>
                   )}
@@ -101,24 +102,24 @@ export const ApprovedAppsComponent: FC = () => {
                       {app.oauthApp?.name}
                     </div>
                     {app.oauthApp?.description && (
-                      <div className="text-customColor18 text-[12px]">
+                      <div className="text-newTextColor/55 text-[12px]">
                         {app.oauthApp.description}
                       </div>
                     )}
-                    <div className="text-customColor18 text-[12px]">
+                    <div className="text-newTextColor/55 text-[12px]">
                       {t('authorized_on', 'Authorized on')}{' '}
                       {new Date(app.createdAt).toLocaleDateString()}
                     </div>
                   </div>
                 </div>
-                <Button onClick={revokeApp(app)}>
+                <Button variant="danger" onClick={revokeApp(app)}>
                   {t('revoke', 'Revoke')}
                 </Button>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 };
