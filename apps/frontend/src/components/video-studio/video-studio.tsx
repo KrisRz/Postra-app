@@ -2,6 +2,7 @@
 
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { useMediaDirectory } from '@gitroom/react/helpers/use.media.directory';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { Button } from '@gitroom/react/form/button';
@@ -10,6 +11,11 @@ import { VideoMultiFormat, VideoFormat } from './video-multi-format';
 import { VideoCaptions } from './video-captions';
 import { VideoStock } from './video-stock';
 import { VideoCompositorPrototype } from './video-compositor-prototype';
+import { VideoLibraryPicker, LibraryMedia } from './video-library-picker';
+import {
+  fetchLibraryVideoAsFile,
+  VideoTooLargeError,
+} from './load-library-media';
 
 interface VideoStudioProps {
   setMedia: (params: { id: string; path: string }[]) => void;
@@ -22,6 +28,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const t = useT();
   const fetch = useFetch();
   const toaster = useToaster();
+  const mediaDirectory = useMediaDirectory();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -30,6 +37,8 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const [tab, setTab] = useState<Tab>('trim');
   const [isUploading, setIsUploading] = useState(false);
   const [browserSupported, setBrowserSupported] = useState(true);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [isImportingLibrary, setIsImportingLibrary] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && typeof (window as unknown as { VideoEncoder?: unknown }).VideoEncoder === 'undefined') {
@@ -49,6 +58,35 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     setUploadedMedia(null);
     setTab('trim');
   };
+
+  const loadFromLibrary = useCallback(
+    async (media: LibraryMedia) => {
+      setIsImportingLibrary(true);
+      try {
+        const loaded = await fetchLibraryVideoAsFile(mediaDirectory.set(media.path));
+        setFile(loaded);
+        setTrimmedBlob(null);
+        // It already lives in the library, so remember its id/path — "Użyj w
+        // poście" and captions can then skip re-uploading the same bytes.
+        setUploadedMedia({ id: media.id, path: media.path });
+        setTab('trim');
+        setShowLibrary(false);
+      } catch (e) {
+        toaster.show(
+          e instanceof VideoTooLargeError
+            ? t(
+                'video_library_too_big',
+                'Ten klip jest za duży do edycji w przeglądarce (limit 200 MB). Użyj krótszego.'
+              )
+            : t('video_library_load_failed', 'Nie udało się wczytać wideo z biblioteki.'),
+          'warning'
+        );
+      } finally {
+        setIsImportingLibrary(false);
+      }
+    },
+    [mediaDirectory, toaster, t]
+  );
 
   const uploadBlob = useCallback(
     async (blob: Blob, name: string): Promise<{ id: string; path: string } | null> => {
@@ -202,12 +240,27 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
             onClick={() => fileInputRef.current?.click()}
             className="text-xs px-3 py-1 rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
           >
-            📁 {t('video_choose_file', 'Wybierz wideo')}
+            📁 {t('video_source_disk', 'Z dysku')}
+          </button>
+          <button
+            onClick={() => setShowLibrary(true)}
+            className="text-xs px-3 py-1 rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
+          >
+            🗂 {t('video_source_library', 'Z biblioteki')}
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto relative">
+        {showLibrary && (
+          <div className="absolute inset-0 z-[20]">
+            <VideoLibraryPicker
+              onPick={loadFromLibrary}
+              onClose={() => setShowLibrary(false)}
+              busy={isImportingLibrary}
+            />
+          </div>
+        )}
         {tab === 'trim' && (
           <VideoTrimmer file={file} onTrimmed={handleTrimmedExport} />
         )}
