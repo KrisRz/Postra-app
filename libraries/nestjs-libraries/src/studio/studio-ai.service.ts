@@ -33,55 +33,59 @@ const PLATFORM_SIZES: Record<StudioPlatformKey, { width: number; height: number 
 
 const ORIGIN = z.enum(['left', 'center', 'right', 'top', 'bottom']);
 
+// OpenAI strict structured outputs require EVERY field to be required, so an
+// optional field MUST also be `.nullable()` (the API rejects bare `.optional()`
+// at zodResponseFormat conversion → 500 on refine/variants/decompose). Keep
+// `.optional().nullable()` on all non-mandatory layer fields.
 const TextLayerSchema = z.object({
   id: z.string(),
   kind: z.literal('text'),
-  slot: z.string().optional(),
+  slot: z.string().optional().nullable(),
   x: z.number(),
   y: z.number(),
   originX: ORIGIN,
   originY: ORIGIN,
-  width: z.number().optional(),
-  height: z.number().optional(),
+  width: z.number().optional().nullable(),
+  height: z.number().optional().nullable(),
   text: z.string(),
   fontFamily: z.string(),
   fontSize: z.number(),
-  fontWeight: z.union([z.string(), z.number()]).optional(),
-  textAlign: z.enum(['left', 'center', 'right', 'justify']).optional(),
+  fontWeight: z.union([z.string(), z.number()]).optional().nullable(),
+  textAlign: z.enum(['left', 'center', 'right', 'justify']).optional().nullable(),
   color: z.string(),
-  lineHeight: z.number().optional(),
-  charSpacing: z.number().optional(),
+  lineHeight: z.number().optional().nullable(),
+  charSpacing: z.number().optional().nullable(),
 });
 
 const ShapeLayerSchema = z.object({
   id: z.string(),
   kind: z.enum(['rect', 'circle', 'triangle', 'polygon', 'path', 'line']),
-  slot: z.string().optional(),
+  slot: z.string().optional().nullable(),
   x: z.number(),
   y: z.number(),
   originX: ORIGIN,
   originY: ORIGIN,
-  width: z.number().optional(),
-  height: z.number().optional(),
-  fill: z.string().optional(),
-  stroke: z.string().optional(),
-  strokeWidth: z.number().optional(),
-  rx: z.number().optional(),
-  ry: z.number().optional(),
-  radius: z.number().optional(),
-  path: z.string().optional(),
+  width: z.number().optional().nullable(),
+  height: z.number().optional().nullable(),
+  fill: z.string().optional().nullable(),
+  stroke: z.string().optional().nullable(),
+  strokeWidth: z.number().optional().nullable(),
+  rx: z.number().optional().nullable(),
+  ry: z.number().optional().nullable(),
+  radius: z.number().optional().nullable(),
+  path: z.string().optional().nullable(),
 });
 
 const ImageLayerSchema = z.object({
   id: z.string(),
   kind: z.literal('image'),
-  slot: z.string().optional(),
+  slot: z.string().optional().nullable(),
   x: z.number(),
   y: z.number(),
   originX: ORIGIN,
   originY: ORIGIN,
-  width: z.number().optional(),
-  height: z.number().optional(),
+  width: z.number().optional().nullable(),
+  height: z.number().optional().nullable(),
   src: z.string(),
 });
 

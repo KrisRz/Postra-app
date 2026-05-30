@@ -62,7 +62,10 @@ export class BrandVoiceCheckDto {
 export class DecomposeImageDto {
   @IsString()
   @IsDefined()
-  @MaxLength(2_000_000)
+  // Magic Layers (frontend) allows up to 4 MB images; base64 inflates ~4/3,
+  // so a 4 MB image is ~5.6M chars. The old 2M cap rejected anything over
+  // ~1.5 MB with a 400. 8M covers the 4 MB frontend cap (body limit is 50mb).
+  @MaxLength(8_000_000)
   imageDataUrl: string;
 
   @IsString()
