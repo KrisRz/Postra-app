@@ -131,6 +131,40 @@ export class MediaController {
     return this._mediaService.saveCanvasJson(org.id, id, body.canvasJson);
   }
 
+  // Literal GET paths (e.g. /pixabay-videos) MUST be declared BEFORE the
+  // parameterized `@Get('/:id')` below — otherwise NestJS matches them as an
+  // id and they silently return "media not found" (empty body). Add new
+  // literal GET routes above this comment.
+  @Get('/pixabay-videos')
+  async pixabayVideos(
+    @Query('q') q: string,
+    @Query('page') page = '1'
+  ) {
+    const apiKey = process.env.PIXABAY_API_KEY;
+    if (!apiKey) {
+      return { hits: [], note: 'PIXABAY_API_KEY not configured' };
+    }
+    const safeQuery = (q || '').slice(0, 100).trim().toLowerCase();
+    const safePage = Math.max(1, Number(page) || 1);
+    // Pixabay license requires caching responses for 24h to avoid duplicate calls.
+    const cacheKey = `pixabay:videos:${createHash('md5').update(`${safeQuery}|${safePage}`).digest('hex')}`;
+    const cached = await ioRedis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const url = `https://pixabay.com/api/videos/?key=${apiKey}&q=${encodeURIComponent(safeQuery)}&page=${safePage}&per_page=20&safesearch=true`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new HttpException(`Pixabay error ${res.status}`, 502);
+    }
+    const remaining = Number(res.headers.get('x-ratelimit-remaining') ?? '999');
+    const data = await res.json();
+    // 24h cache per Pixabay TOS. Tighten when rate limit is nearly exhausted.
+    const ttl = remaining < 5 ? 60 * 60 * 48 : 60 * 60 * 24;
+    await ioRedis.set(cacheKey, JSON.stringify(data), 'EX', ttl);
+    return data;
+  }
+
   @Get('/:id')
   getMediaForEdit(
     @GetOrgFromRequest() org: Organization,
@@ -168,36 +202,6 @@ export class MediaController {
     }
     const result = await this._captionsService.burnCaptionsIntoVideo(media.path, body.srt);
     return this._mediaService.saveFile(org.id, result.path.split('/').pop() ?? 'captioned.mp4', result.path);
-  }
-
-  @Get('/pixabay-videos')
-  async pixabayVideos(
-    @Query('q') q: string,
-    @Query('page') page = '1'
-  ) {
-    const apiKey = process.env.PIXABAY_API_KEY;
-    if (!apiKey) {
-      return { hits: [], note: 'PIXABAY_API_KEY not configured' };
-    }
-    const safeQuery = (q || '').slice(0, 100).trim().toLowerCase();
-    const safePage = Math.max(1, Number(page) || 1);
-    // Pixabay license requires caching responses for 24h to avoid duplicate calls.
-    const cacheKey = `pixabay:videos:${createHash('md5').update(`${safeQuery}|${safePage}`).digest('hex')}`;
-    const cached = await ioRedis.get(cacheKey);
-    if (cached) {
-      return JSON.parse(cached);
-    }
-    const url = `https://pixabay.com/api/videos/?key=${apiKey}&q=${encodeURIComponent(safeQuery)}&page=${safePage}&per_page=20&safesearch=true`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new HttpException(`Pixabay error ${res.status}`, 502);
-    }
-    const remaining = Number(res.headers.get('x-ratelimit-remaining') ?? '999');
-    const data = await res.json();
-    // 24h cache per Pixabay TOS. Tighten when rate limit is nearly exhausted.
-    const ttl = remaining < 5 ? 60 * 60 * 48 : 60 * 60 * 24;
-    await ioRedis.set(cacheKey, JSON.stringify(data), 'EX', ttl);
-    return data;
   }
 
   @Post('/pixabay-videos/import')
