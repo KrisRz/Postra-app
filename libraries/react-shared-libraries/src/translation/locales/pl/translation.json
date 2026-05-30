@@ -876,5 +876,16 @@
   "authorized_on": "Autoryzowano",
   "revoke": "Odbierz dostęp",
   "access_revoked": "Dostęp odebrany",
-  "failed_to_revoke": "Nie udało się odebrać dostępu"
+  "failed_to_revoke": "Nie udało się odebrać dostępu",
+  "edit_signature": "Edytuj podpis",
+  "add_signature": "Dodaj podpis",
+  "signature_deleted": "Podpis usunięty",
+  "signature_updated": "Podpis zaktualizowany",
+  "signature_added": "Podpis dodany",
+  "write_your_signature": "Napisz swój podpis...",
+  "set_saved": "Zestaw zapisany",
+  "set_save_failed": "Nie udało się zapisać zestawu",
+  "set_deleted": "Zestaw usunięty",
+  "role": "Rola",
+  "email": "E-mail"
 }

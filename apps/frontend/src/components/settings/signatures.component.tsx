@@ -28,7 +28,9 @@ export const SignaturesComponent: FC<{
   const addSignature = useCallback(
     (data?: any) => () => {
       modal.openModal({
-        title: data ? 'Edit Signature' : 'Add Signature',
+        title: data
+          ? t('edit_signature', 'Edytuj podpis')
+          : t('add_signature', 'Dodaj podpis'),
         withCloseButton: true,
         children: <AddOrRemoveSignature data={data} reload={mutate} />,
       });
@@ -51,7 +53,7 @@ export const SignaturesComponent: FC<{
           method: 'DELETE',
         });
         mutate();
-        toaster.show('Signature deleted successfully', 'success');
+        toaster.show(t('signature_deleted', 'Podpis usunięty'), 'success');
       }
     },
     []
@@ -169,8 +171,8 @@ const AddOrRemoveSignature: FC<{
       });
       toast.show(
         data?.id
-          ? 'Signature updated successfully'
-          : 'Signature added successfully',
+          ? t('signature_updated', 'Podpis zaktualizowany')
+          : t('signature_added', 'Podpis dodany'),
         'success'
       );
       modal.closeCurrent();
@@ -216,7 +218,7 @@ const AddOrRemoveSignature: FC<{
               onChange={(e) => {
                 form.setValue('content', e.target.value);
               }}
-              placeholder="Write your signature..."
+              placeholder={t('write_your_signature', 'Napisz swój podpis...')}
               autosuggestionsConfig={{
                 textareaPurpose: `Assist me in writing social media signature`,
                 chatApiConfigs: {},

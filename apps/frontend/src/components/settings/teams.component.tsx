@@ -77,12 +77,12 @@ export const AddMember = () => {
         <div className="relative flex gap-[10px] flex-col flex-1 p-[16px] pt-0">
           {sendEmail && (
             <Input
-              label="Email"
+              label={t('email', 'E-mail')}
               placeholder={t('enter_email', 'Enter email')}
               name="email"
             />
           )}
-          <Select label="Role" name="role">
+          <Select label={t('role', 'Rola')} name="role">
             <option value="">{t('select_role', 'Select Role')}</option>
             {roles.map((role) => (
               <option key={role.value} value={role.value}>

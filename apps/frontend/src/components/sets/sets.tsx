@@ -129,9 +129,12 @@ export const Sets: FC = () => {
                         });
                         modal.closeAll();
                         mutate();
-                        toaster.show('Set saved successfully', 'success');
+                        toaster.show(t('set_saved', 'Zestaw zapisany'), 'success');
                       } catch (error) {
-                        toaster.show('Failed to save set', 'warning');
+                        toaster.show(
+                          t('set_save_failed', 'Nie udało się zapisać zestawu'),
+                          'warning'
+                        );
                       }
                     }}
                     onCancel={() => modal.closeAll()}
@@ -153,12 +156,18 @@ export const Sets: FC = () => {
 
   const deleteSet = useCallback(
     (data: any) => async () => {
-      if (await deleteDialog(`Are you sure you want to delete ${data.name}?`)) {
+      if (
+        await deleteDialog(
+          t('are_you_sure_you_want_to_delete', 'Czy na pewno chcesz usunąć?', {
+            name: data.name,
+          })
+        )
+      ) {
         await fetch(`/sets/${data.id}`, {
           method: 'DELETE',
         });
         mutate();
-        toaster.show('Set deleted successfully', 'success');
+        toaster.show(t('set_deleted', 'Zestaw usunięty'), 'success');
       }
     },
     []
