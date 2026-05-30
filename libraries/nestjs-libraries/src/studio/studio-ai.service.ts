@@ -222,28 +222,36 @@ Rules:
       `Instruction: ${instruction}`,
     ].join('\n');
 
-    const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-      { role: 'system', content: system },
-    ];
-    if (screenshotDataUrl) {
-      messages.push({
-        role: 'user',
-        content: [
-          { type: 'text', text: userText },
-          { type: 'image_url', image_url: { url: screenshotDataUrl } },
-        ],
-      });
-    } else {
-      messages.push({ role: 'user', content: userText });
-    }
+    const callModel = async (useImage: boolean) => {
+      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+        { role: 'system', content: system },
+        useImage && screenshotDataUrl
+          ? {
+              role: 'user',
+              content: [
+                { type: 'text', text: userText },
+                { type: 'image_url', image_url: { url: screenshotDataUrl } },
+              ],
+            }
+          : { role: 'user', content: userText },
+      ];
+      return (
+        await parseChat(openai, {
+          model: useImage ? MODEL_VISION : MODEL_GPT,
+          messages,
+          response_format: zodResponseFormat(RefinePatchSchema, 'refinePatch'),
+        })
+      ).choices[0].message.parsed;
+    };
 
-    const parsed = (
-      await parseChat(openai, {
-        model: screenshotDataUrl ? MODEL_VISION : MODEL_GPT,
-        messages,
-        response_format: zodResponseFormat(RefinePatchSchema, 'refinePatch'),
-      })
-    ).choices[0].message.parsed;
+    // Vision (gpt-4o) gives visual context but intermittently returns an
+    // empty/refusal response for structured outputs (→ "no patch"). Fall back
+    // to reliable text-only gpt-4.1 — the spec JSON already carries every
+    // layer's text/colors/positions, which is enough for most edits.
+    let parsed = await callModel(!!screenshotDataUrl);
+    if (!parsed && screenshotDataUrl) {
+      parsed = await callModel(false);
+    }
 
     if (!parsed) throw new Error('AI returned no patch');
 
