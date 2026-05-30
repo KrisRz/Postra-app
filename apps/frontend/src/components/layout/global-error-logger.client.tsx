@@ -1,0 +1,53 @@
+'use client';
+
+import { useEffect } from 'react';
+
+// Mounted once, app-wide. Captures the RAW error the instant it is thrown —
+// before React's error boundary swallows it and before the stack frames are
+// lost. This is what lets us diagnose render crashes (e.g. the recurring
+// "Cannot read properties of undefined (reading 'map')" on paste) from a
+// user's console: with production source maps linked, the logged stack points
+// straight at the offending file:line. Everything is namespaced [Postra:*]
+// so it is trivial to grep in a screenshot or copied console dump.
+export const GlobalErrorLogger = (): null => {
+  useEffect(() => {
+    /* eslint-disable no-console */
+    const onError = (event: ErrorEvent): void => {
+      console.error('[Postra:window-error]', {
+        message: event.message,
+        source: event.filename,
+        line: event.lineno,
+        col: event.colno,
+        url: window.location.href,
+        time: new Date().toISOString(),
+      });
+      // Logged separately so devtools renders the clickable, source-mapped
+      // stack rather than collapsing it into the object above.
+      if (event.error?.stack) {
+        console.error('[Postra:window-error] stack:', event.error.stack);
+      }
+    };
+
+    const onRejection = (event: PromiseRejectionEvent): void => {
+      const reason: any = event.reason;
+      console.error('[Postra:unhandled-rejection]', {
+        message: reason?.message ?? String(reason),
+        url: window.location.href,
+        time: new Date().toISOString(),
+      });
+      if (reason?.stack) {
+        console.error('[Postra:unhandled-rejection] stack:', reason.stack);
+      }
+    };
+    /* eslint-enable no-console */
+
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection);
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection);
+    };
+  }, []);
+
+  return null;
+};

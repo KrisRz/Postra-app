@@ -14,8 +14,21 @@ export default function AppError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.error('App route error:', error);
+    // Log the failure in a structured, greppable shape so we can diagnose
+    // it from a user's console screenshot even before source maps load.
+    // The error boundary only receives the post-throw Error, so we dump
+    // every field React gives us (message/name/stack/digest) plus context.
+    /* eslint-disable no-console */
+    console.error('[Postra:error-boundary] render crash:', {
+      name: error?.name,
+      message: error?.message,
+      digest: error?.digest,
+      url: typeof window !== 'undefined' ? window.location.href : '(ssr)',
+      time: new Date().toISOString(),
+    });
+    // Separate log so the browser prints the clickable, source-mapped stack.
+    console.error('[Postra:error-boundary] stack:', error?.stack || error);
+    /* eslint-enable no-console */
   }, [error]);
 
   return (

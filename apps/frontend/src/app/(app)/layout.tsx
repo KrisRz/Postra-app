@@ -32,6 +32,7 @@ import {
 import { HtmlComponent } from '@gitroom/frontend/components/layout/html.component';
 import Script from 'next/script';
 import { ChangeDirClient } from '@gitroom/frontend/components/new-layout/change.dir.client';
+import { GlobalErrorLogger } from '@gitroom/frontend/components/layout/global-error-logger.client';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
@@ -98,6 +99,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         >
           <SentryComponent>
             {/*<SetTimezone />*/}
+            <GlobalErrorLogger />
             <HtmlComponent />
             <DubAnalytics />
             <FacebookComponent />

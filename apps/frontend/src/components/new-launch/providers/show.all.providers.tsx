@@ -215,7 +215,10 @@ export const ShowAllProviders = forwardRef((props, ref) => {
             integration:
               selectedIntegrations?.[0]?.integration || allIntegrations?.[0],
             allIntegrations: selectedIntegrations.map((p) => p.integration),
-            value: global.map((p) => ({
+            // Guard: `global` is normally [] from the store, but a mid-update
+            // render (e.g. during paste) can briefly see it undefined and the
+            // unguarded .map white-screened the whole composer. Default to [].
+            value: (global ?? []).map((p) => ({
               id: p.id,
               content: p.content,
               image: p.media,
