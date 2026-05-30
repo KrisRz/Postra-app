@@ -841,24 +841,17 @@ export const CalendarColumn: FC<{
         loading && 'animate-pulse',
         isBeforeNow
           ? 'cursor-not-allowed'
-          : 'launches-calendar-cell border border-white/8 rounded-[14px] bg-[rgba(15,23,42,0.58)] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] backdrop-blur-md'
-        )}
+          : 'border border-white/[0.05] rounded-[8px]'
+      )}
       ref={drop as any}
     >
       {display === 'month' && (
-        <div
-          className={clsx(
-            'pt-[6px] ps-[8px] text-[14px] font-[700] text-textColor/70'
-          )}
-        >
-          {getDate.date()}
-        </div>
+        <div className={clsx('pt-[6px] text-[14px]')}>{getDate.date()}</div>
       )}
       <div
         className={clsx(
-          'relative flex flex-col flex-1 text-white rounded-[14px] min-h-[70px] transition-all duration-200',
-          canDrop &&
-            'border border-[#38bdf8]/80 bg-[rgba(56,189,248,0.08)] shadow-[0_0_0_1px_rgba(56,189,248,0.24),0_0_30px_rgba(56,189,248,0.18)]'
+          'relative flex flex-col flex-1 text-white rounded-[8px] min-h-[70px]',
+          canDrop && 'border border-[#612BD3]'
         )}
       >
         <div
@@ -870,7 +863,7 @@ export const CalendarColumn: FC<{
         >
           {loading && (
             <div className="h-full w-full p-[5px] animate-pulse absolute left-0 top-0 z-[50]">
-              <div className="launches-calendar-cell h-full w-full rounded-[12px] border border-white/8 bg-[linear-gradient(180deg,rgba(30,41,59,0.7),rgba(15,23,42,0.86))]" />
+              <div className="h-full w-full rounded-[10px] bg-[rgba(15,23,42,0.8)]" />
             </div>
           )}
           {list.map((post) => (
@@ -900,7 +893,7 @@ export const CalendarColumn: FC<{
           ))}
           {!showAll && postList.length > 3 && (
             <div
-              className="text-center py-[8px] text-[12px] font-[600] uppercase tracking-[0.08em] text-textColor/65 hover:text-[#38bdf8] transition-colors"
+              className="text-center hover:underline py-[5px] text-textColor"
               onClick={showAllFunc}
             >
               {t('show_more', '+ Show more')} ({postList.length - 3})
@@ -908,7 +901,7 @@ export const CalendarColumn: FC<{
           )}
           {showAll && postList.length > 3 && (
             <div
-              className="text-center py-[8px] text-[12px] font-[600] uppercase tracking-[0.08em] text-textColor/65 hover:text-[#38bdf8] transition-colors"
+              className="text-center hover:underline py-[5px] text-textColor"
               onClick={showLessFunc}
             >
               {t('show_less', '- Show less')}
@@ -933,16 +926,16 @@ export const CalendarColumn: FC<{
               {display !== 'day' && (
                 <div
                   className={clsx(
-                    'group w-full h-full rounded-[12px] flex justify-center items-center text-white'
+                    'group hover:before:h-[30px] w-full h-full rounded-[10px] flex justify-center items-center text-white'
                   )}
                 >
-                  <div className="flex w-full h-full max-w-[42px] max-h-[42px] items-center justify-center rounded-[12px] pb-[1px] text-[24px] font-[500] text-transparent transition-all group-hover:bg-[linear-gradient(135deg,#38bdf8,#a78bfa)] group-hover:text-[#0a0e1a] group-hover:shadow-[0_16px_32px_rgba(56,189,248,0.18)]">
-                    +
-                  </div>
+                  <div
+                    className="group-hover:before:content-['+'] pb-[5px] flex justify-center items-center rounded-[8px] transition-all group-hover:bg-btnPrimary w-full h-full max-w-[40px] max-h-[40px]"
+                  />
                 </div>
               )}
               {display === 'day' && (
-                <div className="w-full h-full rounded-[12px] border border-dashed border-white/8 py-[10px] flex-wrap flex justify-center items-center gap-[20px] opacity-40 grayscale transition-all hover:border-[#38bdf8]/55 hover:bg-[rgba(56,189,248,0.05)] hover:grayscale-0 hover:opacity-100">
+                <div className="w-full h-full rounded-[10px] py-[10px] flex-wrap hover:border hover:border-seventh flex justify-center items-center gap-[20px] opacity-30 grayscale hover:grayscale-0 hover:opacity-100">
                   {integrations.map((selectedIntegrations) => (
                     <div
                       className="relative"
@@ -1161,7 +1154,7 @@ const CalendarItem: FC<{
       <div
         onClick={editPost}
         className={clsx(
-          'gap-[5px] w-full flex h-full flex-1 rounded-br-[12px] rounded-bl-[12px] p-[8px] text-[14px] border border-white/6 bg-[linear-gradient(180deg,rgba(30,41,59,0.72),rgba(15,23,42,0.92))] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition-all hover:border-[#38bdf8]/30 hover:bg-[linear-gradient(180deg,rgba(51,65,85,0.75),rgba(15,23,42,0.95))]',
+          'gap-[5px] w-full flex h-full flex-1 rounded-br-[10px] rounded-bl-[10px] p-[8px] text-[14px] bg-[rgba(15,23,42,0.92)] transition-all hover:bg-[rgba(30,41,59,0.95)]',
           'relative',
           isBeforeNow && '!grayscale'
         )}
@@ -1315,11 +1308,11 @@ export const SetSelectionModal: FC<{
           <div
             key={set.id}
             onClick={() => onSelect(set)}
-            className="cursor-pointer rounded-[14px] border border-white/8 bg-[linear-gradient(180deg,rgba(30,41,59,0.56),rgba(15,23,42,0.82))] p-3 transition-all hover:border-[#38bdf8]/40 hover:bg-[linear-gradient(180deg,rgba(51,65,85,0.65),rgba(15,23,42,0.9))] hover:shadow-[0_16px_32px_rgba(56,189,248,0.08)]"
+            className="p-3 border border-tableBorder rounded-lg cursor-pointer hover:transition-colors"
           >
             <div className="font-medium">{set.name}</div>
             {set.description && (
-              <div className="mt-1 text-sm text-textColor/60">
+              <div className="text-sm text-gray-400 mt-1">
                 {set.description}
               </div>
             )}
@@ -1327,10 +1320,10 @@ export const SetSelectionModal: FC<{
         ))}
       </div>
 
-      <div className="flex gap-2 border-t border-white/8 pt-2">
+      <div className="flex gap-2 pt-2 border-t border-tableBorder">
         <button
           onClick={onContinueWithoutSet}
-          className="flex-1 rounded-[12px] border border-white/8 px-4 py-2 text-textColor/80 transition-all hover:border-[#38bdf8]/40 hover:bg-white/5 hover:text-textColor"
+          className="flex-1 px-4 py-2 text-textColor rounded-lg hover:transition-colors"
         >
           {t('continue_without_set', 'Continue without set')}
         </button>
