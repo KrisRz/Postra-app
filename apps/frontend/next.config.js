@@ -28,9 +28,15 @@ const nextConfig = {
 
   // Custom webpack config to ensure sourcemaps are generated properly
   webpack: (config, { buildId, dev, isServer, defaultLoaders }) => {
-    // Enable sourcemaps for both client and server in production
+    // Enable sourcemaps for both client and server in production.
+    // Client uses 'source-map' (not 'hidden-source-map') so the browser
+    // links the .map files and the devtools console shows real file:line
+    // frames instead of minified `0fxg...js:2:x`. This repo is public
+    // (AGPL — source is already on GitHub), so exposing maps costs nothing
+    // and is the only way to diagnose render crashes like the recurring
+    // "Cannot read properties of undefined (reading 'map')" on paste.
     if (!dev) {
-      config.devtool = isServer ? 'source-map' : 'hidden-source-map';
+      config.devtool = 'source-map';
     }
 
     if (isServer) {

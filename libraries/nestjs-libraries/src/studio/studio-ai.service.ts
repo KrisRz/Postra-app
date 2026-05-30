@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
+import { parseChat } from '@gitroom/nestjs-libraries/openai/parse-chat';
 
 import {
   StudioBrandRef,
@@ -205,7 +206,7 @@ Rules:
     }
 
     const parsed = (
-      await openai.chat.completions.parse({
+      await parseChat(openai, {
         model: screenshotDataUrl ? MODEL_VISION : MODEL_GPT,
         messages,
         response_format: zodResponseFormat(RefinePatchSchema, 'refinePatch'),
@@ -252,7 +253,7 @@ Output rules:
     ].join('\n');
 
     const parsed = (
-      await openai.chat.completions.parse({
+      await parseChat(openai, {
         model: MODEL_GPT,
         messages: [
           { role: 'system', content: system },
@@ -264,18 +265,20 @@ Output rules:
 
     if (!parsed) throw new Error('AI returned no variants');
 
-    const variants = parsed.variants.map((v) => ({
-      label: v.label,
-      spec: {
-        version: 1 as const,
-        platform,
-        width: size.width,
-        height: size.height,
-        background: v.spec.background,
-        brand,
-        layers: v.spec.layers.map(toStudioLayer) as StudioLayer[],
-      },
-    }));
+    const variants = parsed.variants.map(
+      (v: { label: string; spec: { background: string; layers: unknown[] } }) => ({
+        label: v.label,
+        spec: {
+          version: 1 as const,
+          platform,
+          width: size.width,
+          height: size.height,
+          background: v.spec.background,
+          brand,
+          layers: v.spec.layers.map(toStudioLayer) as StudioLayer[],
+        },
+      })
+    );
 
     return { variants };
   }
@@ -309,7 +312,7 @@ Return concise feedback (2 short sentences, actionable). Tags = up to 4 short la
     ].join('\n');
 
     const parsed = (
-      await openai.chat.completions.parse({
+      await parseChat(openai, {
         model: MODEL_GPT,
         messages: [
           { role: 'system', content: system },
@@ -355,7 +358,7 @@ Rules:
 - Reply in the language of any visible text. Layer ids start with "ext_".`;
 
     const parsed = (
-      await openai.chat.completions.parse({
+      await parseChat(openai, {
         model: MODEL_VISION,
         messages: [
           { role: 'system', content: system },

@@ -125,9 +125,9 @@ export const BrandVoiceRibbon: FC<Props> = ({ content }) => {
             </button>
           </div>
           <p className="opacity-90">{result.feedback}</p>
-          {result.tags.length > 0 && (
+          {(result.tags?.length ?? 0) > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
-              {result.tags.map((tag) => (
+              {(result.tags ?? []).map((tag) => (
                 <span
                   key={tag}
                   className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 uppercase tracking-wide"

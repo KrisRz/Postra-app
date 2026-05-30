@@ -158,39 +158,81 @@ export class MediaService {
       brandKit
     );
 
-    const cacheKey = `bg:${createHash('md5')
-      .update(carousel.imagePrompt.trim().toLowerCase())
-      .digest('hex')}`;
+    // Each slide gets a DISTINCT background that is a variation of one shared
+    // theme (carousel.imagePrompt) — different angle/framing, same art
+    // direction/palette/mood, so the carousel still reads as one cohesive post.
+    // Cost scales with slide count (one DALL-E credit per unique background),
+    // so we dedupe identical prompts (e.g. the normalize-duplicated last slide
+    // or repeated variations) and generate the unique set in parallel.
+    const slidePrompt = (variation?: string): string => {
+      const v = (variation || '').trim();
+      return v
+        ? `${carousel.imagePrompt}\n\nThis slide's variation: ${v}. Keep the exact same art direction, color palette, lighting and mood as the base theme.`
+        : carousel.imagePrompt;
+    };
 
-    let backgroundUrl = await ioRedis.get(cacheKey);
-    let cacheHit = !!backgroundUrl;
+    const slidesWithPrompts = carousel.slides.map(
+      (s: { imageVariation?: string }) => {
+        const prompt = slidePrompt(s.imageVariation);
+        const cacheKey = `bg:${createHash('md5')
+          .update(prompt.trim().toLowerCase())
+          .digest('hex')}`;
+        return { slide: s, prompt, cacheKey };
+      }
+    );
 
-    if (!backgroundUrl) {
-      backgroundUrl = await this._subscriptionService.useCredit(
-        org,
-        'ai_images',
-        async () => {
-          const dalleUrl = await this._openAi.generateImage(
-            carousel.imagePrompt,
-            true
-          );
-          if (!dalleUrl) {
-            throw new HttpException('DALL-E generation failed', 502);
-          }
-          return await this.storage.uploadSimple(dalleUrl);
+    const uniquePrompts = new Map<string, string>();
+    for (const { cacheKey, prompt } of slidesWithPrompts) {
+      if (!uniquePrompts.has(cacheKey)) uniquePrompts.set(cacheKey, prompt);
+    }
+
+    const bgByKey: Record<string, string | null> = {};
+    const cacheHitByKey: Record<string, boolean> = {};
+    await Promise.all(
+      [...uniquePrompts.entries()].map(async ([cacheKey, prompt]) => {
+        const cached = await ioRedis.get(cacheKey);
+        if (cached) {
+          bgByKey[cacheKey] = cached;
+          cacheHitByKey[cacheKey] = true;
+          return;
         }
-      );
+        try {
+          const url = await this._subscriptionService.useCredit(
+            org,
+            'ai_images',
+            async () => {
+              const dalleUrl = await this._openAi.generateImage(prompt, true);
+              if (!dalleUrl) {
+                throw new HttpException('DALL-E generation failed', 502);
+              }
+              return await this.storage.uploadSimple(dalleUrl);
+            }
+          );
+          bgByKey[cacheKey] = url;
+          cacheHitByKey[cacheKey] = false;
+          await ioRedis.set(cacheKey, url, 'EX', POST_DESIGN_BG_CACHE_TTL);
+        } catch {
+          // A single slide's background failing must not kill the whole
+          // carousel — leave it null and fall back to a sibling below.
+          bgByKey[cacheKey] = null;
+          cacheHitByKey[cacheKey] = false;
+        }
+      })
+    );
 
-      await ioRedis.set(cacheKey, backgroundUrl, 'EX', POST_DESIGN_BG_CACHE_TTL);
+    const firstBg = Object.values(bgByKey).find((u): u is string => !!u) ?? null;
+    if (!firstBg) {
+      throw new HttpException('DALL-E generation failed', 502);
     }
 
     return {
-      slides: carousel.slides.map((s) => ({
-        ...s,
+      slides: slidesWithPrompts.map(
+        ({ slide, cacheKey }: { slide: any; cacheKey: string }) => ({
+        ...slide,
         imagePrompt: carousel.imagePrompt,
         colors: carousel.colors,
-        backgroundUrl,
-        cacheHit,
+        backgroundUrl: bgByKey[cacheKey] ?? firstBg,
+        cacheHit: cacheHitByKey[cacheKey] ?? false,
         brandKit: brandKit ? { logoPath: brandKit.logoPath ?? null } : null,
       })),
     };
