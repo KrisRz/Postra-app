@@ -1,7 +1,8 @@
 import React, { FC, Fragment, useCallback } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import clsx from 'clsx';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.title.component';
@@ -60,14 +61,16 @@ export const SignaturesComponent: FC<{
 
   return (
     <div className="flex flex-col">
-      <h3 className="text-[20px]">{t('signatures', 'Signatures')}</h3>
-      <div className="text-customColor18 mt-[4px]">
+      <h3 className="text-[22px] font-[650] tracking-[-0.2px] text-newTextColor">
+        {t('signatures', 'Signatures')}
+      </h3>
+      <div className="text-[12.5px] text-newTextColor/55 mt-[3px]">
         {t(
           'you_can_add_signatures_to_your_account_to_be_used_in_your_posts',
           'You can add signatures to your account to be used in your posts.'
         )}
       </div>
-      <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 items-center border rounded-[12px] p-[24px] flex gap-[24px]">
+      <Card className="my-[16px] items-center p-[24px] flex gap-[24px]">
         <div className="flex flex-col w-full">
           {!!data?.length && (
             <div
@@ -98,21 +101,24 @@ export const SignaturesComponent: FC<{
                   </div>
                   {!!appendSignature && (
                     <div className="flex justify-center">
-                      <Button onClick={() => appendSignature(p.content)}>
+                      <Button
+                        variant="secondary"
+                        onClick={() => appendSignature(p.content)}
+                      >
                         {t('use_signature', 'Use Signature')}
                       </Button>
                     </div>
                   )}
                   <div className="flex justify-center">
                     <div>
-                      <Button onClick={addSignature(p)}>
+                      <Button variant="secondary" onClick={addSignature(p)}>
                         {t('edit', 'Edit')}
                       </Button>
                     </div>
                   </div>
                   <div className="flex justify-center">
                     <div>
-                      <Button onClick={deleteSignature(p)}>
+                      <Button variant="danger" onClick={deleteSignature(p)}>
                         {t('delete', 'Delete')}
                       </Button>
                     </div>
@@ -130,7 +136,7 @@ export const SignaturesComponent: FC<{
             </Button>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };
@@ -204,7 +210,7 @@ const AddOrRemoveSignature: FC<{
             <CopilotTextarea
               disableBranding={true}
               className={clsx(
-                '!min-h-40 !max-h-80 p-2 overflow-x-hidden scrollbar scrollbar-thumb-[#612AD5] bg-bigStrip outline-none'
+                '!min-h-40 !max-h-80 p-2 overflow-x-hidden scrollbar scrollbar-thumb-[#38bdf8] bg-bigStrip outline-none'
               )}
               value={text}
               onChange={(e) => {
