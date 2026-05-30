@@ -29,7 +29,6 @@ import { Sets } from '@gitroom/frontend/components/sets/sets';
 import { SignaturesComponent } from '@gitroom/frontend/components/settings/signatures.component';
 import { Autopost } from '@gitroom/frontend/components/autopost/autopost';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-import { SVGLine } from '@gitroom/frontend/components/launches/launches.component';
 import { GlobalSettings } from '@gitroom/frontend/components/settings/global.settings';
 import { ApprovedAppsComponent } from '@gitroom/frontend/components/approved-apps/approved-apps.component';
 export const SettingsPopup: FC<{
@@ -117,27 +116,19 @@ export const SettingsPopup: FC<{
 
   return (
     <>
-      <div className="bg-white/[0.03] border-r border-white/10 p-[20px] flex flex-col transition-all w-[260px]">
+      <div className="bg-white/[0.03] border-r border-white/10 py-[18px] px-[12px] flex flex-col transition-all w-fit min-w-[160px] shrink-0">
         <div className="flex flex-1 flex-col gap-[4px]">
           {list.map(({ tab: tabKey, label }) => (
             <div
               key={tabKey}
               className={clsx(
-                'cursor-pointer flex items-center gap-[12px] group/profile rounded-[8px] px-[12px] py-[8px] text-[14px] transition-colors',
+                'cursor-pointer flex items-center gap-[10px] rounded-[10px] px-[12px] py-[9px] text-[14px] font-[500] whitespace-nowrap transition-all duration-150',
                 tabKey === tab
-                  ? 'bg-white/[0.08] text-newTextColor'
-                  : 'text-newTextColor/60 hover:bg-white/[0.05] hover:text-newTextColor'
+                  ? 'text-white border border-white/15 bg-gradient-to-r from-[rgba(56,189,248,0.25)] to-[rgba(167,139,250,0.18)] shadow-[0_0_20px_-6px_rgba(56,189,248,0.5)]'
+                  : 'text-newTextColor/55 hover:text-newTextColor/90 hover:bg-white/[0.05] border border-transparent'
               )}
               onClick={() => setTab(tabKey)}
             >
-              <div
-                className={clsx(
-                  'h-full w-[4px] rounded-s-[3px] opacity-0 group-hover/profile:opacity-100 transition-opacity',
-                  tabKey === tab && 'opacity-100'
-                )}
-              >
-                <SVGLine />
-              </div>
               {label}
             </div>
           ))}
