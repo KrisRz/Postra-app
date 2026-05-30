@@ -378,13 +378,19 @@ ${brandHint}`,
       subtext: z.string().max(120),
       cta: z.string().max(30),
       layout: z.enum(['centered-stack', 'left-aligned', 'bottom-stack', 'top-banner']),
+      imageVariation: z
+        .string()
+        .max(160)
+        .describe(
+          "How THIS slide's background varies from the shared theme — a different camera angle, framing, crop, distance, or focal element. MUST keep the SAME art direction, color palette, lighting and mood as the shared imagePrompt so the carousel reads as one cohesive post. Each slide's variation must be DISTINCT from the others. No text, letters, words, logos or watermarks."
+        ),
     });
 
     const CarouselSchema = z.object({
       imagePrompt: z
         .string()
         .describe(
-          'ONE shared background prompt for all slides. Style: professional editorial photography or clean minimal art direction — realistic lighting, natural color grade, intentional composition. AVOID the obvious "AI render" look (over-saturated, plasticky 3D, surreal artifacts, warped details). Absolutely NO text, letters, words, logos or watermarks in the image. Leave clear negative space for text overlay. End with: "dark gradient overlay at the bottom for text readability".'
+          'The SHARED base theme / art direction for the whole carousel — each slide renders a distinct variation of THIS theme (see slide.imageVariation), so describe the consistent style, palette, lighting and mood here, not one fixed scene. Style: professional editorial photography or clean minimal art direction — realistic lighting, natural color grade, intentional composition. AVOID the obvious "AI render" look (over-saturated, plasticky 3D, surreal artifacts, warped details). Absolutely NO text, letters, words, logos or watermarks in the image. Leave clear negative space for text overlay. End with: "dark gradient overlay at the bottom for text readability".'
         ),
       colors: z.object({
         background: z.string(),
@@ -453,9 +459,10 @@ PER-SLIDE RULES:
 - subtext: supporting detail, 1 sentence
 - cta: short call-to-action ("Sprawdź", "Kup teraz", "Zobacz więcej" or English equivalent). On non-final slides this can be a transition like "Dalej →" / "Następny slajd".
 - layout: pick the best layout for the content (vary across slides for visual rhythm — don't use the same layout for all)
+- imageVariation: a DISTINCT variation of the shared theme for this slide's background — different angle, framing, crop, distance or focal element. Keep the SAME art direction, palette, lighting and mood as the shared imagePrompt. Must differ from every other slide's variation. No text/letters/logos.
 
 SHARED:
-- imagePrompt: one background that works visually behind every slide. Professional editorial/photographic style, NOT the obvious "AI render" look. No text/letters/logos in the image. Leave space for text overlay.
+- imagePrompt: the base theme / art direction every slide builds on (NOT one fixed scene — each slide varies it via imageVariation). Professional editorial/photographic style, NOT the obvious "AI render" look. No text/letters/logos in the image. Leave space for text overlay.
 - colors: high-contrast, accessible (WCAG AA min). Same palette across all slides for brand consistency.
 
 ${brandHint}`,
