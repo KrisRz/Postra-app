@@ -10,7 +10,7 @@ import { useVariables } from '@gitroom/react/helpers/variable.context';
 import { setCookie } from '@gitroom/frontend/components/layout/layout.context';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { ImportDebugPostModal } from '@gitroom/frontend/components/launches/import-debug-post.modal';
 
 interface Charge {
@@ -90,7 +90,7 @@ const ChargesModal: FC<{ close: () => void }> = ({ close }) => {
       !(await deleteDialog(
         t(
           'cancel_subscription_confirm',
-          'This will immediately cancel the subscription. The user will be downgraded to the FREE plan. This cannot be undone.'
+          'Spowoduje to natychmiastowe anulowanie subskrypcji. Użytkownik zostanie przeniesiony na plan FREE. Tej operacji nie można cofnąć.'
         ),
         t('yes_cancel_subscription', 'Yes, cancel subscription'),
         t('cancel_subscription_title', 'Cancel Subscription?'),
@@ -267,7 +267,7 @@ export const Subscription = () => {
       const value = e.target.value;
       if (
         await deleteDialog(
-          'Are you sure you want to add a user subscription?',
+          'Czy na pewno chcesz dodać subskrypcję użytkownika?',
           'Add'
         )
       ) {
@@ -354,7 +354,7 @@ const AddAnnouncementModal: FC<{ close: () => void }> = ({ close }) => {
           onChange={(e) => setDescription(e.target.value)}
           placeholder={t(
             'announcement_description_placeholder',
-            'Announcement description'
+            'Opis ogłoszenia'
           )}
         />
       </div>
