@@ -49,6 +49,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [savingToLibrary, setSavingToLibrary] = useState(false);
   const [multiFormatOpen, setMultiFormatOpen] = useState(false);
   const fetch = useFetch();
   const toaster = useToaster();
@@ -347,6 +348,48 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     document.body.removeChild(link);
   }, []);
 
+  // Save the design into the media library (so it's reusable in any post)
+  // WITHOUT attaching to a post or closing — this is the "get it out" action
+  // in standalone /studio, where setMedia/closeModal are no-ops and the only
+  // alternative was Download PNG (→ laptop, not the app).
+  const handleSaveToLibrary = useCallback(async () => {
+    if (!fabricRef.current || savingToLibrary) return;
+    setSavingToLibrary(true);
+    try {
+      const scale = 1 / fabricRef.current.getZoom();
+      const dataUrl = fabricRef.current.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: scale,
+      });
+      const blob = await (await window.fetch(dataUrl)).blob();
+      const formData = new FormData();
+      formData.append('file', blob, 'design.png');
+      const data = await (
+        await fetch('/media/upload-simple', { method: 'POST', body: formData })
+      ).json();
+      const canvasJson = JSON.stringify(fabricRef.current.toJSON());
+      await fetch(`/media/${data.id}/canvas`, {
+        method: 'PUT',
+        body: JSON.stringify({ canvasJson }),
+      });
+      toaster.show(
+        t(
+          'saved_to_library',
+          'Zapisano w bibliotece mediów — użyjesz w dowolnym poście.'
+        ),
+        'success'
+      );
+    } catch {
+      toaster.show(
+        t('save_library_failed', 'Nie udało się zapisać w bibliotece.'),
+        'warning'
+      );
+    } finally {
+      setSavingToLibrary(false);
+    }
+  }, [fetch, toaster, t, savingToLibrary]);
+
   const handleDelete = useCallback(() => {
     if (!fabricRef.current) return;
     const active = fabricRef.current.getActiveObjects();
@@ -413,6 +456,14 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
             </div>
             <div className="flex gap-2">
               <button
+                onClick={handleSaveToLibrary}
+                disabled={savingToLibrary}
+                className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-50"
+                title={t('save_to_library_hint', 'Zapisz w bibliotece mediów — użyjesz w dowolnym poście')}
+              >
+                💾 {savingToLibrary ? t('saving', 'Zapisuję…') : t('save_to_library_btn', 'Zapisz w bibliotece')}
+              </button>
+              <button
                 onClick={handleDownload}
                 className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
                 title={t('download_png_hint', 'Pobierz grafikę jako plik PNG')}
@@ -437,7 +488,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                         '{n}',
                         String(carouselSlideCount)
                       )
-                    : t('use_in_post', 'Use in Post')}
+                    : t('use_in_post', 'Użyj w poście')}
                 </Button>
               )}
             </div>
