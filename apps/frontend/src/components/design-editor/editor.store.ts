@@ -9,11 +9,8 @@ export type EditorTool =
   | 'images'
   | 'ai'
   | 'refine'
-  | 'variants'
-  | 'magic'
   | 'brand'
   | 'icons'
-  | 'layers'
   | 'templates';
 
 export interface PlatformSize {
