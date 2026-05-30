@@ -146,7 +146,7 @@ export function Login() {
                 </div>
                 <p className="mt-4 text-sm text-textColor/66">
                   {t('don_t_have_an_account', "Don't Have An Account?")}&nbsp;
-                  <Link href="/auth" className="underline underline-offset-4 cursor-pointer text-textColor hover:text-[#38bdf8]">
+                  <Link href="/auth/register" className="underline underline-offset-4 cursor-pointer text-textColor hover:text-[#38bdf8]">
                     {t('sign_up', 'Sign Up')}
                   </Link>
                 </p>

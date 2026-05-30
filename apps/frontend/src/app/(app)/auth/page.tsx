@@ -1,12 +1,13 @@
 export const dynamic = 'force-dynamic';
-import { ComingSoon } from '@gitroom/frontend/components/auth/coming-soon';
+import { Login } from '@gitroom/frontend/components/auth/login';
 import { Metadata } from 'next';
 import { isGeneralServerSide } from '@gitroom/helpers/utils/is.general.server.side';
+
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Postra' : 'Gitroom'} — Już wkrótce`,
-  description:
-    'Postra — wszystkie social media w jednym miejscu. Aplikacja w fazie końcowych testów.',
+  title: `${isGeneralServerSide() ? 'Postra' : 'Gitroom'} Logowanie`,
+  description: '',
 };
+
 export default async function Auth() {
-  return <ComingSoon />;
+  return <Login />;
 }

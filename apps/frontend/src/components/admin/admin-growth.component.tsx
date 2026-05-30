@@ -1,0 +1,148 @@
+'use client';
+
+import { useCallback, useState } from 'react';
+import useSWR from 'swr';
+import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { useT } from '@gitroom/react/translation/get.transation.service.client';
+
+interface ChartPoint {
+  day: string;
+  count: number;
+}
+
+interface GrowthResponse {
+  totals: { users: number; organizations: number };
+  period: { days: number; newUsers: number; newOrgs: number };
+  activity: { dau: number; wau: number; mau: number };
+  charts: {
+    signups: ChartPoint[];
+    posts: ChartPoint[];
+  };
+}
+
+const PERIODS = [7, 30, 90] as const;
+
+const MetricCard = ({ label, value }: { label: string; value: number }) => (
+  <div className="border border-white/10 rounded-[12px] p-[16px] bg-white/[0.03]">
+    <div className="text-[12px] text-newTextColor opacity-70">{label}</div>
+    <div className="text-[28px] font-[600] text-newTextColor">
+      {value.toLocaleString()}
+    </div>
+  </div>
+);
+
+const BarChart = ({
+  data,
+  color,
+  title,
+}: {
+  data: ChartPoint[];
+  color: string;
+  title: string;
+}) => {
+  const max = Math.max(...data.map((d) => d.count), 1);
+
+  return (
+    <div className="border border-white/10 rounded-[12px] p-[16px] bg-white/[0.03]">
+      <div className="text-[14px] font-[500] text-newTextColor mb-[12px]">
+        {title}
+      </div>
+      <div className="flex items-end gap-[2px] h-[120px]">
+        {data.map((point) => {
+          const height = (point.count / max) * 100;
+          const dayLabel = point.day.slice(-2).replace(/^0/, '');
+          return (
+            <div
+              key={point.day}
+              className="flex flex-col items-center flex-1 h-full justify-end"
+            >
+              <div
+                className={`w-full min-h-[2px] rounded-t-[2px] ${color}`}
+                style={{ height: `${height}%` }}
+                title={`${point.day}: ${point.count}`}
+              />
+              <div className="text-[9px] text-newTextColor opacity-50 mt-[4px]">
+                {dayLabel}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export const AdminGrowthComponent = () => {
+  const fetch = useFetch();
+  const t = useT();
+  const [days, setDays] = useState<number>(30);
+
+  const { data, isLoading } = useSWR<GrowthResponse>(
+    `/admin/growth?days=${days}`,
+    useCallback(
+      async (url: string) => {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to load growth data');
+        return res.json();
+      },
+      [fetch]
+    ),
+    { revalidateOnFocus: false }
+  );
+
+  return (
+    <div className="flex flex-col gap-[16px] text-newTextColor">
+      <div className="flex items-center justify-between">
+        <div className="text-[20px] font-[600]">{t('admin.growth', 'Growth')}</div>
+        <div className="flex gap-[6px]">
+          {PERIODS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setDays(p)}
+              className={`h-[30px] px-[12px] rounded-[8px] text-[13px] border cursor-pointer ${
+                days === p
+                  ? 'bg-forth text-white border-forth'
+                  : 'bg-white/[0.03] text-newTextColor border-white/10 hover:border-white/20'
+              }`}
+            >
+              {p}d
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {isLoading || !data ? (
+        <div className="text-[13px] opacity-50">Loading...</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-[12px]">
+            <MetricCard label={t('admin.totalUsers', 'Total Users')} value={data.totals.users} />
+            <MetricCard label={t('admin.totalOrgs', 'Total Orgs')} value={data.totals.organizations} />
+            <MetricCard label={t('admin.newUsers', 'New Users')} value={data.period.newUsers} />
+            <MetricCard label={t('admin.newOrgs', 'New Orgs')} value={data.period.newOrgs} />
+          </div>
+
+          <div className="grid grid-cols-3 gap-[12px]">
+            <MetricCard label={t('admin.dau', 'DAU')} value={data.activity.dau} />
+            <MetricCard label={t('admin.wau', 'WAU')} value={data.activity.wau} />
+            <MetricCard label={t('admin.mau', 'MAU')} value={data.activity.mau} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[12px]">
+            <BarChart
+              data={data.charts.signups}
+              color="bg-sky-400"
+              title={t('admin.signups', 'Signups')}
+            />
+            <BarChart
+              data={data.charts.posts}
+              color="bg-violet-400"
+              title={t('admin.publishedPosts', 'Published Posts')}
+            />
+          </div>
+        </>
+      )}
+    </div>
+  );
+};

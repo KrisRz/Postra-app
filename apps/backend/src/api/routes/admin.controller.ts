@@ -9,6 +9,7 @@ import { User } from '@prisma/client';
 import { ApiTags } from '@nestjs/swagger';
 import { ErrorsService } from '@gitroom/nestjs-libraries/database/prisma/errors/errors.service';
 import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.service';
+import { PrismaService } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import dayjs from 'dayjs';
 
 @ApiTags('Admin')
@@ -16,7 +17,8 @@ import dayjs from 'dayjs';
 export class AdminController {
   constructor(
     private _errorsService: ErrorsService,
-    private _adminStatsService: AdminStatsService
+    private _adminStatsService: AdminStatsService,
+    private _prisma: PrismaService
   ) {}
 
   private assertSuperAdmin(user: User) {
@@ -67,5 +69,298 @@ export class AdminController {
       to: toDate.endOf('day').toDate(),
       unknownOnly: unknownOnly === 'true' || unknownOnly === '1',
     });
+  }
+
+  @Get('/organizations')
+  async listOrganizations(
+    @GetUserFromRequest() user: User,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string
+  ) {
+    this.assertSuperAdmin(user);
+    const take = limit ? parseInt(limit, 10) : 20;
+    const skip = page ? parseInt(page, 10) * take : 0;
+
+    const where = search
+      ? { name: { contains: search, mode: 'insensitive' as const } }
+      : {};
+
+    const [items, total] = await Promise.all([
+      this._prisma.organization.findMany({
+        where,
+        take,
+        skip,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          createdAt: true,
+          subscription: {
+            select: {
+              subscriptionTier: true,
+              period: true,
+              totalChannels: true,
+              isLifetime: true,
+              cancelAt: true,
+            },
+          },
+          _count: {
+            select: {
+              users: true,
+              Integration: { where: { deletedAt: null } },
+              post: { where: { deletedAt: null, parentPostId: null } },
+            },
+          },
+        },
+      }),
+      this._prisma.organization.count({ where }),
+    ]);
+
+    return { items, total, page: page ? parseInt(page, 10) : 0, limit: take };
+  }
+
+  @Get('/health')
+  async getSystemHealth(@GetUserFromRequest() user: User) {
+    this.assertSuperAdmin(user);
+
+    const checks: Record<string, { status: string; latencyMs?: number; detail?: string }> = {};
+
+    const dbStart = Date.now();
+    try {
+      await this._prisma.$queryRaw`SELECT 1`;
+      checks.database = { status: 'ok', latencyMs: Date.now() - dbStart };
+    } catch (e: any) {
+      checks.database = { status: 'error', latencyMs: Date.now() - dbStart, detail: e.message };
+    }
+
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisStart = Date.now();
+    try {
+      const net = await import('net');
+      const url = new URL(redisUrl);
+      await new Promise<void>((resolve, reject) => {
+        const socket = net.createConnection(
+          { host: url.hostname, port: parseInt(url.port || '6379'), timeout: 3000 },
+          () => { socket.destroy(); resolve(); }
+        );
+        socket.on('error', reject);
+        socket.on('timeout', () => { socket.destroy(); reject(new Error('timeout')); });
+      });
+      checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart };
+    } catch (e: any) {
+      checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, detail: e.message };
+    }
+
+    const temporalAddress = process.env.TEMPORAL_ADDRESS || 'localhost:7233';
+    const temporalStart = Date.now();
+    try {
+      const net = await import('net');
+      const [host, port] = temporalAddress.split(':');
+      await new Promise<void>((resolve, reject) => {
+        const socket = net.createConnection(
+          { host, port: parseInt(port || '7233'), timeout: 3000 },
+          () => { socket.destroy(); resolve(); }
+        );
+        socket.on('error', reject);
+        socket.on('timeout', () => { socket.destroy(); reject(new Error('timeout')); });
+      });
+      checks.temporal = { status: 'ok', latencyMs: Date.now() - temporalStart };
+    } catch (e: any) {
+      checks.temporal = { status: 'error', latencyMs: Date.now() - temporalStart, detail: e.message };
+    }
+
+    const [userCount, orgCount, postCount, errorCount] = await Promise.all([
+      this._prisma.user.count(),
+      this._prisma.organization.count(),
+      this._prisma.post.count({ where: { deletedAt: null } }),
+      this._prisma.errors.count(),
+    ]);
+
+    return {
+      overall: Object.values(checks).every((c) => c.status === 'ok') ? 'healthy' : 'degraded',
+      services: checks,
+      counts: { users: userCount, organizations: orgCount, posts: postCount, errors: errorCount },
+      uptime: process.uptime(),
+      memoryMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      nodeVersion: process.version,
+    };
+  }
+
+  @Get('/ai-usage')
+  async getAiUsage(
+    @GetUserFromRequest() user: User,
+    @Query('from') from?: string,
+    @Query('to') to?: string
+  ) {
+    this.assertSuperAdmin(user);
+
+    const fromDate = from ? dayjs(from).toDate() : dayjs().subtract(30, 'day').toDate();
+    const toDate = to ? dayjs(to).toDate() : new Date();
+
+    // NOTE: AI usage is reported from `credits` (real, billable usage). Mastra's
+    // own span tables (mastra_ai_spans) are @@ignore'd in the Prisma schema (no @id),
+    // so they are NOT in the generated client and cannot be queried via this._prisma.
+    const [creditsByType, creditsByOrg] = await Promise.all([
+      this._prisma.credits.groupBy({
+        by: ['type'],
+        where: { createdAt: { gte: fromDate, lte: toDate } },
+        _sum: { credits: true },
+        _count: { _all: true },
+      }),
+      this._prisma.credits.groupBy({
+        by: ['organizationId'],
+        where: { createdAt: { gte: fromDate, lte: toDate } },
+        _sum: { credits: true },
+        orderBy: { _sum: { credits: 'desc' } },
+        take: 10,
+      }),
+    ]);
+
+    const orgIds = creditsByOrg.map((c) => c.organizationId);
+    const orgs = orgIds.length
+      ? await this._prisma.organization.findMany({
+          where: { id: { in: orgIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const orgMap = new Map(orgs.map((o) => [o.id, o.name]));
+
+    return {
+      from: fromDate.toISOString(),
+      to: toDate.toISOString(),
+      byType: creditsByType.map((c) => ({
+        type: c.type,
+        totalCredits: c._sum.credits || 0,
+        count: c._count._all,
+      })),
+      topOrgs: creditsByOrg.map((c) => ({
+        orgId: c.organizationId,
+        orgName: orgMap.get(c.organizationId) || 'Unknown',
+        totalCredits: c._sum.credits || 0,
+      })),
+    };
+  }
+
+  @Get('/growth')
+  async getGrowth(
+    @GetUserFromRequest() user: User,
+    @Query('days') days?: string
+  ) {
+    this.assertSuperAdmin(user);
+
+    const numDays = days ? parseInt(days, 10) : 30;
+    const since = dayjs().subtract(numDays, 'day').startOf('day').toDate();
+
+    const [
+      totalUsers,
+      totalOrgs,
+      newUsers,
+      newOrgs,
+      usersByDay,
+      postsByDay,
+      activeToday,
+      activeWeek,
+      activeMonth,
+    ] = await Promise.all([
+      this._prisma.user.count(),
+      this._prisma.organization.count(),
+      this._prisma.user.count({ where: { createdAt: { gte: since } } }),
+      this._prisma.organization.count({ where: { createdAt: { gte: since } } }),
+      this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
+        SELECT DATE("createdAt") as day, COUNT(*)::bigint as count
+        FROM "User"
+        WHERE "createdAt" >= ${since}
+        GROUP BY DATE("createdAt")
+        ORDER BY day
+      `,
+      this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
+        SELECT DATE("publishDate") as day, COUNT(*)::bigint as count
+        FROM "Post"
+        WHERE "publishDate" >= ${since}
+          AND "deletedAt" IS NULL
+          AND "parentPostId" IS NULL
+          AND "state" = 'PUBLISHED'
+        GROUP BY DATE("publishDate")
+        ORDER BY day
+      `,
+      this._prisma.user.count({
+        where: { lastOnline: { gte: dayjs().startOf('day').toDate() } },
+      }),
+      this._prisma.user.count({
+        where: { lastOnline: { gte: dayjs().subtract(7, 'day').toDate() } },
+      }),
+      this._prisma.user.count({
+        where: { lastOnline: { gte: dayjs().subtract(30, 'day').toDate() } },
+      }),
+    ]);
+
+    const serialize = (rows: Array<{ day: string; count: bigint }>) =>
+      rows.map((r) => ({ day: String(r.day).slice(0, 10), count: Number(r.count) }));
+
+    return {
+      totals: { users: totalUsers, organizations: totalOrgs },
+      period: { days: numDays, newUsers, newOrgs },
+      activity: { dau: activeToday, wau: activeWeek, mau: activeMonth },
+      charts: {
+        signups: serialize(usersByDay),
+        posts: serialize(postsByDay),
+      },
+    };
+  }
+
+  @Get('/subscriptions')
+  async getSubscriptions(@GetUserFromRequest() user: User) {
+    this.assertSuperAdmin(user);
+
+    const [byTier, byPeriod, lifetimeCount, totalActive, cancelPending, recentSubs] =
+      await Promise.all([
+        this._prisma.subscription.groupBy({
+          by: ['subscriptionTier'],
+          where: { deletedAt: null },
+          _count: { _all: true },
+        }),
+        this._prisma.subscription.groupBy({
+          by: ['period'],
+          where: { deletedAt: null },
+          _count: { _all: true },
+        }),
+        this._prisma.subscription.count({
+          where: { isLifetime: true, deletedAt: null },
+        }),
+        this._prisma.subscription.count({ where: { deletedAt: null } }),
+        this._prisma.subscription.count({
+          where: { cancelAt: { not: null }, deletedAt: null },
+        }),
+        this._prisma.subscription.findMany({
+          where: { deletedAt: null },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+          select: {
+            id: true,
+            subscriptionTier: true,
+            period: true,
+            totalChannels: true,
+            isLifetime: true,
+            cancelAt: true,
+            createdAt: true,
+            organization: { select: { id: true, name: true } },
+          },
+        }),
+      ]);
+
+    const noSubscription = await this._prisma.organization.count({
+      where: { subscription: null },
+    });
+
+    return {
+      totalActive,
+      cancelPending,
+      noSubscription,
+      byTier: byTier.map((t) => ({ tier: t.subscriptionTier, count: t._count._all })),
+      byPeriod: byPeriod.map((p) => ({ period: p.period, count: p._count._all })),
+      lifetime: lifetimeCount,
+      recent: recentSubs,
+    };
   }
 }

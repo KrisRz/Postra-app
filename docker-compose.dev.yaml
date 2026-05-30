@@ -1,38 +1,51 @@
-# Do **not** use this yml for production. It is not up-to-date.
-# Use https://docs.postiz.com/installation/docker-compose
-# This is only for the dev enviroment
+# Local dev infrastructure
+# Usage:
+#   make infra          -- Postgres + Redis only (light, default)
+#   make infra-full     -- Postgres + Redis + Temporal + pgAdmin + RedisInsight
+#   make infra-stop     -- stop everything
 
 services:
+  # ── Core (always started) ──────────────────────────────────────
   postiz-postgres:
-    # ref: https://hub.docker.com/_/postgres
-    image: postgres:17-alpine # 17.0
+    image: postgres:17-alpine
     container_name: postiz-postgres
     restart: always
     environment:
       POSTGRES_PASSWORD: postiz-local-pwd
       POSTGRES_USER: postiz-local
       POSTGRES_DB: postiz-db-local
-      TEMPORAL_ADDRESS: "temporal:7233"
     volumes:
       - postgres-volume:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    healthcheck:
+      test: pg_isready -U postiz-local -d postiz-db-local
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - postiz-network
+
   postiz-redis:
-    # ref: https://hub.docker.com/_/redis
-    image: redis:7-alpine # 7.4.0
+    image: redis:7-alpine
     container_name: postiz-redis
     restart: always
     ports:
       - 6379:6379
+    healthcheck:
+      test: redis-cli ping
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - postiz-network
+
+  # ── Tools (profile: tools) ────────────────────────────────────
   postiz-pg-admin:
-    # ref: https://hub.docker.com/r/dpage/pgadmin4/tags
     image: dpage/pgadmin4:latest
     container_name: postiz-pg-admin
     restart: always
+    profiles: [tools]
     ports:
       - 8081:80
     environment:
@@ -40,23 +53,26 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
     networks:
       - postiz-network
+
   postiz-redisinsight:
-    # ref: https://hub.docker.com/r/redis/redisinsight
     image: redis/redisinsight:latest
     container_name: postiz-redisinsight
+    restart: always
+    profiles: [tools]
     links:
       - postiz-redis
     ports:
-      - '5540:5540'
+      - 5540:5540
     volumes:
       - redisinsight:/data
     networks:
       - postiz-network
-    restart: always
 
+  # ── Temporal (profile: temporal) ──────────────────────────────
   temporal-elasticsearch:
     container_name: temporal-elasticsearch
     image: elasticsearch:7.17.27
+    profiles: [temporal]
     environment:
       - cluster.routing.allocation.disk.threshold_enabled=true
       - cluster.routing.allocation.disk.watermark.low=512mb
@@ -75,6 +91,7 @@ services:
   temporal-postgresql:
     container_name: temporal-postgresql
     image: postgres:16
+    profiles: [temporal]
     environment:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
@@ -87,9 +104,10 @@ services:
 
   temporal:
     container_name: temporal
+    image: temporalio/auto-setup:1.28.1
+    profiles: [temporal]
     ports:
       - "7233:7233"
-    image: temporalio/auto-setup:1.28.1
     depends_on:
       - temporal-postgresql
       - temporal-elasticsearch
@@ -114,6 +132,7 @@ services:
   temporal-admin-tools:
     container_name: temporal-admin-tools
     image: temporalio/admin-tools:1.28.1-tctl-1.18.4-cli-1.4.1
+    profiles: [temporal]
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CLI_ADDRESS=temporal:7233
@@ -127,6 +146,7 @@ services:
   temporal-ui:
     container_name: temporal-ui
     image: temporalio/ui:2.34.0
+    profiles: [temporal]
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
       - TEMPORAL_CORS_ORIGINS=http://127.0.0.1:3000

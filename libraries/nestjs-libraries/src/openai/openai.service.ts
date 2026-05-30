@@ -49,10 +49,15 @@ export class OpenaiService {
     _isUrl: boolean,
     isVertical = false
   ): Promise<string | undefined> {
+    // Model MUST be 'gpt-image-1' — our account does not have access to
+    // 'chatgpt-image-latest' (that's ChatGPT's internal model, not an API
+    // image model here), and 'dall-e-3' is retired. An upstream sync keeps
+    // re-clobbering this line; if image generation 502s after a merge, check
+    // here first. gpt-image-1 returns b64 only and rejects response_format.
     const generate = (
       await openai.images.generate({
         prompt,
-        model: 'chatgpt-image-latest',
+        model: 'gpt-image-1',
         size: isVertical ? '1024x1536' : '1024x1024',
       })
     ).data?.[0];
