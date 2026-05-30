@@ -268,16 +268,25 @@ export const DayView = () => {
   const currentDay = dayjs.utc(startDate);
 
   const options = useMemo(() => {
-    const createdPosts = posts.map((post) => ({
-      integration: [integrations.find((i) => i.id === post.integration.id)!],
-      image: post?.integration?.picture || '',
-      identifier: post?.integration?.providerIdentifier || '',
-      id: post?.integration?.id || '',
-      name: post?.integration?.name || '',
-      time: dayjs
-        .utc(post.publishDate)
-        .diff(dayjs.utc(post.publishDate).startOf('day'), 'minute'),
-    }));
+    const createdPosts = posts.map((post) => {
+      // post.integration is undefined when a post still references a channel
+      // that was since disconnected/removed. The fields below already
+      // optional-chain it; this find must too, or `post.integration.id` throws
+      // "reading 'id'" inside the map and white-screens /launches.
+      const integration = integrations.find(
+        (i) => i.id === post?.integration?.id
+      );
+      return {
+        integration: integration ? [integration] : [],
+        image: post?.integration?.picture || '',
+        identifier: post?.integration?.providerIdentifier || '',
+        id: post?.integration?.id || '',
+        name: post?.integration?.name || '',
+        time: dayjs
+          .utc(post.publishDate)
+          .diff(dayjs.utc(post.publishDate).startOf('day'), 'minute'),
+      };
+    });
     return sortBy(
       Object.values(
         groupBy(
@@ -1115,7 +1124,7 @@ const CalendarItem: FC<{
         >
           <Preview />
         </div>{' '}
-        {(post.integration.providerIdentifier === 'x' && disableXAnalytics) ||
+        {(post.integration?.providerIdentifier === 'x' && disableXAnalytics) ||
         !post.releaseId ? (
           <></>
         ) : post.releaseId === 'missing' && missingRelease ? (
@@ -1162,7 +1171,7 @@ const CalendarItem: FC<{
         <div className={clsx('relative min-w-[20px]')}>
           <img
             className="w-[20px] h-[20px] rounded-[8px]"
-            src={post.integration.picture! || '/no-picture.jpg'}
+            src={post.integration?.picture || '/no-picture.jpg'}
           />
           <img
             className="w-[12px] h-[12px] rounded-[8px] absolute z-10 top-[10px] end-0 border border-fifth"
