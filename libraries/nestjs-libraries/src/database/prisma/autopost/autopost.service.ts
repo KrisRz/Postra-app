@@ -13,6 +13,7 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
 import Parser from 'rss-parser';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
+import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { TemporalService } from 'nestjs-temporal-core';
 import { TypedSearchAttributes } from '@temporalio/common';
@@ -55,11 +56,8 @@ const dalle = new DallEAPIWrapper({
   model: 'chatgpt-image-latest',
 });
 
-const generateContent = z.object({
-  socialMediaPostContent: z
-    .string()
-    .describe('Content for social media posts max 120 chars'),
-});
+// Reuse the same storage backend as the rest of the app (local / cloudflare / s3).
+const storage = UploadFactory.createStorage();
 
 const generatePlatformContent = z.object({
   linkedin: z
@@ -93,6 +91,15 @@ export class AutopostService {
     private _integrationService: IntegrationService,
     private _postsService: PostsService
   ) {}
+
+  // Autopost produces text + (optional) image. Skip platforms that can't accept
+  // that shape so we never schedule a post doomed to fail at publish time.
+  static readonly VIDEO_ONLY_PROVIDERS = new Set(['tiktok', 'youtube']);
+  static readonly IMAGE_REQUIRED_PROVIDERS = new Set([
+    'instagram',
+    'instagram-standalone',
+    'pinterest',
+  ]);
 
   async stopAll(org: string) {
     const getAll = (await this.getAutoposts(org)).filter((f) => f.active);
@@ -162,15 +169,27 @@ export class AutopostService {
   async loadXML(url: string) {
     try {
       const { items } = await parser.parseURL(url);
-      const findLast = items.reduce(
-        (all: any, current: any) => {
-          if (dayjs(current.pubDate).isAfter(all.pubDate)) {
-            return current;
-          }
-          return all;
-        },
-        { pubDate: dayjs().subtract(100, 'years') }
+      if (!items?.length) {
+        return { success: false };
+      }
+
+      // Most feeds carry pubDate → pick the newest by date. Feeds without any
+      // valid pubDate are virtually always newest-first, so fall back to items[0]
+      // instead of the 100-years-ago seed (which has no link → garbage post).
+      const hasDates = items.some(
+        (i: any) => i.pubDate && dayjs(i.pubDate).isValid()
       );
+      const findLast = hasDates
+        ? items.reduce(
+            (all: any, current: any) =>
+              dayjs(current.pubDate).isAfter(all.pubDate) ? current : all,
+            { pubDate: dayjs().subtract(100, 'years') }
+          )
+        : items[0];
+
+      if (!findLast?.link) {
+        return { success: false };
+      }
 
       return {
         success: true,
@@ -303,7 +322,7 @@ export class AutopostService {
   async generatePicture(state: WorkflowChannelsState) {
     const ogImage = await this.extractOgImage(state.load.url);
     if (ogImage) {
-      return { ...state, image: ogImage };
+      return { ...state, image: await this.persistImage(ogImage) };
     }
 
     const structuredOutput = model.withStructuredOutput(dallePrompt);
@@ -331,7 +350,21 @@ export class AutopostService {
 
     const image = await dalle.invoke(generatedTextToBeSentToDallE);
 
-    return { ...state, image };
+    return { ...state, image: await this.persistImage(image) };
+  }
+
+  // Persist an OG/AI image into our own storage. OG images hotlink a third-party
+  // CDN and DALL-E URLs expire (~1h) — fatal once the post is a draft published
+  // later. On failure, degrade to no image rather than storing a dead URL.
+  private async persistImage(urlOrData: string): Promise<string> {
+    if (!urlOrData) {
+      return '';
+    }
+    try {
+      return await storage.uploadSimple(urlOrData);
+    } catch {
+      return '';
+    }
   }
 
   private getContentForProvider(
@@ -359,18 +392,31 @@ export class AutopostService {
   }
 
   async schedulePost(state: WorkflowChannelsState) {
+    // Image-required platforms (Instagram, Pinterest) can't publish a text-only
+    // post; drop them when no image was produced rather than failing at publish.
+    const integrations = state.image
+      ? state.integrations
+      : state.integrations.filter(
+          (i) =>
+            !AutopostService.IMAGE_REQUIRED_PROVIDERS.has(i.providerIdentifier)
+        );
+    if (integrations.length === 0) {
+      return;
+    }
+
+    const orgId = integrations[0].organizationId;
     const useSlot = state.body.onSlot;
     const date = useSlot
-      ? (await this._postsService.findFreeDateTime(state.integrations[0].organizationId)) + 'Z'
+      ? (await this._postsService.findFreeDateTime(orgId)) + 'Z'
       : new Date().toISOString();
 
-    await this._postsService.createPost(state.integrations[0].organizationId, {
+    await this._postsService.createPost(orgId, {
       date,
       order: makeId(10),
       shortLink: false,
       type: useSlot ? 'draft' : 'now',
       tags: [],
-      posts: state.integrations.map((i) => ({
+      posts: integrations.map((i) => ({
         settings: {
           __type: i.providerIdentifier as any,
           title: '',
@@ -394,7 +440,7 @@ export class AutopostService {
                     id: makeId(10),
                     name: makeId(10),
                     path: state.image,
-                    organizationId: state.integrations[0].organizationId,
+                    organizationId: orgId,
                   },
                 ],
           },
@@ -418,6 +464,13 @@ export class AutopostService {
       return;
     }
 
+    // First run with "sync last": remember the current latest item as already
+    // seen, so enabling an autopost doesn't immediately republish an old article.
+    if (!getPost.lastUrl && getPost.syncLast) {
+      await this._autopostsRepository.updateUrl(id, load.url);
+      return;
+    }
+
     const integrations = await this._integrationService.getIntegrationsList(
       getPost.organizationId
     );
@@ -427,8 +480,12 @@ export class AutopostService {
       parseIntegrations.some((ii: any) => ii.id === i.id)
     );
 
-    const integrationsToSend =
+    const selected =
       parseIntegrations.length === 0 ? integrations : neededIntegrations;
+
+    const integrationsToSend = selected.filter(
+      (i) => !AutopostService.VIDEO_ONLY_PROVIDERS.has(i.providerIdentifier)
+    );
     if (integrationsToSend.length === 0) {
       return;
     }

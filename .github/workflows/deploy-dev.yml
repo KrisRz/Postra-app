@@ -34,6 +34,30 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Resolve EC2 instance by tag
+        id: resolve
+        run: |
+          # Resolve the live instance by its Name tag instead of a fixed
+          # EC2_INSTANCE_ID secret. Terraform replaces the box on userdata
+          # change (user_data_replace_on_change), which changes the instance
+          # ID and broke the deploy with "InvalidInstanceId". Looking it up by
+          # tag each run makes the deploy immune to replacement.
+          INSTANCE_ID=$(aws ec2 describe-instances \
+            --region "${AWS_REGION}" \
+            --filters "Name=tag:Name,Values=postra-dev-app" "Name=instance-state-name,Values=running" \
+            --query "Reservations[].Instances[].InstanceId" \
+            --output text | awk '{print $1}')
+          # Defensive fallback to the secret if the tag lookup finds nothing.
+          if [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" = "None" ]; then
+            INSTANCE_ID="${{ secrets.EC2_INSTANCE_ID }}"
+            echo "Tag lookup empty — falling back to EC2_INSTANCE_ID secret"
+          fi
+          if [ -z "$INSTANCE_ID" ]; then
+            echo "No running postra-dev-app instance and no secret fallback"; exit 1
+          fi
+          echo "Resolved instance: ${INSTANCE_ID}"
+          echo "instance_id=${INSTANCE_ID}" >> "$GITHUB_OUTPUT"
+
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -75,7 +99,7 @@ jobs:
           }')
           COMMAND_ID=$(
             aws ssm send-command \
-              --instance-ids "${{ secrets.EC2_INSTANCE_ID }}" \
+              --instance-ids "${{ steps.resolve.outputs.instance_id }}" \
               --document-name "AWS-RunShellScript" \
               --comment "Deploy ${GITHUB_SHA} to app-dev.postra.pl" \
               --parameters "${COMMANDS_JSON}" \
@@ -88,7 +112,7 @@ jobs:
       - name: Wait for SSM command
         run: |
           COMMAND_ID="${{ steps.ssm.outputs.command_id }}"
-          INSTANCE_ID="${{ secrets.EC2_INSTANCE_ID }}"
+          INSTANCE_ID="${{ steps.resolve.outputs.instance_id }}"
 
           for attempt in $(seq 1 60); do
             STATUS=$(aws ssm get-command-invocation \
@@ -119,7 +143,7 @@ jobs:
 
       - name: Health check
         env:
-          INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          INSTANCE_ID: ${{ steps.resolve.outputs.instance_id }}
         run: |
           # First-boot pm2 backend intermittently hangs without binding port 3000.
           # `docker restart postra-app` clears it. Try for 3 min, restart, then wait
