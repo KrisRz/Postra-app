@@ -14,6 +14,13 @@ export const initializeSentryBasic = (environment: string, dsn: string, extensio
     /^NetworkError when attempting to fetch resource\. .*/i,
   ];
 
+  // Sample rate: full traces in dev, 10% in prod (100% + session replays burns the
+  // Sentry quota). Override via NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE (build-time).
+  const prodTracesDefault = environment === 'production' ? 0.1 : 1.0;
+  const tracesSampleRate = process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE
+    ? parseFloat(process.env.NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE)
+    : prodTracesDefault;
+
   try {
     Sentry.init({
       initialScope: {
@@ -30,7 +37,7 @@ export const initializeSentryBasic = (environment: string, dsn: string, extensio
         },
       },
       integrations: [
-        Sentry.consoleLoggingIntegration({ levels: ['log', 'info', 'warn', 'error', 'debug', 'assert', 'trace'] }),
+        Sentry.consoleLoggingIntegration({ levels: ['warn', 'error'] }),
       ],
       environment: environment || 'development',
       spotlight: process.env.SENTRY_SPOTLIGHT === '1',
@@ -38,7 +45,7 @@ export const initializeSentryBasic = (environment: string, dsn: string, extensio
       sendDefaultPii: true,
       ...extension,
       debug: environment === 'development',
-      tracesSampleRate: 1.0,
+      tracesSampleRate,
 
       beforeSend(event, hint) {
         if (event.exception && event.exception.values) {

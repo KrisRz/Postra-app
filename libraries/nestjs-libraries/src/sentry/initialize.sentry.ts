@@ -7,6 +7,14 @@ export const initializeSentry = (appName: string, allowLogs = false) => {
     return null;
   }
 
+  // Sample rate: full traces in dev, 10% in prod (100% burns the Sentry quota and
+  // adds per-request overhead). Override via SENTRY_TRACES_SAMPLE_RATE (SSM) without redeploy.
+  const prodTracesDefault =
+    process.env.NODE_ENV === 'production' ? 0.1 : 1.0;
+  const tracesSampleRate = process.env.SENTRY_TRACES_SAMPLE_RATE
+    ? parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE)
+    : prodTracesDefault;
+
   try {
     Sentry.init({
       initialScope: {
@@ -26,13 +34,13 @@ export const initializeSentry = (appName: string, allowLogs = false) => {
       integrations: [
         // Add our Profiling integration
         nodeProfilingIntegration(),
-        Sentry.consoleLoggingIntegration({ levels: ['log', 'info', 'warn', 'error', 'debug', 'assert', 'trace'] }),
+        Sentry.consoleLoggingIntegration({ levels: ['warn', 'error'] }),
         Sentry.openAIIntegration({
           recordInputs: true,
           recordOutputs: true,
         }),
       ],
-      tracesSampleRate: 1.0,
+      tracesSampleRate,
       enableLogs: true,
 
       // Profiling
