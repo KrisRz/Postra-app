@@ -8,6 +8,7 @@ import { IUploadProvider } from './upload.interface';
 import axios from 'axios';
 import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
 import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
+import { parseDataUrl } from '@gitroom/nestjs-libraries/upload/data.url';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { fromBuffer } = require('file-type');
 
@@ -77,15 +78,11 @@ class CloudflareStorage implements IUploadProvider {
   }
 
   async uploadSimple(path: string) {
+    const dataUrl = path.startsWith('data:') ? parseDataUrl(path) : null;
+
     let body: Buffer;
-    if (path.startsWith('data:')) {
-      // Inline data: URL (e.g. base64 from gpt-image-1) — decode directly,
-      // skipping the network fetch + SSRF guard which only apply to remote URLs.
-      const match = path.match(/^data:([^;,]+);base64,(.*)$/s);
-      if (!match) {
-        throw new Error('Invalid data URL');
-      }
-      body = Buffer.from(match[2], 'base64');
+    if (dataUrl) {
+      body = dataUrl.buffer;
     } else {
       if (!(await isSafePublicHttpsUrl(path))) {
         throw new Error('Unsafe URL');
