@@ -4,7 +4,7 @@ import React, { FC, useCallback, useState } from 'react';
 import useSWR from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
-import { Button } from '@gitroom/react/form/button';
+import { AdminButton as Button, adminInput, adminSegment } from './admin-ui';
 import { LoadingComponent } from '@gitroom/frontend/components/layout/loading';
 
 interface PerSocial {
@@ -165,11 +165,7 @@ export const AdminStatsComponent: FC = () => {
               key={preset.label}
               type="button"
               onClick={() => applyRange(next)}
-              className={`h-[32px] px-[12px] rounded-[8px] text-[13px] border cursor-pointer whitespace-nowrap ${
-                active
-                  ? 'bg-forth text-white border-forth'
-                  : 'bg-white/[0.03] text-textColor border-newTableBorder hover:bg-tableBorder'
-              }`}
+              className={adminSegment(active)}
             >
               {preset.label}
             </button>
@@ -185,7 +181,7 @@ export const AdminStatsComponent: FC = () => {
             value={fromInput}
             max={toInput}
             onChange={(e) => setFromInput(e.target.value)}
-            className="bg-white/[0.03] h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor"
+            className={adminInput}
           />
         </div>
         <div className="flex flex-col gap-[6px]">
@@ -196,7 +192,7 @@ export const AdminStatsComponent: FC = () => {
             min={fromInput}
             max={today()}
             onChange={(e) => setToInput(e.target.value)}
-            className="bg-white/[0.03] h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor"
+            className={adminInput}
           />
         </div>
         <Button
@@ -212,6 +208,7 @@ export const AdminStatsComponent: FC = () => {
         >
           <input
             type="checkbox"
+            className="accent-[#38bdf8] w-[16px] h-[16px] cursor-pointer"
             checked={unknownOnly}
             onChange={(e) => setUnknownOnly(e.target.checked)}
           />

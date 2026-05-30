@@ -5,7 +5,7 @@ import { useSWRConfig } from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Input } from '@gitroom/react/form/input';
-import { Button } from '@gitroom/react/form/button';
+import { AdminButton as Button } from './admin-ui';
 
 const colorOptions = [
   { value: 'INFO', label: 'Info (Blue)', className: 'bg-blue-600' },

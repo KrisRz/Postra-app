@@ -7,7 +7,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
-import { Button } from '@gitroom/react/form/button';
+import { AdminButton as Button, adminInput, adminSelect } from './admin-ui';
 import { LoadingComponent } from '@gitroom/frontend/components/layout/loading';
 
 interface ErrorRow {
@@ -258,7 +258,7 @@ export const AdminErrorsComponent: FC = () => {
               setPage(0);
               setPlatform(e.target.value);
             }}
-            className="bg-white/[0.03] h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor min-w-[180px]"
+            className={`${adminSelect} min-w-[180px]`}
           >
             <option value="">All platforms</option>
             {(platforms || []).map((p) => (
@@ -279,7 +279,7 @@ export const AdminErrorsComponent: FC = () => {
                 if (e.key === 'Enter') onApplyEmail();
               }}
               placeholder="user@example.com"
-              className="bg-white/[0.03] h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor min-w-[240px]"
+              className={`${adminInput} min-w-[240px]`}
             />
             <Button onClick={onApplyEmail}>Apply</Button>
           </div>
@@ -288,6 +288,7 @@ export const AdminErrorsComponent: FC = () => {
         <label className="flex items-center gap-[6px] text-[13px] cursor-pointer h-[38px]">
           <input
             type="checkbox"
+            className="accent-[#38bdf8] w-[16px] h-[16px] cursor-pointer"
             checked={unknownFirst}
             onChange={(e) => {
               setPage(0);
@@ -305,7 +306,7 @@ export const AdminErrorsComponent: FC = () => {
               setPage(0);
               setLimit(parseInt(e.target.value, 10));
             }}
-            className="bg-white/[0.03] h-[38px] border border-newTableBorder rounded-[8px] px-[10px] text-[14px] text-textColor"
+            className={adminSelect}
           >
             {[10, 20, 50, 100].map((n) => (
               <option key={n} value={n}>
