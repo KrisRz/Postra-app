@@ -80,8 +80,6 @@ export class MediaService {
           prompt,
           !!generatePromptFirst
         );
-        // gpt-image-1 returns a base64 data: URL — persist it to storage and
-        // return the hosted URL (callers expect a real URL, not raw base64).
         return dataUrl ? await this.storage.uploadSimple(dataUrl) : dataUrl;
       }
     );

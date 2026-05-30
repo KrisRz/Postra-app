@@ -44,11 +44,6 @@ export class OpenaiService {
     return typeof result === 'string' ? result : '';
   }
 
-  // dall-e-3 is retired on the API and `response_format` was removed for image
-  // generation — both produce 400s. gpt-image-1 is the current model and always
-  // returns base64 (no hosted url). We wrap it in a data: URL; callers pass the
-  // result to storage.uploadSimple(), which now decodes data: URLs to a hosted
-  // file. `isUrl` is kept for signature compatibility but no longer used.
   async generateImage(
     prompt: string,
     _isUrl: boolean,
@@ -57,7 +52,7 @@ export class OpenaiService {
     const generate = (
       await openai.images.generate({
         prompt,
-        model: 'gpt-image-1',
+        model: 'chatgpt-image-latest',
         size: isVertical ? '1024x1536' : '1024x1024',
       })
     ).data?.[0];

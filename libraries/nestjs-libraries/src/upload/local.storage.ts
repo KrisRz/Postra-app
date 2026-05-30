@@ -1,9 +1,8 @@
 import { IUploadProvider } from './upload.interface';
 import { mkdirSync, unlink, writeFileSync } from 'fs';
-// @ts-ignore
-import mime from 'mime';
-import { extname } from 'path';
 import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
+import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
+import { parseDataUrl } from '@gitroom/nestjs-libraries/upload/data.url';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { fromBuffer } = require('file-type');
 
@@ -25,34 +24,29 @@ export class LocalStorage implements IUploadProvider {
   constructor(private uploadDirectory: string) {}
 
   async uploadSimple(path: string) {
-    // Inline data: URLs (e.g. base64 from gpt-image-1). Decode and store
-    // directly — these are not network requests, so the https/SSRF guard and
-    // fetch below don't apply.
-    if (path.startsWith('data:')) {
-      const match = path.match(/^data:([^;,]+);base64,(.*)$/s);
-      if (!match) {
-        throw new Error('Invalid data URL');
+    const dataUrl = path.startsWith('data:') ? parseDataUrl(path) : null;
+
+    let body: Buffer;
+    if (dataUrl) {
+      body = dataUrl.buffer;
+    } else {
+      if (!(await isSafePublicHttpsUrl(path))) {
+        throw new Error('Unsafe URL');
       }
-      const buffer = Buffer.from(match[2], 'base64');
-      const findExtension = mime.getExtension(match[1]) || 'png';
-      return this.writeBuffer(buffer, findExtension);
+      const loadImage = await fetch(path, {
+        // @ts-ignore — undici option, not in lib.dom fetch types
+        dispatcher: ssrfSafeDispatcher,
+      });
+      body = Buffer.from(await loadImage.arrayBuffer());
     }
 
-    if (!(await isSafePublicHttpsUrl(path))) {
-      throw new Error('Unsafe URL');
+    const detected = await fromBuffer(body);
+    if (!detected || !LOCAL_STORAGE_ALLOWED_MIME.has(detected.mime)) {
+      throw new Error('Unsupported file type.');
     }
-    const loadImage = await fetch(path);
-    const contentType =
-      loadImage?.headers?.get('content-type') ||
-      loadImage?.headers?.get('Content-Type');
-    const findExtension = mime.getExtension(contentType) ||
-      path.split('?')[0].split('#')[0].split('.').pop() ||
-      'bin';
+    const findExtension = detected.ext;
 
-    return this.writeBuffer(
-      Buffer.from(await loadImage.arrayBuffer()),
-      findExtension
-    );
+    return this.writeBuffer(body, findExtension);
   }
 
   private writeBuffer(buffer: Buffer, findExtension: string) {
