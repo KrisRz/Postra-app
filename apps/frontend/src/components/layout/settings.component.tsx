@@ -117,14 +117,16 @@ export const SettingsPopup: FC<{
 
   return (
     <>
-      <div className="bg-newBgColorInner p-[20px] flex flex-col transition-all w-[260px]">
-        <div className="flex flex-1 flex-col gap-[15px]">
+      <div className="bg-white/[0.03] border-r border-white/10 p-[20px] flex flex-col transition-all w-[260px]">
+        <div className="flex flex-1 flex-col gap-[4px]">
           {list.map(({ tab: tabKey, label }) => (
             <div
               key={tabKey}
               className={clsx(
-                'cursor-pointer flex items-center gap-[12px] group/profile hover:bg-boxHover rounded-e-[8px]',
-                tabKey === tab && 'bg-boxHover'
+                'cursor-pointer flex items-center gap-[12px] group/profile rounded-[8px] px-[12px] py-[8px] text-[14px] transition-colors',
+                tabKey === tab
+                  ? 'bg-white/[0.08] text-newTextColor'
+                  : 'text-newTextColor/60 hover:bg-white/[0.05] hover:text-newTextColor'
               )}
               onClick={() => setTab(tabKey)}
             >
@@ -148,7 +150,7 @@ export const SettingsPopup: FC<{
           )}
         </div>
       </div>
-      <div className="bg-newBgColorInner flex-1 flex-col flex p-[20px] gap-[12px]">
+      <div className="flex-1 flex-col flex p-[20px] gap-[12px]">
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(submit)}>
             {!!getRef && (
@@ -225,7 +227,7 @@ export const SettingsComponent = () => {
     }
     settings.openModal({
       children: (
-        <div className="relative flex gap-[20px] flex-col flex-1 rounded-[4px] border border-customColor6 bg-sixth p-[16px] w-[500px] mx-auto">
+        <div className="relative flex gap-[20px] flex-col flex-1 rounded-[12px] border border-white/10 bg-[rgba(15,23,42,0.92)] p-[16px] w-[500px] mx-auto">
           <SettingsPopup />
         </div>
       ),
