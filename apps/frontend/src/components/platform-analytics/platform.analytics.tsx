@@ -9,7 +9,7 @@ import SafeImage from '@gitroom/react/helpers/safe.image';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { RenderAnalytics } from '@gitroom/frontend/components/platform-analytics/render.analytics';
 import { Select } from '@gitroom/react/form/select';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -206,7 +206,7 @@ export const PlatformAnalytics = () => {
               onClick={() => {
                 if (integration.refreshNeeded) {
                   toaster.show(
-                    'Please refresh the integration from the calendar',
+                    t('refresh_integration_from_calendar', 'Odśwież integrację z poziomu kalendarza'),
                     'warning'
                   );
                   return;

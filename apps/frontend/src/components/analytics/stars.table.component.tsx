@@ -9,7 +9,7 @@ import {
   useTransition,
 } from 'react';
 import { UtcToLocalDateRender } from '@gitroom/react/helpers/utc.date.render';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import dayjs from 'dayjs';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -252,7 +252,7 @@ export const StarsTableComponent = () => {
           <div className="py-[24px] px-[16px]">
             {t(
               'load_your_github_repository_from_settings_to_see_analytics',
-              'Load your GitHub repository from settings to see analytics'
+              'Wczytaj repozytorium GitHub z ustawień, aby zobaczyć analitykę'
             )}
           </div>
         )}
