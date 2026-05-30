@@ -9,13 +9,14 @@ import { VideoTrimmer } from './video-trimmer';
 import { VideoMultiFormat, VideoFormat } from './video-multi-format';
 import { VideoCaptions } from './video-captions';
 import { VideoStock } from './video-stock';
+import { VideoCompositorPrototype } from './video-compositor-prototype';
 
 interface VideoStudioProps {
   setMedia: (params: { id: string; path: string }[]) => void;
   closeModal: () => void;
 }
 
-type Tab = 'trim' | 'formats' | 'captions' | 'stock';
+type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'compositor';
 
 export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const t = useT();
@@ -167,6 +168,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     { key: 'formats', label: t('video_tab_formats', 'Formaty'), icon: '📐', needsTrim: true },
     { key: 'captions', label: t('video_tab_captions', 'Napisy AI'), icon: '💬', needsTrim: true, onClick: handleSwitchToCaptions },
     { key: 'stock', label: t('video_tab_stock', 'Stock B-roll'), icon: '🎞', needsTrim: false },
+    { key: 'compositor', label: t('video_tab_compositor', 'Tekst na video (test)'), icon: '🧪', needsTrim: false },
   ];
 
   return (
@@ -218,6 +220,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
         {tab === 'stock' && (
           <VideoStock onImported={handleStockImported} />
         )}
+        {tab === 'compositor' && <VideoCompositorPrototype />}
       </div>
 
       {trimmedBlob && tab === 'trim' && (
