@@ -2,6 +2,7 @@
 
 import { FC, useCallback, useState } from 'react';
 import clsx from 'clsx';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import { useVariables } from '@gitroom/react/helpers/variable.context';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -62,8 +63,8 @@ export const FAQSection: FC<{
     setShow(!show);
   }, [show]);
   return (
-    <div
-      className="bg-white/[0.03] p-[24px] border border-white/10 rounded-[12px] flex flex-col"
+    <Card
+      className="p-[24px] flex flex-col cursor-pointer"
       onClick={changeShow}
     >
       <div className={`text-[20px] cursor-pointer flex justify-center`}>
@@ -112,13 +113,13 @@ export const FAQSection: FC<{
           onClick={(e) => {
             e.stopPropagation();
           }}
-          className={`mt-[16px] w-full text-wrap font-[400] text-[16px] text-customColor17 select-text max-w-[450px]`}
+          className={`mt-[16px] w-full text-wrap font-[400] text-[16px] text-newTextColor/70 select-text max-w-[450px]`}
           dangerouslySetInnerHTML={{
             __html: description,
           }}
         />
       </div>
-    </div>
+    </Card>
   );
 };
 export const FAQComponent: FC = () => {

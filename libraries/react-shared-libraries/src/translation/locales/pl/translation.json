@@ -892,5 +892,18 @@
   "purchase": "Kup pakiet",
   "per_year": "/rok",
   "per_month": "/mies",
-  "downgrade_on": "Zmiana planu"
+  "downgrade_on": "Zmiana planu",
+  "discount_applied": "Zniżka 50% zastosowana",
+  "accept_discount_q": "Może zamiast tego przyjmiesz 50% zniżki na 3 miesiące? 🙏🏻",
+  "apply_discount": "Zastosuj 50% zniżki na 3 miesiące",
+  "cancel_my_subscription": "Anuluj moją subskrypcję",
+  "feedback": "Opinia",
+  "finishing_trial": "Kończenie okresu próbnego",
+  "trial_finished_charged": "Twój okres próbny został zakończony i opłata została pobrana.",
+  "close_window": "Zamknij okno",
+  "close_dialog": "Zamknij",
+  "code": "Kod",
+  "enter_your_code": "Wpisz swój kod",
+  "code_claimed": "Kod aktywowany pomyślnie",
+  "code_invalid": "Kod już wykorzystany lub nieprawidłowy"
 }

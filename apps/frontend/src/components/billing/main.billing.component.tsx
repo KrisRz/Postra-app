@@ -139,6 +139,7 @@ const Accept: FC<{ resolve: (res: boolean) => void }> = ({ resolve }) => {
   const [loading, setLoading] = useState(false);
   const fetch = useFetch();
   const toaster = useToaster();
+  const t = useT();
 
   const apply = useCallback(async () => {
     setLoading(true);
@@ -147,20 +148,23 @@ const Accept: FC<{ resolve: (res: boolean) => void }> = ({ resolve }) => {
     });
 
     resolve(true);
-    toaster.show('50% discount applied successfully');
+    toaster.show(t('discount_applied', 'Zniżka 50% zastosowana'));
   }, []);
 
   return (
     <div>
       <div className="mb-[20px]">
-        Would you accept 50% discount for 3 months instead? 🙏🏻
+        {t(
+          'accept_discount_q',
+          'Może zamiast tego przyjmiesz 50% zniżki na 3 miesiące? 🙏🏻'
+        )}
       </div>
       <div className="flex gap-[10px]">
         <Button loading={loading} onClick={apply}>
-          Apply 50% discount for 3 months
+          {t('apply_discount', 'Zastosuj 50% zniżki na 3 miesiące')}
         </Button>
-        <Button onClick={() => resolve(false)} className="!bg-red-800">
-          Cancel my subscription
+        <Button variant="danger" onClick={() => resolve(false)}>
+          {t('cancel_my_subscription', 'Anuluj moją subskrypcję')}
         </Button>
       </div>
     </div>
@@ -191,7 +195,7 @@ const Info: FC<{
       <div>
         <Textarea
           className="bg-white/[0.03]"
-          label={'Feedback'}
+          label={t('feedback', 'Opinia')}
           name="feedback"
           disableForm={true}
           value={feedback}
