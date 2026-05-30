@@ -8,28 +8,22 @@ import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
 const tabs = [
-  { key: 'stats', path: '/admin/stats' },
-  { key: 'growth', path: '/admin/growth' },
-  { key: 'organizations', path: '/admin/organizations' },
-  { key: 'subscriptions', path: '/admin/subscriptions' },
-  { key: 'ai-usage', path: '/admin/ai-usage' },
-  { key: 'health', path: '/admin/health' },
-  { key: 'errors', path: '/admin/errors' },
-  { key: 'users', path: '/admin/users' },
-  { key: 'announcements', path: '/admin/announcements' },
+  { key: 'stats', path: '/admin/stats', icon: '📊', i18n: 'admin_stats', fallback: 'Stats' },
+  { key: 'growth', path: '/admin/growth', icon: '📈', i18n: 'admin_growth_tab', fallback: 'Growth' },
+  { key: 'organizations', path: '/admin/organizations', icon: '🏢', i18n: 'admin_organizations', fallback: 'Organizations' },
+  { key: 'subscriptions', path: '/admin/subscriptions', icon: '💳', i18n: 'admin_subscriptions', fallback: 'Subscriptions' },
+  { key: 'ai-usage', path: '/admin/ai-usage', icon: '✨', i18n: 'admin_ai_usage', fallback: 'AI Usage' },
+  { key: 'health', path: '/admin/health', icon: '❤️', i18n: 'admin_health', fallback: 'System Health' },
+  { key: 'errors', path: '/admin/errors', icon: '🐞', i18n: 'admin_errors', fallback: 'Errors' },
+  { key: 'users', path: '/admin/users', icon: '👤', i18n: 'admin_users', fallback: 'Users' },
+  { key: 'announcements', path: '/admin/announcements', icon: '📣', i18n: 'admin_announcements', fallback: 'Announcements' },
+  { key: 'dashboards', path: '/admin/dashboards', icon: '🖥️', i18n: 'admin_dashboards', fallback: 'Dashboards', isNew: true },
 ] as const;
 
-const tabLabels: Record<string, [string, string]> = {
-  stats: ['admin_stats', 'Stats'],
-  growth: ['admin_growth_tab', 'Growth'],
-  organizations: ['admin_organizations', 'Organizations'],
-  subscriptions: ['admin_subscriptions', 'Subscriptions'],
-  'ai-usage': ['admin_ai_usage', 'AI Usage'],
-  health: ['admin_health', 'System Health'],
-  errors: ['admin_errors', 'Errors'],
-  users: ['admin_users', 'Users'],
-  announcements: ['admin_announcements', 'Announcements'],
-};
+const ADMIN_BG =
+  'radial-gradient(1200px 700px at 78% -12%, rgba(56,189,248,.10), transparent),' +
+  'radial-gradient(950px 620px at -5% 112%, rgba(167,139,250,.11), transparent),' +
+  '#0a0e1a';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const user = useUser();
@@ -45,28 +39,42 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex-1 flex flex-col">
-      <nav className="flex gap-[2px] px-[20px] pt-[16px] pb-[4px]">
-        {tabs.map((tab) => {
-          const isActive = pathname.startsWith(tab.path);
-          const [i18nKey, fallback] = tabLabels[tab.key];
-          return (
-            <Link
-              key={tab.key}
-              href={tab.path}
-              className={clsx(
-                'px-[16px] py-[8px] rounded-[8px] text-[13px] font-[500] transition-all duration-150',
-                isActive
-                  ? 'bg-white/10 text-newTextColor border border-white/15'
-                  : 'text-newTextColor/50 hover:text-newTextColor/80 hover:bg-white/[0.04] border border-transparent'
-              )}
-            >
-              {t(i18nKey, fallback)}
-            </Link>
-          );
-        })}
-      </nav>
-      {children}
+    <div className="flex-1 flex min-w-0" style={{ background: ADMIN_BG }}>
+      {/* Sidebar */}
+      <aside className="w-[230px] shrink-0 border-r border-white/10 bg-white/[0.02] py-[18px] px-[12px]">
+        <div className="flex items-center gap-[9px] px-[10px] pb-[16px] font-[700] text-[15px] text-newTextColor">
+          <span className="w-[9px] h-[9px] rounded-full bg-[#38bdf8] shadow-[0_0_10px_#38bdf8]" />
+          Postra · Admin
+        </div>
+        <nav className="flex flex-col gap-[2px]">
+          {tabs.map((tab) => {
+            const isActive = pathname.startsWith(tab.path);
+            return (
+              <Link
+                key={tab.key}
+                href={tab.path}
+                className={clsx(
+                  'flex items-center gap-[10px] px-[11px] py-[9px] rounded-[10px] text-[13px] font-[500] transition-all duration-150',
+                  isActive
+                    ? 'text-white border border-white/15 bg-gradient-to-r from-[rgba(56,189,248,0.25)] to-[rgba(167,139,250,0.18)] shadow-[0_0_20px_-6px_rgba(56,189,248,0.5)]'
+                    : 'text-newTextColor/55 hover:text-newTextColor/90 hover:bg-white/[0.05] border border-transparent'
+                )}
+              >
+                <span className="w-[16px] text-center opacity-90">{tab.icon}</span>
+                {t(tab.i18n, tab.fallback)}
+                {'isNew' in tab && tab.isNew && (
+                  <span className="ml-auto text-[9px] bg-[#38bdf8] text-[#06222e] px-[6px] py-[1px] rounded-[6px] font-[700]">
+                    NEW
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col min-w-0">{children}</div>
     </div>
   );
 }

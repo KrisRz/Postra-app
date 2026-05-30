@@ -8,7 +8,7 @@ import { useVariables } from '@gitroom/react/helpers/variable.context';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Input } from '@gitroom/react/form/input';
 import { Select } from '@gitroom/react/form/select';
-import { Button } from '@gitroom/react/form/button';
+import { AdminButton as Button } from './admin-ui';
 import { setCookie } from '@gitroom/frontend/components/layout/layout.context';
 import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
@@ -128,7 +128,7 @@ export const AdminUsersComponent = () => {
       </h2>
 
       {user?.impersonate && (
-        <div className="flex items-center gap-[12px] p-[12px] rounded-[8px] bg-forth/20 border border-forth/30">
+        <div className="flex items-center gap-[12px] p-[12px] rounded-[10px] bg-[rgba(56,189,248,0.12)] border border-[rgba(56,189,248,0.3)]">
           <span className="text-[14px]">
             {t('currently_impersonating', 'Currently Impersonating')}
           </span>

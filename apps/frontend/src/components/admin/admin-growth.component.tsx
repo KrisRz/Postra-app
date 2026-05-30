@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import { adminSegment } from './admin-ui';
 
 interface ChartPoint {
   day: string;
@@ -100,11 +101,7 @@ export const AdminGrowthComponent = () => {
               key={p}
               type="button"
               onClick={() => setDays(p)}
-              className={`h-[30px] px-[12px] rounded-[8px] text-[13px] border cursor-pointer ${
-                days === p
-                  ? 'bg-forth text-white border-forth'
-                  : 'bg-white/[0.03] text-newTextColor border-white/10 hover:border-white/20'
-              }`}
+              className={adminSegment(days === p)}
             >
               {p}d
             </button>
