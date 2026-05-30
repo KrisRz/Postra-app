@@ -849,5 +849,21 @@
   "undo_tooltip": "Cofnij (Ctrl+Z)",
   "redo_tooltip": "Ponów (Ctrl+Shift+Z)",
   "delete_tooltip": "Usuń zaznaczony obiekt (Delete)",
-  "delete_no_selection": "Najpierw zaznacz obiekt na canvas"
+  "delete_no_selection": "Najpierw zaznacz obiekt na canvas",
+  "developers": "Deweloperzy",
+  "approved_apps": "Zatwierdzone aplikacje",
+  "date_metrics": "Format godziny",
+  "email_notifications": "Powiadomienia e-mail",
+  "success_emails": "Maile o sukcesie",
+  "success_emails_description": "Otrzymuj powiadomienia e-mail, gdy posty zostaną opublikowane pomyślnie",
+  "failure_emails": "Maile o błędach",
+  "failure_emails_description": "Otrzymuj powiadomienia e-mail, gdy publikacja postów się nie powiedzie",
+  "streak_emails": "Maile o passie",
+  "streak_emails_description": "Otrzymuj przypomnienia e-mail, gdy Twoja passa publikacji ma się skończyć",
+  "shortlink_settings": "Ustawienia skróconych linków",
+  "shortlink_preference": "Preferencje skróconych linków",
+  "shortlink_preference_description": "Określ, jak obsługiwane są linki w Twoich postach. Skrócone linki dają statystyki kliknięć.",
+  "shortlink_ask": "Pytaj za każdym razem",
+  "shortlink_yes": "Zawsze skracaj",
+  "shortlink_no": "Nigdy nie skracaj"
 }
