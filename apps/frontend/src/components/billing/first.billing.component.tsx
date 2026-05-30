@@ -175,7 +175,7 @@ export const FirstBillingComponent = () => {
   };
 
   return (
-    <div className="blurMe flex flex-1 flex-col bg-newBgColorInner pb-[60px] mobile:pb-[100px]">
+    <div className="blurMe flex flex-1 flex-col pb-[60px] mobile:pb-[100px]">
       <div className="h-[92px] px-[80px] tablet:px-[32px] mobile:!px-[16px] py-[20px] flex border-b border-newColColor">
         <div className="flex-1 flex items-center text-textColor">
           <LogoTextComponent />

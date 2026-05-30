@@ -194,7 +194,7 @@ export const TagsComponentInner: FC<{
         </div>
       </div>
       {isOpen && (
-        <div className="z-[300] absolute start-0 bottom-[100%] w-[240px] bg-newBgColorInner p-[12px] menu-shadow -translate-y-[10px] flex flex-col">
+        <div className="z-[300] absolute start-0 bottom-[100%] w-[240px] bg-[rgba(15,23,42,0.92)] backdrop-blur-xl p-[12px] menu-shadow -translate-y-[10px] flex flex-col">
           {(data?.tags || []).map((p: any) => (
             <div
               onClick={() => {

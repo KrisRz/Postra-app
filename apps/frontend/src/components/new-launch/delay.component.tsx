@@ -95,7 +95,7 @@ export const DelayComponent: FC<{
         <DelayIcon />
       </div>
       {isOpen && (
-        <div className="z-[300] absolute end-0 top-[100%] w-[200px] bg-newBgColorInner p-[8px] menu-shadow translate-y-[10px] flex flex-col rounded-[8px]">
+        <div className="z-[300] absolute end-0 top-[100%] w-[200px] bg-[rgba(15,23,42,0.92)] backdrop-blur-xl p-[8px] menu-shadow translate-y-[10px] flex flex-col rounded-[8px]">
           <div className="grid grid-cols-4 gap-[4px]">
             {delayOptions.map((option) => (
               <div

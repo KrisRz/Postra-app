@@ -190,8 +190,8 @@ const McpSection = ({
     : remoteUrl.replace(user.publicApi, '*'.repeat(user.publicApi.length));
 
   return (
-    <div className="bg-newBgColorInnerInner rounded-[12px] border border-newBorder overflow-hidden">
-      <div className="bg-newBgColorInner px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
+    <div className="bg-white/[0.03]Inner rounded-[12px] border border-newBorder overflow-hidden">
+      <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
         <div>
           <div className="text-[15px] font-[600]">
             {t('mcp_client_configuration', 'MCP Client Configuration')}
@@ -272,7 +272,7 @@ const McpSection = ({
                   'Paste this URL into your remote MCP client (ChatGPT, Claude, etc.).'
                 )}
           </div>
-          <pre className="bg-newBgColorInner border border-newBorder rounded-[8px] p-[16px] text-[13px] whitespace-pre-wrap break-all overflow-x-auto leading-[1.6]">
+          <pre className="bg-white/[0.03] border border-newBorder rounded-[8px] p-[16px] text-[13px] whitespace-pre-wrap break-all overflow-x-auto leading-[1.6]">
             {method === 'header' ? maskedConfig : maskedRemoteUrl}
           </pre>
           <div className="flex gap-[8px]">
@@ -378,8 +378,8 @@ const CliSection = ({ apiKey }: { apiKey: string }) => {
       : steps;
 
   return (
-    <div className="bg-newBgColorInnerInner rounded-[12px] border border-newBorder overflow-hidden">
-      <div className="bg-newBgColorInner px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
+    <div className="bg-white/[0.03]Inner rounded-[12px] border border-newBorder overflow-hidden">
+      <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
         <div>
           <div className="text-[15px] font-[600]">
             {t('cli_and_skills', 'CLI & AI Skills')}
@@ -427,7 +427,7 @@ const CliSection = ({ apiKey }: { apiKey: string }) => {
             <div className="text-[13px] font-[600] text-customColor18">
               {i + 1}. {step.label}
             </div>
-            <pre className="bg-newBgColorInner border border-newBorder rounded-[8px] p-[16px] text-[13px] whitespace-pre-wrap break-all overflow-x-auto leading-[1.6]">
+            <pre className="bg-white/[0.03] border border-newBorder rounded-[8px] p-[16px] text-[13px] whitespace-pre-wrap break-all overflow-x-auto leading-[1.6]">
               {step.code}
             </pre>
           </div>
@@ -534,8 +534,8 @@ const PublicApiContent = () => {
           'and you will receive a pos_ prefixed token that works with the API, MCP, and CLI — just like an API Key.'
         )}
       </div>
-      <div className="bg-newBgColorInnerInner rounded-[12px] border border-newBorder overflow-hidden">
-        <div className="bg-newBgColorInner px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
+      <div className="bg-white/[0.03]Inner rounded-[12px] border border-newBorder overflow-hidden">
+        <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
           <div>
             <div className="text-[15px] font-[600]">
               {t('api_key', 'API Key')}
@@ -567,7 +567,7 @@ const PublicApiContent = () => {
           </div>
         </div>
         <div className="p-[20px] flex flex-col gap-[16px]">
-          <div className="bg-newBgColorInner border border-newBorder rounded-[8px] px-[16px] h-[44px] flex items-center overflow-hidden">
+          <div className="bg-white/[0.03] border border-newBorder rounded-[8px] px-[16px] h-[44px] flex items-center overflow-hidden">
             <code className="text-[14px] flex-1 truncate">
               {reveal ? (
                 user.publicApi

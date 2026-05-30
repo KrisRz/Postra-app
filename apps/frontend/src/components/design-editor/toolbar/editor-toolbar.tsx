@@ -388,7 +388,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   const hasPanel = activeTool !== 'select';
 
   return (
-    <div className="flex h-full min-h-0 bg-newBgColorInner border-r border-newBorder shrink-0">
+    <div className="flex h-full min-h-0 bg-white/[0.03] border-r border-newBorder shrink-0">
       <div className="w-[100px] flex flex-col gap-1 p-2 shrink-0 overflow-y-auto border-r border-newBorder">
         {TOOLS.map((tool) => (
           <button

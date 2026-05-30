@@ -46,7 +46,7 @@ export const ModalWrapperComponent: FC<{
         <div className="absolute -top-[30px] left-0" ref={ref} />
       </div>
       <div
-        className="p-[32px] flex flex-col text-newTextColor bg-newBgColorInner rounded-[24px]"
+        className="p-[32px] flex flex-col text-newTextColor bg-[rgba(15,23,42,0.92)] backdrop-blur-xl rounded-[24px]"
       >
         <div className="flex items-start mb-[24px]">
           <div className="flex-1 text-[24px]">{title}</div>

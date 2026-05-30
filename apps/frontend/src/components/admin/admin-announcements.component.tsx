@@ -98,7 +98,7 @@ export const AdminAnnouncementsComponent = () => {
           onClick={handleSubmit}
           loading={saving}
           disabled={!title.trim() || !description.trim()}
-          className="rounded-[4px]"
+          className="rounded-[8px]"
         >
           {t('create_announcement', 'Create Announcement')}
         </Button>

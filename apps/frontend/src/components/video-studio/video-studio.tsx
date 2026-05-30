@@ -170,7 +170,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-newBgColorInner rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-white/[0.03] rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-newBorder">
         <div className="flex gap-2 flex-wrap">
           {tabs.map((tDef) => (

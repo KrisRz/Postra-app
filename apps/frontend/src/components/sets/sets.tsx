@@ -171,7 +171,7 @@ export const Sets: FC = () => {
       <div className="text-customColor18 mt-[4px]">
         Manage your content sets for easy reuse across posts.
       </div>
-      <div className="my-[16px] mt-[16px] bg-sixth border-fifth items-center border rounded-[4px] p-[24px] flex gap-[24px]">
+      <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 items-center border rounded-[12px] p-[24px] flex gap-[24px]">
         <div className="flex flex-col w-full">
           {!!data?.length && (
             <div className="grid grid-cols-[2fr,1fr,1fr] w-full gap-y-[10px]">

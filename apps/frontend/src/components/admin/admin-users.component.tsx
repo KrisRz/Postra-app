@@ -132,7 +132,7 @@ export const AdminUsersComponent = () => {
           <span className="text-[14px]">
             {t('currently_impersonating', 'Currently Impersonating')}
           </span>
-          <Button onClick={stopImpersonating} className="!bg-red-600 rounded-[4px] text-[12px]">
+          <Button onClick={stopImpersonating} className="!bg-red-600 rounded-[8px] text-[12px]">
             {t('stop_impersonating', 'Stop')}
           </Button>
           {user?.tier?.current === 'FREE' && <Subscription />}
@@ -152,7 +152,7 @@ export const AdminUsersComponent = () => {
             onChange={(e) => setName(e.target.value)}
           />
         </div>
-        <Button onClick={handleImportDebugPost} className="rounded-[4px] text-[12px]">
+        <Button onClick={handleImportDebugPost} className="rounded-[8px] text-[12px]">
           {t('import_debug_post', 'Import Debug Post')}
         </Button>
       </div>
@@ -186,7 +186,7 @@ export const AdminUsersComponent = () => {
                   <td className="p-[12px]">
                     <Button
                       onClick={setUser(u.id)}
-                      className="rounded-[4px] text-[12px]"
+                      className="rounded-[8px] text-[12px]"
                     >
                       {t('impersonate', 'Impersonate')}
                     </Button>

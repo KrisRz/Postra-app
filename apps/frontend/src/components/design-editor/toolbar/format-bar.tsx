@@ -10,7 +10,7 @@ export const FormatBar: FC = () => {
   const t = useT();
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 border-t border-newBorder bg-newBgColorInner">
+    <div className="flex items-center gap-2 px-4 py-2 border-t border-newBorder bg-white/[0.03]">
       <span className="text-[10px] text-textColor/60 uppercase tracking-wide mr-2">
         {t('format', 'Format')}:
       </span>

@@ -181,7 +181,7 @@ const Info: FC<{
   const t = useT();
 
   return (
-    <div className="relative flex gap-[20px] flex-col flex-1 rounded-[4px]">
+    <div className="relative flex gap-[20px] flex-col flex-1 rounded-[12px]">
       <div>
         {t(
           'would_you_mind_shortly_tell_us_what_we_could_have_done_better',
@@ -190,7 +190,7 @@ const Info: FC<{
       </div>
       <div>
         <Textarea
-          className="bg-newBgColorInner"
+          className="bg-white/[0.03]"
           label={'Feedback'}
           name="feedback"
           disableForm={true}
@@ -457,7 +457,7 @@ export const MainBillingComponent: FC<{
           .map(([name, values]) => (
             <div
               key={name}
-              className="flex-1 bg-sixth border border-customColor6 rounded-[4px] p-[24px] gap-[16px] flex flex-col [@media(max-width:1024px)]:items-center"
+              className="flex-1 bg-white/[0.03] border border-white/10 rounded-[12px] p-[24px] gap-[16px] flex flex-col [@media(max-width:1024px)]:items-center"
             >
               <div className="text-[18px]">{name}</div>
               <div className="text-[38px] flex gap-[2px] items-center">

@@ -40,7 +40,7 @@ const SlideThumb: FC<{ slide: CarouselSlide; sourceWidth: number; sourceHeight: 
   }, [slide.canvasJson, sourceWidth, sourceHeight]);
 
   return (
-    <div className="w-[80px] h-[100px] bg-newBgColorInner rounded overflow-hidden flex items-center justify-center">
+    <div className="w-[80px] h-[100px] bg-white/[0.03] rounded overflow-hidden flex items-center justify-center">
       {dataUrl ? (
         <img src={dataUrl} alt="" className="w-full h-full object-contain" />
       ) : (

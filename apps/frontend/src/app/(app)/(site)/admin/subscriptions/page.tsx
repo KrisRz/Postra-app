@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default async function Page() {
   return (
-    <div className="bg-newBgColorInner flex-1 flex-col flex p-[20px] gap-[12px]">
+    <div className="bg-transparent flex-1 flex-col flex p-[20px] gap-[12px]">
       <AdminSubscriptionsComponent />
     </div>
   );

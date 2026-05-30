@@ -42,7 +42,7 @@ export const CalendarSkeleton: FC = () => (
 
 export const AnalyticsSkeleton: FC = () => (
   <div
-    className="flex flex-col flex-1 gap-[20px] p-[20px] bg-newBgColorInner"
+    className="flex flex-col flex-1 gap-[20px] p-[20px] bg-white/[0.03]"
     aria-label="Ładowanie analityki"
     role="status"
   >

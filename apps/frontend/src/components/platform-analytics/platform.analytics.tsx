@@ -141,7 +141,7 @@ export const PlatformAnalytics = () => {
 
   if (!sortedIntegrations.length && !isLoading) {
     return (
-      <div className="bg-newBgColorInner p-[20px] flex flex-col gap-[15px] transition-all flex-1 justify-center items-center text-center">
+      <div className="bg-white/[0.03] p-[20px] flex flex-col gap-[15px] transition-all flex-1 justify-center items-center text-center">
         <div>
           <img src="/wtyczki1.webp" className="w-full max-w-[420px] h-auto" />
         </div>
@@ -170,7 +170,7 @@ export const PlatformAnalytics = () => {
     <>
       <div
         className={clsx(
-          'bg-newBgColorInner p-[20px] flex flex-col gap-[15px] transition-all',
+          'bg-white/[0.03] p-[20px] flex flex-col gap-[15px] transition-all',
           collapseMenu === '1' ? 'group sidebar w-[100px]' : 'w-[260px]'
         )}
       >
@@ -218,7 +218,7 @@ export const PlatformAnalytics = () => {
                 setCurrent(index);
               }}
               className={clsx(
-                'flex gap-[12px] items-center group/profile justify-center hover:bg-boxHover rounded-e-[8px]',
+                'flex gap-[12px] items-center group/profile justify-center hover:bg-white/[0.05] rounded-e-[8px]',
                 currentIntegration.id !== integration.id &&
                   'opacity-20 hover:opacity-100 cursor-pointer'
               )}
@@ -250,7 +250,7 @@ export const PlatformAnalytics = () => {
                 />
                 <SafeImage
                   src={`/icons/platforms/${integration.identifier}.png`}
-                  className="rounded-[8px] absolute z-10 bottom-[5px] -end-[5px] border border-fifth"
+                  className="rounded-[8px] absolute z-10 bottom-[5px] -end-[5px] border border-white/10"
                   alt={integration.identifier}
                   width={18.41}
                   height={18.41}
@@ -268,7 +268,7 @@ export const PlatformAnalytics = () => {
           ))}
         </div>
       </div>
-      <div className="bg-newBgColorInner flex-1 flex-col flex p-[20px] gap-[12px]">
+      <div className="bg-white/[0.03] flex-1 flex-col flex p-[20px] gap-[12px]">
         {!!options.length && (
           <div className="flex-1 flex flex-col gap-[14px]">
             <div className="max-w-[200px]">
