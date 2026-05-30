@@ -34,6 +34,7 @@ import { MediaComponentInner } from '@gitroom/frontend/components/launches/helpe
 import { AiVideo } from '@gitroom/frontend/components/launches/ai.video';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { ThirdPartyMediaLibrary } from '@gitroom/frontend/components/third-parties/third-party.media-library';
+import { StudioWorkspace } from '@gitroom/frontend/components/studio/studio-workspace';
 import { Dashboard } from '@uppy/react';
 import {
   ChevronLeftIcon,
@@ -57,11 +58,6 @@ const Polonto = dynamic(
 );
 const PostDesignEditor = dynamic(
   () => import('@gitroom/frontend/components/design-editor/post-design-editor'),
-  { ssr: false }
-);
-const VideoStudio = dynamic(
-  () =>
-    import('@gitroom/frontend/components/video-studio/video-studio').then((m) => m.VideoStudio),
   { ssr: false }
 );
 const showModalEmitter = new EventEmitter();
@@ -750,29 +746,15 @@ export const MultiMediaComponent: FC<{
     [currentMedia]
   );
 
-  const designMedia = useCallback(() => {
+  const openStudio = useCallback(() => {
     if (!dummy) {
       modals.openModal({
         askClose: false,
-        title: t('design_media', 'Design Media'),
+        title: t('studio_title', '🎨 Studio'),
         size: '80%',
         height: '750px',
         children: (close) => (
-          <PostDesignEditor setMedia={changeMedia} closeModal={close} />
-        ),
-      });
-    }
-  }, [changeMedia, t]);
-
-  const openVideoStudio = useCallback(() => {
-    if (!dummy) {
-      modals.openModal({
-        askClose: false,
-        title: t('video_studio_title', '🎬 Video Studio'),
-        size: '80%',
-        height: '750px',
-        children: (close) => (
-          <VideoStudio setMedia={changeMedia} closeModal={close} />
+          <StudioWorkspace setMedia={changeMedia} closeModal={close} />
         ),
       });
     }
@@ -930,27 +912,16 @@ export const MultiMediaComponent: FC<{
                 </div>
               </div>
               <div
-                onClick={designMedia}
+                onClick={openStudio}
                 className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors"
+                title={t('studio_hint', 'Twórz grafiki i klipy wideo — prosto do posta')}
               >
                 <div className="flex gap-[5px] items-center">
                   <div>
                     <DesignMediaIcon />
                   </div>
                   <div className="text-[10px] font-[600] iconBreak:hidden block">
-                    {t('design_media', 'Design Media')}
-                  </div>
-                </div>
-              </div>
-              <div
-                onClick={openVideoStudio}
-                className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors"
-                title={t('video_studio_hint', 'Wytnij wideo i wyeksportuj do formatów IG/TikTok/YouTube')}
-              >
-                <div className="flex gap-[5px] items-center">
-                  <div className="text-[14px]">🎬</div>
-                  <div className="text-[10px] font-[600] iconBreak:hidden block">
-                    {t('video_studio', 'Video')}
+                    {t('studio', 'Studio')}
                   </div>
                 </div>
               </div>

@@ -55,7 +55,13 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
       barWidth: 2,
       barGap: 1,
     });
-    ws.load(videoUrl);
+    // The waveform is decorative. Many clips — stock B-roll, photo→video
+    // slideshows — have no decodable audio track, and switching files mid-load
+    // aborts the decode. Either way WaveSurfer rejects; swallow it so it never
+    // surfaces as an unhandled rejection / dev error overlay. Trim still works:
+    // duration falls back to the <video> element's onLoadedMetadata.
+    ws.on('error', () => {});
+    ws.load(videoUrl).catch(() => {});
     ws.on('ready', () => {
       const d = ws.getDuration();
       setDuration(d);
