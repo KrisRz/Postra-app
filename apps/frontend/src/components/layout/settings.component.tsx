@@ -124,7 +124,7 @@ export const SettingsPopup: FC<{
               className={clsx(
                 'cursor-pointer flex items-center gap-[10px] rounded-[10px] px-[12px] py-[9px] text-[14px] font-[500] whitespace-nowrap transition-all duration-150',
                 tabKey === tab
-                  ? 'text-white border border-white/15 bg-gradient-to-r from-[rgba(56,189,248,0.25)] to-[rgba(167,139,250,0.18)] shadow-[0_0_20px_-6px_rgba(56,189,248,0.5)]'
+                  ? 'text-white border border-white/15 bg-gradient-to-r from-[rgba(56,189,248,0.25)] to-[rgba(167,139,250,0.18)] shadow-[0_0_14px_-8px_rgba(56,189,248,0.35)]'
                   : 'text-newTextColor/55 hover:text-newTextColor/90 hover:bg-white/[0.05] border border-transparent'
               )}
               onClick={() => setTab(tabKey)}

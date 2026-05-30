@@ -17,7 +17,12 @@ export const GlobalSettings = () => {
   const t = useT();
   return (
     <div className="flex flex-col">
-      <h3 className="text-[20px]">{t('global_settings', 'Global Settings')}</h3>
+      <h3 className="text-[22px] font-[650] tracking-[-0.2px] text-newTextColor">
+        {t('global_settings', 'Global Settings')}
+      </h3>
+      <p className="text-[12.5px] text-newTextColor/55 mt-[3px]">
+        {t('global_settings_sub', 'Preferencje konta, powiadomień i linków')}
+      </p>
       <MetricComponent />
       <EmailNotificationsComponent />
       <ShortlinkPreferenceComponent />

@@ -1,6 +1,7 @@
 'use client';
 
 import { Select } from '@gitroom/react/form/select';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import React, { useState } from 'react';
 import { isUSCitizen } from '@gitroom/frontend/components/launches/helpers/isuscitizen.utils';
 import timezones from 'timezones-list';
@@ -32,8 +33,8 @@ const MetricComponent = () => {
     dayjs.tz.setDefault(value);
   };
   return (
-    <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 border rounded-[12px] p-[24px] flex flex-col gap-[24px]">
-      <div className="mt-[4px]">Date Metrics</div>
+    <Card className="my-[16px] p-[24px] flex flex-col gap-[24px]">
+      <div className="text-[15px] font-[600]">Date Metrics</div>
       <Select name="metric" disableForm={true} label="" onChange={changeMetric} value={currentMetric ? 'US' : 'GLOBAL'}>
         {dateMetrics.map((metric) => (
           <option
@@ -62,7 +63,7 @@ const MetricComponent = () => {
       {/*    </option>*/}
       {/*  ))}*/}
       {/*</Select>*/}
-    </div>
+    </Card>
   );
 };
 
