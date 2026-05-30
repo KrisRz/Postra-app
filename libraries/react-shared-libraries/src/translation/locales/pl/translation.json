@@ -887,5 +887,10 @@
   "set_save_failed": "Nie udało się zapisać zestawu",
   "set_deleted": "Zestaw usunięty",
   "role": "Rola",
-  "email": "E-mail"
+  "email": "E-mail",
+  "current_plan": "Aktualny plan",
+  "purchase": "Kup pakiet",
+  "per_year": "/rok",
+  "per_month": "/mies",
+  "downgrade_on": "Zmiana planu"
 }
