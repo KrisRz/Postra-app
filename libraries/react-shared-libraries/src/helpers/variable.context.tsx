@@ -13,7 +13,7 @@ interface VariableContextInterface {
   mainUrl: string;
   frontEndUrl: string;
   plontoKey: string;
-  storageProvider: 'local' | 'cloudflare';
+  storageProvider: 'local' | 'cloudflare' | 's3';
   backendUrl: string;
   environment: string;
   discordUrl: string;
