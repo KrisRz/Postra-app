@@ -95,12 +95,40 @@ const LayerSchema = z.discriminatedUnion('kind', [
   ImageLayerSchema,
 ]);
 
+// Concrete updatable-fields schema. OpenAI strict structured outputs reject
+// z.record (dynamic keys → no fixed `properties`/`additionalProperties:false`),
+// which 400'd the whole refine call. List the layer fields the model may patch;
+// all optional().nullable() per the strict "every field required" rule. Null
+// values are skipped when applied (applyUpdateToFabric ignores null/undefined).
+const PatchPropsSchema = z.object({
+  text: z.string().optional().nullable(),
+  color: z.string().optional().nullable(),
+  fill: z.string().optional().nullable(),
+  stroke: z.string().optional().nullable(),
+  strokeWidth: z.number().optional().nullable(),
+  fontFamily: z.string().optional().nullable(),
+  fontSize: z.number().optional().nullable(),
+  fontWeight: z.union([z.string(), z.number()]).optional().nullable(),
+  textAlign: z.enum(['left', 'center', 'right', 'justify']).optional().nullable(),
+  x: z.number().optional().nullable(),
+  y: z.number().optional().nullable(),
+  width: z.number().optional().nullable(),
+  height: z.number().optional().nullable(),
+  rotation: z.number().optional().nullable(),
+  opacity: z.number().optional().nullable(),
+  radius: z.number().optional().nullable(),
+  rx: z.number().optional().nullable(),
+  ry: z.number().optional().nullable(),
+  lineHeight: z.number().optional().nullable(),
+  charSpacing: z.number().optional().nullable(),
+});
+
 const PatchOpSchema = z.discriminatedUnion('op', [
   z.object({ op: z.literal('add'), layer: LayerSchema }),
   z.object({
     op: z.literal('update'),
     id: z.string(),
-    props: z.record(z.union([z.string(), z.number(), z.boolean(), z.null()])),
+    props: PatchPropsSchema,
   }),
   z.object({ op: z.literal('delete'), id: z.string() }),
   z.object({ op: z.literal('reorder'), ids: z.array(z.string()) }),
