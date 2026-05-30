@@ -31,15 +31,21 @@ export const Button: FC<
     variant?: Variant;
     secondary?: boolean;
     loading?: boolean;
+    size?: 'sm' | 'md';
   }
-> = ({ children, variant, secondary, loading, className, ...props }) => {
+> = ({ children, variant, secondary, loading, size, className, ...props }) => {
   const v: Variant = variant ?? (secondary ? 'secondary' : 'primary');
+  const sizeCls =
+    size === 'sm'
+      ? 'h-[30px] px-[12px] text-[12px]'
+      : 'h-[38px] px-[18px] text-[13.5px]';
   return (
     <button
       {...props}
       type={props.type || 'button'}
       className={clsx(
-        'inline-flex items-center justify-center gap-[7px] rounded-[10px] px-[18px] h-[38px] text-[13.5px] font-[600] cursor-pointer transition-all duration-150 whitespace-nowrap',
+        'inline-flex items-center justify-center gap-[7px] rounded-[10px] font-[600] cursor-pointer transition-all duration-150 whitespace-nowrap',
+        sizeCls,
         variantClass[v],
         (props.disabled || loading) && 'opacity-40 pointer-events-none',
         className
