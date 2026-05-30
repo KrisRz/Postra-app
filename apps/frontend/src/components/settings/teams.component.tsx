@@ -1,6 +1,7 @@
 'use client';
 
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
 import React, { useCallback, useMemo } from 'react';
@@ -76,12 +77,12 @@ export const AddMember = () => {
         <div className="relative flex gap-[10px] flex-col flex-1 p-[16px] pt-0">
           {sendEmail && (
             <Input
-              label="Email"
+              label={t('email', 'E-mail')}
               placeholder={t('enter_email', 'Enter email')}
               name="email"
             />
           )}
-          <Select label="Role" name="role">
+          <Select label={t('role', 'Rola')} name="role">
             <option value="">{t('select_role', 'Select Role')}</option>
             {roles.map((role) => (
               <option key={role.value} value={role.value}>
@@ -165,14 +166,16 @@ export const TeamsComponent = () => {
 
   return (
     <div className="flex flex-col">
-      <h3 className="text-[20px]">{t('team_members', 'Team Members')}</h3>
-      <div className="text-customColor18 mt-[4px]">
+      <h3 className="text-[22px] font-[650] tracking-[-0.2px] text-newTextColor">
+        {t('team_members', 'Team Members')}
+      </h3>
+      <div className="text-[12.5px] text-newTextColor/55 mt-[3px]">
         {t(
           'invite_your_assistant_or_team_member_to_manage_your_account',
           'Invite your assistant or team member to manage your account'
         )}
       </div>
-      <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 border rounded-[12px] p-[24px] flex flex-col gap-[24px]">
+      <Card className="my-[16px] p-[24px] flex flex-col gap-[24px]">
         <div className="flex flex-col gap-[16px]">
           {(data || []).map((p) => (
             <div key={p.user.id} className="flex items-center">
@@ -189,9 +192,9 @@ export const TeamsComponent = () => {
               {+myLevel > +getLevel(p.role) ? (
                 <div className="flex-1 flex justify-end">
                   <Button
-                    className={`!bg-white/[0.05] !h-[24px] border border-white/10 rounded-[8px] text-[12px]`}
+                    variant="danger"
+                    size="sm"
                     onClick={remove(p)}
-                    secondary={true}
                   >
                     <div className="flex justify-center items-center gap-[4px]">
                       <div>
@@ -223,7 +226,7 @@ export const TeamsComponent = () => {
             {t('add_another_member', 'Add another member')}
           </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

@@ -4,7 +4,8 @@ import React, { FC, Fragment, useCallback, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { Input } from '@gitroom/react/form/input';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -60,16 +61,16 @@ export const Webhooks: FC = () => {
 
   return (
     <div className="flex flex-col">
-      <h3 className="text-[20px]">
+      <h3 className="text-[22px] font-[650] tracking-[-0.2px] text-newTextColor">
         {t('webhooks', 'Webhooks')} ({data?.length || 0}/{user?.tier?.webhooks})
       </h3>
-      <div className="text-customColor18 mt-[4px]">
+      <div className="text-[12.5px] text-newTextColor/55 mt-[3px]">
         {t(
           'webhooks_are_a_way_to_get_notified_when_something_happens_in_postiz_via_an_http_request',
           'Webhooks are a way to get notified when something happens in Postra via\n        an HTTP request.'
         )}
       </div>
-      <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 items-center border rounded-[12px] p-[24px] flex gap-[24px]">
+      <Card className="my-[16px] items-center p-[24px] flex gap-[24px]">
         <div className="flex flex-col w-full">
           {!!data?.length && (
             <div className="grid grid-cols-[1fr,1fr,1fr,1fr] w-full gap-y-[10px]">
@@ -83,14 +84,14 @@ export const Webhooks: FC = () => {
                   <div className="flex flex-col justify-center">{p.url}</div>
                   <div className="flex flex-col justify-center">
                     <div>
-                      <Button onClick={addWebhook(p)}>
+                      <Button variant="secondary" onClick={addWebhook(p)}>
                         {t('edit', 'Edit')}
                       </Button>
                     </div>
                   </div>
                   <div className="flex flex-col justify-center">
                     <div>
-                      <Button onClick={deleteHook(p)}>
+                      <Button variant="danger" onClick={deleteHook(p)}>
                         {t('delete', 'Delete')}
                       </Button>
                     </div>
@@ -108,7 +109,7 @@ export const Webhooks: FC = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

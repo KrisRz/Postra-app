@@ -5,7 +5,8 @@ import React, { FC, Fragment, useCallback, useMemo, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import { Input } from '@gitroom/react/form/input';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import clsx from 'clsx';
@@ -35,13 +36,12 @@ const SaveSetModal: FC<{
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
         <Input
-          label="Set Name"
-          translationKey="label_set_name"
+          label={t('set_name', 'Nazwa zestawu')}
           name="setName"
           value={name}
           disableForm={true}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter a name for this set"
+          placeholder={t('enter_set_name', 'Wpisz nazwę tego zestawu')}
           autoFocus
         />
       </div>
@@ -62,6 +62,7 @@ export const Sets: FC = () => {
   const user = useUser();
   const modal = useModals();
   const toaster = useToaster();
+  const t = useT();
 
   const load = useCallback(async (path: string) => {
     return (await (await fetch(path)).json()).integrations;
@@ -111,7 +112,7 @@ export const Sets: FC = () => {
             {...(params?.id ? { set: JSON.parse(params.content) } : {})}
             addEditSets={(data) => {
               modal.openModal({
-                title: 'Save as Set',
+                title: t('save_as_set', 'Zapisz jako zestaw'),
                 children: (
                   <SaveSetModal
                     initialValue={params?.name || ''}
@@ -128,9 +129,12 @@ export const Sets: FC = () => {
                         });
                         modal.closeAll();
                         mutate();
-                        toaster.show('Set saved successfully', 'success');
+                        toaster.show(t('set_saved', 'Zestaw zapisany'), 'success');
                       } catch (error) {
-                        toaster.show('Failed to save set', 'warning');
+                        toaster.show(
+                          t('set_save_failed', 'Nie udało się zapisać zestawu'),
+                          'warning'
+                        );
                       }
                     }}
                     onCancel={() => modal.closeAll()}
@@ -152,26 +156,35 @@ export const Sets: FC = () => {
 
   const deleteSet = useCallback(
     (data: any) => async () => {
-      if (await deleteDialog(`Are you sure you want to delete ${data.name}?`)) {
+      if (
+        await deleteDialog(
+          t('are_you_sure_you_want_to_delete', 'Czy na pewno chcesz usunąć?', {
+            name: data.name,
+          })
+        )
+      ) {
         await fetch(`/sets/${data.id}`, {
           method: 'DELETE',
         });
         mutate();
-        toaster.show('Set deleted successfully', 'success');
+        toaster.show(t('set_deleted', 'Zestaw usunięty'), 'success');
       }
     },
     []
   );
 
-  const t = useT();
-
   return (
     <div className="flex flex-col">
-      <h3 className="text-[20px]">Sets ({data?.length || 0})</h3>
-      <div className="text-customColor18 mt-[4px]">
-        Manage your content sets for easy reuse across posts.
+      <h3 className="text-[22px] font-[650] tracking-[-0.2px] text-newTextColor">
+        {t('sets', 'Zestawy')} ({data?.length || 0})
+      </h3>
+      <div className="text-[12.5px] text-newTextColor/55 mt-[3px]">
+        {t(
+          'sets_description',
+          'Zarządzaj zestawami treści do łatwego ponownego użycia w postach.'
+        )}
       </div>
-      <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 items-center border rounded-[12px] p-[24px] flex gap-[24px]">
+      <Card className="my-[16px] items-center p-[24px] flex gap-[24px]">
         <div className="flex flex-col w-full">
           {!!data?.length && (
             <div className="grid grid-cols-[2fr,1fr,1fr] w-full gap-y-[10px]">
@@ -183,12 +196,14 @@ export const Sets: FC = () => {
                   <div className="flex flex-col justify-center">{p.name}</div>
                   <div className="flex flex-col justify-center">
                     <div>
-                      <Button onClick={addSet(p)}>{t('edit', 'Edit')}</Button>
+                      <Button variant="secondary" onClick={addSet(p)}>
+                        {t('edit', 'Edit')}
+                      </Button>
                     </div>
                   </div>
                   <div className="flex flex-col justify-center">
                     <div>
-                      <Button onClick={deleteSet(p)}>
+                      <Button variant="danger" onClick={deleteSet(p)}>
                         {t('delete', 'Delete')}
                       </Button>
                     </div>
@@ -202,11 +217,11 @@ export const Sets: FC = () => {
               onClick={addSet()}
               className={clsx((data?.length || 0) > 0 && 'my-[16px]')}
             >
-              Add a set
+              {t('add_a_set', 'Dodaj zestaw')}
             </Button>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

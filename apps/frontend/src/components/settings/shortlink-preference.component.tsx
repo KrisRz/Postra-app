@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
 import { Select } from '@gitroom/react/form/select';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
@@ -65,15 +66,15 @@ const ShortlinkPreferenceComponent = () => {
 
   if (isLoading) {
     return (
-      <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 border rounded-[12px] p-[24px]">
+      <Card className="my-[16px] p-[24px]">
         <div className="animate-pulse">{t('loading', 'Loading...')}</div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 border rounded-[12px] p-[24px] flex flex-col gap-[24px]">
-      <div className="mt-[4px]">
+    <Card className="my-[16px] p-[24px] flex flex-col gap-[24px]">
+      <div className="text-[15px] font-[600]">
         {t('shortlink_settings', 'Shortlink Settings')}
       </div>
       <div className="flex items-center justify-between gap-[24px]">
@@ -81,7 +82,7 @@ const ShortlinkPreferenceComponent = () => {
           <div className="text-[14px]">
             {t('shortlink_preference', 'Shortlink Preference')}
           </div>
-          <div className="text-[12px] text-customColor18">
+          <div className="text-[12px] text-newTextColor/55">
             {t(
               'shortlink_preference_description',
               'Control how URLs in your posts are handled. Shortlinks provide click statistics.'
@@ -109,7 +110,7 @@ const ShortlinkPreferenceComponent = () => {
           </Select>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
