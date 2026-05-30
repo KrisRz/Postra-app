@@ -221,7 +221,7 @@ const buildFabricFromLayer = async (
       originX: fabricOriginX(layer.originX),
       originY: fabricOriginY(layer.originY),
       width: layer.width ?? 300,
-      fontFamily: layer.fontFamily,
+      fontFamily: layer.fontFamily || 'Arial',
       fontSize: layer.fontSize,
       fontWeight: layer.fontWeight,
       fontStyle: layer.fontStyle,
