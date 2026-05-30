@@ -109,7 +109,7 @@ export class AdminController {
             select: {
               users: true,
               Integration: { where: { deletedAt: null } },
-              posts: { where: { deletedAt: null, parentPostId: null } },
+              post: { where: { deletedAt: null, parentPostId: null } },
             },
           },
         },
@@ -198,7 +198,10 @@ export class AdminController {
     const fromDate = from ? dayjs(from).toDate() : dayjs().subtract(30, 'day').toDate();
     const toDate = to ? dayjs(to).toDate() : new Date();
 
-    const [creditsByType, creditsByOrg, totalSpans, recentSpans] = await Promise.all([
+    // NOTE: AI usage is reported from `credits` (real, billable usage). Mastra's
+    // own span tables (mastra_ai_spans) are @@ignore'd in the Prisma schema (no @id),
+    // so they are NOT in the generated client and cannot be queried via this._prisma.
+    const [creditsByType, creditsByOrg] = await Promise.all([
       this._prisma.credits.groupBy({
         by: ['type'],
         where: { createdAt: { gte: fromDate, lte: toDate } },
@@ -211,22 +214,6 @@ export class AdminController {
         _sum: { credits: true },
         orderBy: { _sum: { credits: 'desc' } },
         take: 10,
-      }),
-      this._prisma.mastra_ai_spans.count({
-        where: { createdAt: { gte: fromDate, lte: toDate } },
-      }),
-      this._prisma.mastra_ai_spans.findMany({
-        where: { createdAt: { gte: fromDate, lte: toDate } },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        select: {
-          id: true,
-          name: true,
-          model: true,
-          createdAt: true,
-          input_tokens: true,
-          output_tokens: true,
-        },
       }),
     ]);
 
@@ -252,7 +239,6 @@ export class AdminController {
         orgName: orgMap.get(c.organizationId) || 'Unknown',
         totalCredits: c._sum.credits || 0,
       })),
-      aiSpans: { total: totalSpans, recent: recentSpans },
     };
   }
 
