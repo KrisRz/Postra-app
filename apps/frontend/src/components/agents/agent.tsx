@@ -141,7 +141,7 @@ export const AgentList: FC<{ onChange: (arr: any[]) => void }> = ({
           {sortedIntegrations.map((integration, index) => (
             <div
               onClick={setIntegration(integration)}
-              key={integration.id}
+              key={`${integration.id ?? 'agent'}-${index}`}
               className={clsx(
                 'flex gap-[12px] items-center group/profile justify-center rounded-[12px] px-[10px] py-[8px] cursor-pointer transition-all duration-200',
                 selected.some((p) => p.id === integration.id)
