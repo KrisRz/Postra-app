@@ -151,7 +151,7 @@ const OnboardingStep1: FC<{ onNext: () => void; onSkip: () => void }> = ({
         <div className="text-[24px] font-semibold">
           {t('connect_your_channels', 'Podłącz swoje kanały')}
         </div>
-        <div className="text-[14px] text-customColor18">
+        <div className="text-[14px] text-newTextColor/55">
           {t(
             'connect_social_media_to_start',
             'Podłącz swoje konta social media, aby zacząć planować posty'
@@ -252,7 +252,7 @@ const OnboardingStep2: FC<{ onBack: () => void; onFinish: () => void }> = ({
         <div className="text-[24px] font-semibold">
           {t('watch_tutorial_title', 'Naucz się korzystać z Postra')}
         </div>
-        <div className="text-[14px] text-customColor18">
+        <div className="text-[14px] text-newTextColor/55">
           {t(
             'watch_tutorial_description',
             'Obejrzyj krótki film, aby najlepiej wykorzystać Postra'

@@ -3,7 +3,7 @@ import { FC, useCallback, useRef, useState, useEffect } from 'react';
 import { useVideoFunction } from '@gitroom/frontend/components/videos/video.render.component';
 import useSWR from 'swr';
 import { useFormContext } from 'react-hook-form';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import clsx from 'clsx';
 import { useVideo } from '@gitroom/frontend/components/videos/video.context.wrapper';
 

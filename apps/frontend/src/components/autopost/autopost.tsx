@@ -3,7 +3,7 @@
 import React, { FC, Fragment, useCallback, useMemo, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR from 'swr';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { Input } from '@gitroom/react/form/input';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -71,7 +71,7 @@ export const Autopost: FC = () => {
   return (
     <div className="flex flex-col">
       <h3 className="text-[20px]">{t('autopost', 'Autopost')}</h3>
-      <div className="text-customColor18 mt-[4px]">
+      <div className="text-newTextColor/55 mt-[4px]">
         {t(
           'autopost_can_automatically_posts_your_rss_new_items_to_social_media',
           'Autopost automatycznie publikuje nowe wpisy z RSS do social mediów'
@@ -359,7 +359,7 @@ export const AddOrEditWebhook: FC<{
                 <CopilotTextarea
                   disableBranding={true}
                   className={clsx(
-                    '!min-h-40 !max-h-80 p-2 overflow-x-hidden scrollbar scrollbar-thumb-[#612AD5] bg-white/[0.03] outline-none mb-[16px] border-white/10 border rounded-[16px]'
+                    '!min-h-40 !max-h-80 p-2 overflow-x-hidden scrollbar scrollbar-thumb-[#38bdf8] bg-white/[0.03] outline-none mb-[16px] border-white/10 border rounded-[16px]'
                   )}
                   value={content}
                   onChange={(e) => {

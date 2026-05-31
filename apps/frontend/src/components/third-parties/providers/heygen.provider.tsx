@@ -7,7 +7,7 @@ import {
 import { useThirdParty } from '@gitroom/frontend/components/third-parties/third-party.media';
 import { useForm, FormProvider, SubmitHandler } from 'react-hook-form';
 import { Textarea } from '@gitroom/react/form/textarea';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { FC, useCallback, useState } from 'react';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import clsx from 'clsx';
