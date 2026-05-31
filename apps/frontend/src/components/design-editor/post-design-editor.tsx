@@ -19,7 +19,7 @@ installStudioFabricMetadata();
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 
 const MultiFormatModal = lazy(() =>
   import('./multi-format-modal').then((m) => ({ default: m.MultiFormatModal }))

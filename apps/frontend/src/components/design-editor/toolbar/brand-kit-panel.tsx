@@ -5,7 +5,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { STUDIO_FONTS } from '../fonts';
 
 interface BrandKit {
