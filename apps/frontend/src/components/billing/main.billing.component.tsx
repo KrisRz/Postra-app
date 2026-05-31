@@ -2,7 +2,8 @@
 
 import { Slider } from '@gitroom/react/form/slider';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { Subscription } from '@prisma/client';
 import { useDebouncedCallback } from 'use-debounce';
@@ -10,7 +11,6 @@ import ReactLoading from '@gitroom/frontend/components/layout/loading';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import dayjs from 'dayjs';
-import clsx from 'clsx';
 import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { FAQComponent } from '@gitroom/frontend/components/billing/faq.component';
 import { useSWRConfig } from 'swr';
@@ -111,7 +111,7 @@ export const Features: FC<{
     return list;
   }, [pack]);
   return (
-    <div className="flex flex-col gap-[10px] justify-center text-[16px] text-customColor18">
+    <div className="flex flex-col gap-[10px] justify-center text-[16px] text-newTextColor/55">
       {features.map((feature) => (
         <div key={feature} className="flex gap-[20px]">
           <div>
@@ -139,6 +139,7 @@ const Accept: FC<{ resolve: (res: boolean) => void }> = ({ resolve }) => {
   const [loading, setLoading] = useState(false);
   const fetch = useFetch();
   const toaster = useToaster();
+  const t = useT();
 
   const apply = useCallback(async () => {
     setLoading(true);
@@ -147,20 +148,23 @@ const Accept: FC<{ resolve: (res: boolean) => void }> = ({ resolve }) => {
     });
 
     resolve(true);
-    toaster.show('50% discount applied successfully');
+    toaster.show(t('discount_applied', 'Zniżka 50% zastosowana'));
   }, []);
 
   return (
     <div>
       <div className="mb-[20px]">
-        Would you accept 50% discount for 3 months instead? 🙏🏻
+        {t(
+          'accept_discount_q',
+          'Może zamiast tego przyjmiesz 50% zniżki na 3 miesiące? 🙏🏻'
+        )}
       </div>
       <div className="flex gap-[10px]">
         <Button loading={loading} onClick={apply}>
-          Apply 50% discount for 3 months
+          {t('apply_discount', 'Zastosuj 50% zniżki na 3 miesiące')}
         </Button>
-        <Button onClick={() => resolve(false)} className="!bg-red-800">
-          Cancel my subscription
+        <Button variant="danger" onClick={() => resolve(false)}>
+          {t('cancel_my_subscription', 'Anuluj moją subskrypcję')}
         </Button>
       </div>
     </div>
@@ -191,7 +195,7 @@ const Info: FC<{
       <div>
         <Textarea
           className="bg-white/[0.03]"
-          label={'Feedback'}
+          label={t('feedback', 'Opinia')}
           name="feedback"
           disableForm={true}
           value={feedback}
@@ -440,7 +444,9 @@ export const MainBillingComponent: FC<{
   return (
     <div className="flex flex-col gap-[16px]">
       <div className="flex flex-row">
-        <div className="flex-1 text-[20px]">{t('plans', 'Plans')}</div>
+        <div className="flex-1 text-[22px] font-[650] tracking-[-0.2px] text-newTextColor">
+          {t('plans', 'Plans')}
+        </div>
         <div className="flex items-center gap-[16px]">
           <div>{t('monthly', 'MONTHLY')}</div>
           <div>
@@ -455,9 +461,9 @@ export const MainBillingComponent: FC<{
         {Object.entries(pricing)
           .filter((f) => !isGeneral || f[0] !== 'FREE')
           .map(([name, values]) => (
-            <div
+            <Card
               key={name}
-              className="flex-1 bg-white/[0.03] border border-white/10 rounded-[12px] p-[24px] gap-[16px] flex flex-col [@media(max-width:1024px)]:items-center"
+              className="flex-1 p-[24px] gap-[16px] flex flex-col [@media(max-width:1024px)]:items-center"
             >
               <div className="text-[18px]">{name}</div>
               <div className="text-[38px] flex gap-[2px] items-center">
@@ -467,8 +473,10 @@ export const MainBillingComponent: FC<{
                     ? values.year_price
                     : values.month_price}
                 </div>
-                <div className={`text-[14px] text-customColor18`}>
-                  {monthlyOrYearly === 'on' ? '/year' : '/month'}
+                <div className={`text-[14px] text-newTextColor/55`}>
+                  {monthlyOrYearly === 'on'
+                    ? t('per_year', '/rok')
+                    : t('per_month', '/mies')}
                 </div>
               </div>
               <div className="text-[14px] flex gap-[10px]">
@@ -495,30 +503,30 @@ export const MainBillingComponent: FC<{
                         name.toUpperCase() === 'FREE') ||
                       currentPackage === name.toUpperCase()
                     }
-                    className={clsx(
-                      subscription &&
-                        name.toUpperCase() === 'FREE' &&
-                        '!bg-red-500'
-                    )}
+                    variant={
+                      subscription && name.toUpperCase() === 'FREE'
+                        ? 'danger'
+                        : undefined
+                    }
                     onClick={moveToCheckout(
                       name.toUpperCase() as 'STANDARD' | 'PRO'
                     )}
                   >
                     {currentPackage === name.toUpperCase()
-                      ? 'Current Plan'
+                      ? t('current_plan', 'Aktualny plan')
                       : name.toUpperCase() === 'FREE'
                       ? subscription?.cancelAt
-                        ? `Downgrade on ${dayjs
+                        ? `${t('downgrade_on', 'Zmiana planu')} ${dayjs
                             .utc(subscription?.cancelAt)
                             .local()
                             .format('D MMM, YYYY')}`
-                        : 'Cancel subscription'
+                        : t('cancel_subscription', 'Anuluj subskrypcję')
                       : // @ts-ignore
                       (user?.tier === 'FREE' ||
                           user?.tier?.current === 'FREE') &&
                         user.allowTrial
                       ? t('start_7_days_free_trial', 'Start 7 days free trial')
-                      : 'Purchase'}
+                      : t('purchase', 'Kup pakiet')}
                   </Button>
                 )}
                 {subscription &&
@@ -534,7 +542,7 @@ export const MainBillingComponent: FC<{
               <Features
                 pack={name.toUpperCase() as 'FREE' | 'STANDARD' | 'PRO'}
               />
-            </div>
+            </Card>
           ))}
       </div>
       {!!subscription?.id && (
@@ -547,7 +555,7 @@ export const MainBillingComponent: FC<{
           </Button>
           {isGeneral && !subscription?.cancelAt && (
             <Button
-              className="bg-red-500"
+              variant="danger"
               loading={loading}
               onClick={moveToCheckout('FREE')}
             >

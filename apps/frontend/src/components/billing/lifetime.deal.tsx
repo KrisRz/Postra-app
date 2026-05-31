@@ -5,7 +5,8 @@ import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { useCallback, useMemo, useState } from 'react';
 import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { Input } from '@gitroom/react/form/input';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { Card } from '@gitroom/frontend/components/ui/card';
 import { useSWRConfig } from 'swr';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useRouter } from 'next/navigation';
@@ -34,10 +35,13 @@ export const LifetimeDeal = () => {
     ).json();
     if (success) {
       mutate('/user/self');
-      toast.show('Successfully claimed the code');
+      toast.show(t('code_claimed', 'Kod aktywowany pomyślnie'));
       fireEvents('lifetime_claimed');
     } else {
-      toast.show('Code already claimed or invalid code', 'warning');
+      toast.show(
+        t('code_invalid', 'Kod już wykorzystany lub nieprawidłowy'),
+        'warning'
+      );
     }
     setCode('');
   }, [code]);
@@ -106,13 +110,13 @@ export const LifetimeDeal = () => {
   }
   return (
     <div className="flex gap-[30px]">
-      <div className="border border-white/10 bg-white/[0.03] p-[24px] flex flex-col gap-[20px] flex-1 rounded-[12px]">
+      <Card className="p-[24px] flex flex-col gap-[20px] flex-1">
         <div className="text-[30px]">
-          {t('current_package', 'Current Package:')}
+          {t('current_package', 'Obecny pakiet:')}
           {user?.totalChannels > 8 ? 'EXTRA' : user?.tier?.current}
         </div>
 
-        <div className="flex flex-col gap-[10px] justify-center text-[16px] text-customColor18">
+        <div className="flex flex-col gap-[10px] justify-center text-[16px] text-newTextColor/55">
           {features.map((feature) => (
             <div key={feature} className="flex gap-[20px]">
               <div>
@@ -133,11 +137,11 @@ export const LifetimeDeal = () => {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
-      <div className="border border-white/10 bg-white/[0.03] p-[24px] flex flex-col gap-[20px] flex-1 rounded-[12px]">
+      <Card className="p-[24px] flex flex-col gap-[20px] flex-1">
         <div className="text-[30px]">
-          {t('next_package', 'Next Package:')}
+          {t('next_package', 'Następny pakiet:')}
           {user?.tier?.current === 'PRO'
             ? 'EXTRA'
             : !user?.tier?.current
@@ -147,7 +151,7 @@ export const LifetimeDeal = () => {
             : 'STANDARD'}
         </div>
 
-        <div className="flex flex-col gap-[10px] justify-center text-[16px] text-customColor18">
+        <div className="flex flex-col gap-[10px] justify-center text-[16px] text-newTextColor/55">
           {(user?.tier?.current === 'PRO'
             ? [`${(user?.totalChannels || 0) + 5} channels`]
             : nextFeature
@@ -174,9 +178,8 @@ export const LifetimeDeal = () => {
           <div className="mt-[20px] flex items-center gap-[10px]">
             <div className="flex-1">
               <Input
-                label="Code"
-                translationKey="label_code"
-                placeholder="Enter your code"
+                label={t('code', 'Kod')}
+                placeholder={t('enter_your_code', 'Wpisz swój kod')}
                 disableForm={true}
                 name="code"
                 value={code}
@@ -185,12 +188,12 @@ export const LifetimeDeal = () => {
             </div>
             <div>
               <Button disabled={code.length < 4} onClick={claim}>
-                {t('claim', 'Claim')}
+                {t('claim', 'Aktywuj')}
               </Button>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

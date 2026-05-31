@@ -11,7 +11,7 @@ import {
 } from '@stripe/react-stripe-js/checkout';
 import { modeEmitter } from '@gitroom/frontend/components/layout/mode.component';
 import useCookie from 'react-use-cookie';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import dayjs from 'dayjs';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -223,7 +223,7 @@ const PriceBreakdown: FC = () => {
       <h4 className="mb-[16px] text-[24px] font-[700]">
         {t('billing_order_summary', 'Order Summary')}
       </h4>
-      <div className="rounded-[12px] border border-newColColor p-[20px] flex flex-col gap-[12px]">
+      <div className="rounded-[16px] border border-newColColor p-[20px] flex flex-col gap-[12px]">
         {/* Plan */}
         <div className="flex justify-between items-center">
           <div className="flex flex-col">
@@ -375,7 +375,7 @@ const AppliedCouponDisplay: FC<{
 
   return (
     <div className="flex flex-col gap-[8px]">
-      <div className="flex items-center gap-[12px] p-[16px] rounded-[12px] border border-[#a78bfa]/30 bg-[#a78bfa]/10">
+      <div className="flex items-center gap-[12px] p-[16px] rounded-[16px] border border-[#a78bfa]/30 bg-[#a78bfa]/10">
         <div className="flex-1">
           <div className="flex items-center gap-[8px] flex-wrap">
             <svg

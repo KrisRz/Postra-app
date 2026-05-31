@@ -3,11 +3,13 @@ import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.titl
 import { LoadingComponent } from '@gitroom/frontend/components/layout/loading';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { timer } from '@gitroom/helpers/utils/timer';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
 export const FinishTrial: FC<{ close: () => void }> = (props) => {
   const [finished, setFinished] = useState(false);
   const fetch = useFetch();
+  const t = useT();
 
   const finishSubscription = useCallback(async () => {
     await fetch('/billing/finish-trial', {
@@ -33,10 +35,12 @@ export const FinishTrial: FC<{ close: () => void }> = (props) => {
   return (
     <div className="text-textColor fixed start-0 top-0 bg-primary/80 z-[300] w-full h-full p-[60px] animate-fade justify-center flex bg-black/50">
       <div>
-        <div className="flex gap-[10px] flex-col w-[500px] h-auto bg-[rgba(15,23,42,0.92)] border-white/10 border-2 rounded-[12px] pb-[20px] px-[20px] relative">
+        <div className="flex gap-[10px] flex-col w-[500px] h-auto bg-[rgba(15,23,42,0.92)] border-white/10 border-2 rounded-[16px] pb-[20px] px-[20px] relative">
           <div className="flex">
             <div className="flex-1">
-              <TopTitle title={'Finishing Trial'} />
+              <TopTitle
+                title={t('finishing_trial', 'Kończenie okresu próbnego')}
+              />
             </div>
             <button
               onClick={props.close}
@@ -66,11 +70,18 @@ export const FinishTrial: FC<{ close: () => void }> = (props) => {
                 {finished && (
                   <div className="flex flex-col">
                     <div>
-                      You trial has been successfully finished and you have been charged.
+                      {t(
+                        'trial_finished_charged',
+                        'Twój okres próbny został zakończony i opłata została pobrana.'
+                      )}
                     </div>
                     <div className="flex gap-[10px] mt-[20px]">
-                      <Button className="flex-1" onClick={() => window.close()}>Close window</Button>
-                      <Button className="flex-1" onClick={() => props.close()}>Close dialog</Button>
+                      <Button className="flex-1" onClick={() => window.close()}>
+                        {t('close_window', 'Zamknij okno')}
+                      </Button>
+                      <Button className="flex-1" onClick={() => props.close()}>
+                        {t('close_dialog', 'Zamknij')}
+                      </Button>
                     </div>
                   </div>
                 )}

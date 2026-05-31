@@ -6,7 +6,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 
 type AnnouncementColor = 'INFO' | 'WARNING' | 'ERROR';
@@ -50,7 +50,7 @@ const AnnouncementDetailModal: FC<{
       !(await deleteDialog(
         t(
           'delete_announcement_confirm',
-          'Are you sure you want to delete this announcement?'
+          'Czy na pewno chcesz usunąć to ogłoszenie?'
         ),
         t('yes_delete', 'Yes, delete'),
         t('confirm_delete', 'Confirm Delete'),
