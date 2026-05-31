@@ -13,7 +13,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 
 interface Props {
   canvas: MutableRefObject<fabric.Canvas | null>;
