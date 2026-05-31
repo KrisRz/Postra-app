@@ -109,6 +109,16 @@ export class AuthController {
       response.header('onboarding', 'true');
       response.status(200).json({
         register: true,
+        // Klient mobilny nie odczyta httpOnly cookie — zwróć token w body.
+        ...(req.headers['x-client'] === 'mobile'
+          ? {
+              token: jwt,
+              org:
+                typeof addedOrg !== 'boolean'
+                  ? addedOrg?.organizationId
+                  : undefined,
+            }
+          : {}),
       });
     } catch (e: any) {
       response.status(400).send(e.message);
@@ -174,6 +184,16 @@ export class AuthController {
       response.header('reload', 'true');
       response.status(200).json({
         login: true,
+        // Klient mobilny nie odczyta httpOnly cookie — zwróć token w body.
+        ...(req.headers['x-client'] === 'mobile'
+          ? {
+              token: jwt,
+              org:
+                typeof addedOrg !== 'boolean'
+                  ? addedOrg?.organizationId
+                  : undefined,
+            }
+          : {}),
       });
     } catch (e: any) {
       response.status(400).send(e.message);
