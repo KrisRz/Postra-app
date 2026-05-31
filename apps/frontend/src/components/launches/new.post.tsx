@@ -96,7 +96,7 @@ export const NewPost = () => {
         />
       </svg>
       <div className="flex-1 text-start text-[14px] font-[700] group-[.sidebar]:hidden">
-        {t('create_new_post', 'Create Post')}
+        {t('create_new_post', 'Utwórz post')}
       </div>
     </button>
   );
