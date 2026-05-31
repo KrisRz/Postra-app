@@ -281,6 +281,35 @@ export class UsersController {
     response.status(200).send();
   }
 
+  // GDPR / RODO right to erasure + Meta data-deletion. Permanently deletes the
+  // signed-in user and the organizations they solely own (see UsersService.
+  // deleteAccount), then clears the session cookies.
+  @Post('/delete')
+  async deleteSelf(
+    @GetUserFromRequest() user: User,
+    @Res({ passthrough: true }) response: Response
+  ) {
+    await this._userService.deleteAccount(user.id);
+
+    response.header('logout', 'true');
+    for (const name of ['auth', 'showorg', 'impersonate']) {
+      response.cookie(name, '', {
+        domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
+        ...(!process.env.NOT_SECURED
+          ? {
+              secure: true,
+              httpOnly: true,
+              sameSite: 'lax',
+            }
+          : {}),
+        maxAge: -1,
+        expires: new Date(0),
+      });
+    }
+
+    response.status(200).json({ deleted: true });
+  }
+
   @Post('/t')
   async trackEvent(
     @Res({ passthrough: true }) res: Response,
