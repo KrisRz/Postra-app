@@ -63,12 +63,12 @@ const AnalyticsCard: FC<{
       <div
         className={`
           flex flex-col h-full
-          bg-newTableHeader
-          border border-newTableBorder
-          rounded-[12px]
+          bg-white/[0.03]
+          border border-white/10
+          rounded-[16px]
           overflow-hidden
           transition-all duration-200
-          hover:border-[#612bd3]/50
+          hover:border-[#38bdf8]/50
         `}
       >
         {/* Header */}
@@ -77,7 +77,7 @@ const AnalyticsCard: FC<{
             <div
               className={`
                 w-[8px] h-[8px] rounded-full
-                ${color === 'purple' ? 'bg-[#612bd3]' : ''}
+                ${color === 'purple' ? 'bg-[#38bdf8]' : ''}
                 ${color === 'green' ? 'bg-[#32d583]' : ''}
                 ${color === 'blue' ? 'bg-[#1d9bf0]' : ''}
               `}
@@ -125,8 +125,8 @@ const EmptyState: FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
   const t = useT();
 
   return (
-    <div className="col-span-full flex flex-col items-center justify-center py-[48px] px-[24px] bg-newTableHeader border border-newTableBorder rounded-[12px]">
-      <div className="w-[48px] h-[48px] mb-[16px] rounded-full bg-[#612bd3]/10 flex items-center justify-center">
+    <div className="col-span-full flex flex-col items-center justify-center py-[48px] px-[24px] bg-white/[0.03] border border-white/10 rounded-[16px]">
+      <div className="w-[48px] h-[48px] mb-[16px] rounded-full bg-[#38bdf8]/10 flex items-center justify-center">
         <svg
           width="24"
           height="24"
@@ -134,7 +134,7 @@ const EmptyState: FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          className="text-[#612bd3]"
+          className="text-[#38bdf8]"
         >
           <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           <path d="M12 8v4l2 2" />
@@ -148,7 +148,7 @@ const EmptyState: FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
       </p>
       <button
         onClick={onRefresh}
-        className="inline-flex items-center gap-[6px] px-[16px] py-[8px] text-[14px] font-medium text-white bg-[#612bd3] hover:bg-[#5023b8] rounded-[8px] transition-colors"
+        className="inline-flex items-center gap-[6px] px-[16px] py-[8px] text-[14px] font-medium text-[#06222e] bg-[#38bdf8] hover:bg-[#0284c7] rounded-[8px] transition-colors"
       >
         <svg
           width="16"
