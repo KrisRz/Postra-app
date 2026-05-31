@@ -96,6 +96,16 @@ export function RegisterAfter({
   const fireEvents = useFireEvents();
   const track = useTrack();
   const [datafast_visitor_id] = useCookie('datafast_visitor_id');
+  const searchParams = useSearchParams();
+  // Market signal from the landing CTA (postra.co.uk → ?region=uk). Persisted to a
+  // cookie so it survives the OAuth round-trip, then sent at submit to tag the org.
+  const [regionCookie, setRegionCookie] = useCookie('postra_region', '');
+  useEffect(() => {
+    const r = searchParams?.get('region')?.toUpperCase();
+    if (r === 'PL' || r === 'UK') {
+      setRegionCookie(r);
+    }
+  }, [searchParams]);
   const isAfterProvider = useMemo(() => {
     return !!token && !!provider;
   }, [token, provider]);
@@ -112,11 +122,14 @@ export function RegisterAfter({
   const fetchData = useFetch();
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setLoading(true);
+    const region =
+      searchParams?.get('region')?.toUpperCase() || regionCookie || '';
     await fetchData('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
         ...data,
         datafast_visitor_id,
+        ...(region === 'PL' || region === 'UK' ? { region } : {}),
       }),
     })
       .then(async (response) => {
