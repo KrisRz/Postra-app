@@ -5,7 +5,7 @@ import {
   PlugsInterface,
   usePlugs,
 } from '@gitroom/frontend/components/plugs/plugs.context';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import useSWR, { mutate } from 'swr';
@@ -125,7 +125,7 @@ export const PlugPop: FC<{
         })),
       }),
     });
-    toaster.show('Plug updated', 'success');
+    toaster.show('Wtyczka zaktualizowana', 'success');
     closeAll();
   }, []);
 

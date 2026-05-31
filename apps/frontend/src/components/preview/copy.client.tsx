@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import copy from 'copy-to-clipboard';
 import { useCallback } from 'react';
 import { useToaster } from '@gitroom/react/toaster/toaster';

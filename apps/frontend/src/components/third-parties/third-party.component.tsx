@@ -39,7 +39,7 @@ export const ThirdPartyMenuComponent: FC<{
     });
 
     if (res.ok) {
-      toaster.show('Integration deleted successfully', 'success');
+      toaster.show('Integracja usunięta', 'success');
       reload();
     } else {
       const error = await res.json();
