@@ -49,11 +49,11 @@ export const CheckPaymentInner: FC<{
     }
     if (status === 1) {
       modal.open({
-        title: 'Invalid Payment',
+        title: 'Nieprawidłowa płatność',
         onlyApprove: true,
         approveLabel: 'OK',
         description:
-          'We could not validate your payment method, please try again',
+          'Nie udało się zweryfikować Twojej metody płatności, spróbuj ponownie',
       });
       setShowLoader(false);
     }
@@ -69,7 +69,7 @@ export const CheckPaymentInner: FC<{
     return (
       <div className="fixed bg-black/40 w-full h-full flex justify-center items-center z-[400]">
         <div>
-          <Loading type="spin" color="#612AD5" height={250} width={250} />
+          <Loading type="spin" color="#38bdf8" height={250} width={250} />
         </div>
       </div>
     );
