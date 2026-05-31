@@ -10,11 +10,13 @@ import { VideoTrimmer } from './video-trimmer';
 import { VideoMultiFormat, VideoFormat } from './video-multi-format';
 import { VideoCaptions } from './video-captions';
 import { VideoStock } from './video-stock';
-import { VideoCompositorPrototype } from './video-compositor-prototype';
+import { VideoTextOverlay } from './video-text-overlay';
+import { VideoSlideshow } from './video-slideshow';
 import { VideoLibraryPicker, LibraryMedia } from './video-library-picker';
 import {
   fetchLibraryVideoAsFile,
   VideoTooLargeError,
+  assertVideoSize,
 } from './load-library-media';
 
 interface VideoStudioProps {
@@ -22,7 +24,7 @@ interface VideoStudioProps {
   closeModal: () => void;
 }
 
-type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'compositor';
+type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text' | 'slideshow';
 
 export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const t = useT();
@@ -51,6 +53,15 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     if (!f) return;
     if (!f.type.startsWith('video/')) {
       toaster.show(t('video_bad_type', 'Wybierz plik wideo (MP4, WebM, MOV).'), 'warning');
+      return;
+    }
+    try {
+      assertVideoSize(f);
+    } catch {
+      toaster.show(
+        t('video_disk_too_big', 'Plik za duży do edycji w przeglądarce (limit 200 MB).'),
+        'warning'
+      );
       return;
     }
     setFile(f);
@@ -115,20 +126,26 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     []
   );
 
+  // Upload whatever clip is loaded — the trimmed version if present, otherwise
+  // the original source — so captions don't force a trim first.
   const ensureUploaded = useCallback(async (): Promise<{ id: string; path: string } | null> => {
     if (uploadedMedia) return uploadedMedia;
-    if (!trimmedBlob) return null;
+    const blob = trimmedBlob ?? file;
+    if (!blob) return null;
     setIsUploading(true);
-    const result = await uploadBlob(trimmedBlob, `trimmed-${Date.now()}.mp4`);
+    const result = await uploadBlob(blob, `clip-${Date.now()}.mp4`);
     setIsUploading(false);
     if (result) setUploadedMedia(result);
     return result;
-  }, [uploadedMedia, trimmedBlob, uploadBlob]);
+  }, [uploadedMedia, trimmedBlob, file, uploadBlob]);
 
   const handleSwitchToCaptions = useCallback(async () => {
     const m = await ensureUploaded();
     if (!m) {
-      toaster.show(t('video_upload_first', 'Najpierw wytnij i upload wideo.'), 'warning');
+      toaster.show(
+        t('video_upload_first', 'Najpierw wczytaj wideo (Z dysku / Z biblioteki).'),
+        'warning'
+      );
       return;
     }
     setTab('captions');
@@ -186,6 +203,14 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     [setMedia, closeModal]
   );
 
+  const handleComposedReady = useCallback(
+    (newMedia: { id: string; path: string }) => {
+      setMedia([newMedia]);
+      closeModal();
+    },
+    [setMedia, closeModal]
+  );
+
   if (!browserSupported) {
     return (
       <div className="flex flex-col gap-3 p-6">
@@ -201,12 +226,15 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     );
   }
 
-  const tabs: { key: Tab; label: string; icon: string; needsTrim: boolean; onClick?: () => void }[] = [
-    { key: 'trim', label: t('video_tab_trim', 'Wytnij'), icon: '✂', needsTrim: false },
-    { key: 'formats', label: t('video_tab_formats', 'Formaty'), icon: '📐', needsTrim: true },
-    { key: 'captions', label: t('video_tab_captions', 'Napisy AI'), icon: '💬', needsTrim: true, onClick: handleSwitchToCaptions },
-    { key: 'stock', label: t('video_tab_stock', 'Stock B-roll'), icon: '🎞', needsTrim: false },
-    { key: 'compositor', label: t('video_tab_compositor', 'Tekst na video (test)'), icon: '🧪', needsTrim: false },
+  // Formats/captions work on whatever clip is loaded — no forced trim first.
+  const hasClip = !!(file || trimmedBlob);
+  const tabs: { key: Tab; label: string; icon: string; needsClip: boolean; onClick?: () => void }[] = [
+    { key: 'trim', label: t('video_tab_trim', 'Wytnij'), icon: '✂', needsClip: false },
+    { key: 'formats', label: t('video_tab_formats', 'Formaty'), icon: '📐', needsClip: true },
+    { key: 'captions', label: t('video_tab_captions', 'Napisy AI'), icon: '💬', needsClip: true, onClick: handleSwitchToCaptions },
+    { key: 'stock', label: t('video_tab_stock', 'Stock B-roll'), icon: '🎞', needsClip: false },
+    { key: 'text', label: t('video_tab_text', 'Tekst'), icon: '✍️', needsClip: false },
+    { key: 'slideshow', label: t('video_tab_slideshow', 'Zdjęcia→wideo'), icon: '🖼', needsClip: false },
   ];
 
   return (
@@ -217,7 +245,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
             <button
               key={tDef.key}
               onClick={() => (tDef.onClick ? tDef.onClick() : setTab(tDef.key))}
-              disabled={tDef.needsTrim && !trimmedBlob}
+              disabled={tDef.needsClip && !hasClip}
               className={`text-xs px-3 py-1 rounded transition-colors ${
                 tab === tDef.key
                   ? 'bg-newAccent text-white'
@@ -265,15 +293,20 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
           <VideoTrimmer file={file} onTrimmed={handleTrimmedExport} />
         )}
         {tab === 'formats' && (
-          <VideoMultiFormat source={trimmedBlob} onExported={handleFormatsExported} />
+          <VideoMultiFormat source={trimmedBlob ?? file} onExported={handleFormatsExported} />
         )}
         {tab === 'captions' && (
-          <VideoCaptions mediaId={uploadedMedia?.id ?? null} onCaptioned={handleCaptionedReady} />
+          <VideoCaptions
+            mediaId={uploadedMedia?.id ?? null}
+            source={trimmedBlob ?? file}
+            onCaptioned={handleCaptionedReady}
+          />
         )}
         {tab === 'stock' && (
           <VideoStock onImported={handleStockImported} />
         )}
-        {tab === 'compositor' && <VideoCompositorPrototype />}
+        {tab === 'text' && <VideoTextOverlay onReady={handleComposedReady} />}
+        {tab === 'slideshow' && <VideoSlideshow onReady={handleComposedReady} />}
       </div>
 
       {trimmedBlob && tab === 'trim' && (

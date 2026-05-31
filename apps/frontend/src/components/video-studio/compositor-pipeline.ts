@@ -40,6 +40,8 @@ export interface ComposeOptions {
   signal?: AbortSignal;
   /** Video bitrate (defaults to Mediabunny's QUALITY_MEDIUM). */
   bitrate?: number;
+  /** Reject clips longer than this many seconds (defaults to MAX_COMPOSE_SECONDS). */
+  maxDurationSec?: number;
 }
 
 export interface ComposeResult {
@@ -48,6 +50,15 @@ export interface ComposeResult {
   /** Whether the original audio track was carried into the output. */
   hadAudio: boolean;
 }
+
+/** Thrown when a clip is too long to render in the browser. */
+export class ClipTooLongError extends Error {}
+
+/**
+ * Browser encoding holds the pipeline in memory and runs on the local GPU/CPU,
+ * so cap clip length. Longer clips belong on the server-side ffmpeg path.
+ */
+export const MAX_COMPOSE_SECONDS = 300;
 
 export async function composeVideo(opts: ComposeOptions): Promise<ComposeResult> {
   const { file, drawOverlay, onProgress, signal } = opts;
@@ -59,6 +70,10 @@ export async function composeVideo(opts: ComposeOptions): Promise<ComposeResult>
   const width = videoTrack.displayWidth;
   const height = videoTrack.displayHeight;
   const duration = await videoTrack.computeDuration();
+
+  if (duration > (opts.maxDurationSec ?? MAX_COMPOSE_SECONDS)) {
+    throw new ClipTooLongError();
+  }
 
   const canvas = document.createElement('canvas');
   canvas.width = width;

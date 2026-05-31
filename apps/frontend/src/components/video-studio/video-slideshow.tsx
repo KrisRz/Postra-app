@@ -1,0 +1,364 @@
+'use client';
+
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import { useToaster } from '@gitroom/react/toaster/toaster';
+import { Button } from '@gitroom/frontend/components/ui/button';
+import { VIDEO_FORMATS, VideoFormat } from './video-formats';
+import { composeSlideshow } from './slideshow-pipeline';
+import {
+  fontFamilyForLabel,
+  ensureFontLoaded,
+  hexToRgba,
+  drawBrandText,
+} from './text-overlay';
+import { useBrandKit } from './use-brand-kit';
+
+interface VideoSlideshowProps {
+  onReady: (media: { id: string; path: string }) => void;
+}
+
+interface Picked {
+  id: string;
+  file: File;
+  url: string;
+}
+
+const MAX_IMAGES = 10;
+const PRESETS = ['Nowość', 'Wyprzedaż', 'Promocja', 'Już dostępne'];
+
+let pickedSeq = 0;
+
+/**
+ * "Zdjęcia → wideo" — turn product photos into a branded vertical clip. Same
+ * compositor output as the rest of Postra Clip; the headline reads the active
+ * Brand Kit. Built for the shop owner who has photos, not footage.
+ */
+export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
+  const t = useT();
+  const fetch = useFetch();
+  const toaster = useToaster();
+  const { kit, loading: kitLoading } = useBrandKit();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const [images, setImages] = useState<Picked[]>([]);
+  const [format, setFormat] = useState<VideoFormat>(VIDEO_FORMATS[0]);
+  const [secondsPer, setSecondsPer] = useState(2.5);
+  const [text, setText] = useState('Nowość w sklepie');
+  const [color, setColor] = useState<string | null>(null);
+  const [fontLabel, setFontLabel] = useState<string | null>(null);
+
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [resultBlob, setResultBlob] = useState<Blob | null>(null);
+  const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (kitLoading || seeded.current) return;
+    seeded.current = true;
+    setColor((c) => c ?? kit.primaryColor);
+    setFontLabel((f) => f ?? kit.font);
+  }, [kitLoading, kit]);
+
+  // Revoke every object URL we created on unmount.
+  useEffect(
+    () => () => {
+      images.forEach((p) => URL.revokeObjectURL(p.url));
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const effectiveColor = color ?? kit.primaryColor;
+  const effectiveFontLabel = fontLabel ?? kit.font;
+
+  const resetResult = useCallback(() => {
+    setResultBlob(null);
+    setResultUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, []);
+
+  const addFiles = useCallback(
+    (files: FileList) => {
+      const incoming = Array.from(files).filter((f) => f.type.startsWith('image/'));
+      if (!incoming.length) return;
+      setImages((prev) => {
+        const room = MAX_IMAGES - prev.length;
+        if (room <= 0) {
+          toaster.show(
+            t('slideshow_max', 'Maksymalnie {n} zdjęć na klip.').replace('{n}', String(MAX_IMAGES)),
+            'warning'
+          );
+          return prev;
+        }
+        const next = incoming.slice(0, room).map((file) => ({
+          id: `img-${pickedSeq++}`,
+          file,
+          url: URL.createObjectURL(file),
+        }));
+        return [...prev, ...next];
+      });
+      resetResult();
+    },
+    [toaster, t, resetResult]
+  );
+
+  const removeImage = useCallback((id: string) => {
+    setImages((prev) => {
+      const gone = prev.find((p) => p.id === id);
+      if (gone) URL.revokeObjectURL(gone.url);
+      return prev.filter((p) => p.id !== id);
+    });
+    resetResult();
+  }, [resetResult]);
+
+  const move = useCallback((id: string, dir: -1 | 1) => {
+    setImages((prev) => {
+      const idx = prev.findIndex((p) => p.id === id);
+      const swap = idx + dir;
+      if (idx < 0 || swap < 0 || swap >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[swap]] = [next[swap], next[idx]];
+      return next;
+    });
+    resetResult();
+  }, [resetResult]);
+
+  const compose = useCallback(async () => {
+    if (!images.length || busy) return;
+    setBusy(true);
+    setProgress(0);
+    resetResult();
+
+    const fontFamily = fontFamilyForLabel(effectiveFontLabel);
+    const bandColor = hexToRgba(kit.secondaryColor, 0.55);
+    const headline = text.trim();
+    try {
+      await ensureFontLoaded(fontFamily, 64);
+      const result = await composeSlideshow({
+        images: images.map((p) => p.file),
+        width: format.width,
+        height: format.height,
+        secondsPerImage: secondsPer,
+        backgroundColor: kit.secondaryColor,
+        onProgress: (r) => setProgress(Math.round(r * 100)),
+        drawOverlay: headline
+          ? (ctx, { width, height }) =>
+              drawBrandText(ctx, width, height, {
+                text: headline,
+                position: 'bottom',
+                color: effectiveColor,
+                bandColor,
+                fontFamily,
+              })
+          : undefined,
+      });
+      setResultBlob(result.blob);
+      setResultUrl(URL.createObjectURL(result.blob));
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[Postra:slideshow] failed:', err);
+      toaster.show(
+        t('slideshow_failed', 'Nie udało się złożyć wideo ze zdjęć — sprawdź konsolę.'),
+        'warning'
+      );
+    } finally {
+      setBusy(false);
+    }
+  }, [
+    images,
+    busy,
+    resetResult,
+    effectiveFontLabel,
+    effectiveColor,
+    kit.secondaryColor,
+    text,
+    format,
+    secondsPer,
+    toaster,
+    t,
+  ]);
+
+  const useInPost = useCallback(async () => {
+    if (!resultBlob || uploading) return;
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', resultBlob, `postra-slideshow-${Date.now()}.mp4`);
+      const res = await fetch('/media/upload-simple', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data?.id && data?.path) onReady({ id: data.id, path: data.path });
+      else throw new Error('upload returned no media');
+    } catch {
+      toaster.show(t('clip_text_upload_failed', 'Upload klipu nie powiódł się.'), 'warning');
+    } finally {
+      setUploading(false);
+    }
+  }, [resultBlob, uploading, fetch, onReady, toaster, t]);
+
+  return (
+    <div className="flex flex-col gap-3 p-3 text-textColor">
+      <div className="text-[11px] text-textColor/70 leading-snug">
+        🖼{' '}
+        {t(
+          'slideshow_intro',
+          'Masz zdjęcia produktów, nie filmy? Wrzuć kilka — złożymy z nich pionowy klip z delikatnym ruchem i tekstem w Twoim brandzie.'
+        )}
+      </div>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.length) addFiles(e.target.files);
+          e.target.value = '';
+        }}
+      />
+      <button
+        onClick={() => fileRef.current?.click()}
+        disabled={busy || images.length >= MAX_IMAGES}
+        className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors disabled:opacity-50"
+      >
+        📁 {t('slideshow_add', 'Dodaj zdjęcia')} ({images.length}/{MAX_IMAGES})
+      </button>
+
+      {images.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {images.map((p, i) => (
+            <div key={p.id} className="relative shrink-0 w-16">
+              <img
+                src={p.url}
+                alt=""
+                className="w-16 h-16 object-cover rounded border border-newBorder"
+              />
+              <button
+                onClick={() => removeImage(p.id)}
+                disabled={busy}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black/70 text-white text-[11px] leading-none disabled:opacity-50"
+                aria-label={t('remove', 'Usuń')}
+              >
+                ×
+              </button>
+              <div className="flex justify-between mt-0.5">
+                <button
+                  onClick={() => move(p.id, -1)}
+                  disabled={busy || i === 0}
+                  className="text-[11px] text-textColor/60 disabled:opacity-30"
+                >
+                  ◀
+                </button>
+                <button
+                  onClick={() => move(p.id, 1)}
+                  disabled={busy || i === images.length - 1}
+                  className="text-[11px] text-textColor/60 disabled:opacity-30"
+                >
+                  ▶
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Format + seconds per image */}
+      <div className="flex gap-3">
+        <div className="flex flex-col gap-1 flex-1">
+          <label className="text-[10px] text-textColor/60">{t('slideshow_format', 'Format')}</label>
+          <select
+            value={format.key}
+            onChange={(e) =>
+              setFormat(VIDEO_FORMATS.find((f) => f.key === e.target.value) ?? VIDEO_FORMATS[0])
+            }
+            disabled={busy}
+            className="text-xs px-2 py-1.5 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth disabled:opacity-50"
+          >
+            {VIDEO_FORMATS.map((f) => (
+              <option key={f.key} value={f.key}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1 w-28">
+          <label className="text-[10px] text-textColor/60">
+            {t('slideshow_seconds', 'Sekundy/zdjęcie')}
+          </label>
+          <select
+            value={secondsPer}
+            onChange={(e) => setSecondsPer(Number(e.target.value))}
+            disabled={busy}
+            className="text-xs px-2 py-1.5 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth disabled:opacity-50"
+          >
+            {[1.5, 2, 2.5, 3, 4].map((s) => (
+              <option key={s} value={s}>
+                {s}s
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Headline */}
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        disabled={busy}
+        placeholder={t('slideshow_text', 'Tekst (zostaw puste = bez tekstu)')}
+        className="text-xs px-2 py-2 rounded bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 focus:outline-none focus:border-forth disabled:opacity-50"
+      />
+      <div className="flex gap-1.5 flex-wrap">
+        {PRESETS.map((p) => (
+          <button
+            key={p}
+            onClick={() => setText(p)}
+            disabled={busy}
+            className="text-[10px] px-2 py-1 rounded bg-newColColor hover:bg-forth text-textColor/80 transition-colors disabled:opacity-50"
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={compose}
+        disabled={!images.length || busy}
+        className="px-3 py-2 text-sm rounded bg-newAccent text-white hover:bg-forth disabled:opacity-50 transition-colors"
+      >
+        {busy
+          ? `${t('slideshow_running', 'Składam wideo…')} ${progress}%`
+          : t('slideshow_run', '🎬 Złóż wideo ze zdjęć')}
+      </button>
+
+      {resultUrl && (
+        <div className="flex flex-col gap-2">
+          <div className="text-[10px] text-green-400">
+            ✓ {t('compositor_no_audio', 'bez dźwięku')}
+          </div>
+          <video src={resultUrl} controls className="w-full rounded border border-newBorder" />
+          <div className="flex items-center gap-2">
+            <Button loading={uploading} onClick={useInPost} className="!h-[30px] !text-xs">
+              {t('clip_text_use_in_post', 'Użyj w poście')}
+            </Button>
+            <a
+              href={resultUrl}
+              download="postra-slideshow.mp4"
+              className="text-[10px] text-newAccent underline"
+            >
+              {t('clip_text_download', 'Pobierz')}
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
