@@ -1,6 +1,8 @@
 import {
   IsDefined,
   IsEmail,
+  IsIn,
+  IsOptional,
   IsString,
   MaxLength,
   MinLength,
@@ -37,4 +39,11 @@ export class CreateOrgUserDto {
   company: string;
 
   datafast_visitor_id: string;
+
+  // Market the signup came from (PL landing vs postra.co.uk). Tags the new
+  // Organization so PL/UK can be cleanly split later. Optional; defaults to PL.
+  @IsOptional()
+  @IsString()
+  @IsIn(['PL', 'UK'])
+  region?: string;
 }

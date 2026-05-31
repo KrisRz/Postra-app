@@ -177,6 +177,7 @@ export class AuthService {
         provider,
         providerId: providerUser.id,
         datafast_visitor_id: body.datafast_visitor_id,
+        region: body.region,
       },
       ip,
       userAgent
