@@ -47,6 +47,7 @@ import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand
 import { StudioAiService } from '@gitroom/nestjs-libraries/studio/studio-ai.service';
 import { AdminStatsRepository } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.repository';
 import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.service';
+import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mobile-push/mobile.push.service';
 
 @Global()
 @Module({
@@ -103,6 +104,7 @@ import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/adm
     BrandKitService,
     AdminStatsRepository,
     AdminStatsService,
+    MobilePushService,
   ],
   get exports() {
     return this.providers;
