@@ -11,6 +11,7 @@ import { VideoMultiFormat, VideoFormat } from './video-multi-format';
 import { VideoCaptions } from './video-captions';
 import { VideoStock } from './video-stock';
 import { VideoTextOverlay } from './video-text-overlay';
+import { VideoSlideshow } from './video-slideshow';
 import { VideoLibraryPicker, LibraryMedia } from './video-library-picker';
 import {
   fetchLibraryVideoAsFile,
@@ -22,7 +23,7 @@ interface VideoStudioProps {
   closeModal: () => void;
 }
 
-type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text';
+type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text' | 'slideshow';
 
 export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const t = useT();
@@ -215,6 +216,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     { key: 'captions', label: t('video_tab_captions', 'Napisy AI'), icon: '💬', needsTrim: true, onClick: handleSwitchToCaptions },
     { key: 'stock', label: t('video_tab_stock', 'Stock B-roll'), icon: '🎞', needsTrim: false },
     { key: 'text', label: t('video_tab_text', 'Tekst'), icon: '✍️', needsTrim: false },
+    { key: 'slideshow', label: t('video_tab_slideshow', 'Zdjęcia→wideo'), icon: '🖼', needsTrim: false },
   ];
 
   return (
@@ -282,6 +284,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
           <VideoStock onImported={handleStockImported} />
         )}
         {tab === 'text' && <VideoTextOverlay onReady={handleComposedReady} />}
+        {tab === 'slideshow' && <VideoSlideshow onReady={handleComposedReady} />}
       </div>
 
       {trimmedBlob && tab === 'trim' && (
