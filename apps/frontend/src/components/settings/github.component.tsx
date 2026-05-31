@@ -1,7 +1,7 @@
 'use client';
 
 import SafeImage from '@gitroom/react/helpers/safe.image';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { FC, Fragment, useCallback, useEffect, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
@@ -32,7 +32,7 @@ const ConnectedComponent: FC<{
   const t = useT();
 
   return (
-    <div className="my-[16px] mt-[16px] h-[90px] bg-white/[0.03] border-white/10 border rounded-[12px] p-[24px]">
+    <div className="my-[16px] mt-[16px] h-[90px] bg-white/[0.03] border-white/10 border rounded-[16px] p-[24px]">
       <div className={`flex items-center gap-[8px]`}>
         <div>
           <SafeImage src="/icons/github.svg" alt="GitHub" width={40} height={40} />
@@ -78,7 +78,7 @@ const ConnectComponent: FC<{
       }),
     });
     if (response.status === 404) {
-      toast.show('Repository not found', 'warning');
+      toast.show('Nie znaleziono repozytorium', 'warning');
       return;
     }
     setConnected(`${select}/${repo}`);
@@ -87,7 +87,7 @@ const ConnectComponent: FC<{
   const t = useT();
 
   return (
-    <div className="my-[16px] mt-[16px] h-[100px] bg-white/[0.03] border-white/10 border rounded-[12px] px-[24px] flex">
+    <div className="my-[16px] mt-[16px] h-[100px] bg-white/[0.03] border-white/10 border rounded-[16px] px-[24px] flex">
       <div className={`flex items-center gap-[8px] flex-1`}>
         <div>
           <SafeImage src="/icons/github.svg" alt="GitHub" width={40} height={40} />
@@ -194,7 +194,7 @@ export const GithubComponent: FC<{
         </Fragment>
       ))}
       {githubState.filter((f) => !f.login).length === 0 && (
-        <div className="my-[16px] mt-[16px] h-[90px] bg-white/[0.03] border-white/10 border rounded-[12px] p-[24px]">
+        <div className="my-[16px] mt-[16px] h-[90px] bg-white/[0.03] border-white/10 border rounded-[16px] p-[24px]">
           <div className={`flex items-center gap-[8px]`}>
             <div>
               <SafeImage
