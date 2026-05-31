@@ -104,7 +104,7 @@ export const LayoutComponent = ({ children }: { children: ReactNode }) => {
                           false
                         )}
                       >
-                        <div className="flex flex-col h-full gap-[28px] flex-1 py-[16px] items-center">
+                        <div className="flex flex-col h-full gap-[12px] flex-1 py-[16px] items-center overflow-y-auto scrollbar scrollbar-thumb-fifth scrollbar-track-newBgColor">
                           <Logo />
                           <TopMenu />
                         </div>
