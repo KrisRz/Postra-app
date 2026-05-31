@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import EmailNotificationsComponent from '@gitroom/frontend/components/settings/email-notifications.component';
 import ShortlinkPreferenceComponent from '@gitroom/frontend/components/settings/shortlink-preference.component';
 import DeleteAccountComponent from '@gitroom/frontend/components/settings/delete-account.component';
+import LanguagePreferenceComponent from '@gitroom/frontend/components/settings/language-preference.component';
 
 const MetricComponent = dynamic(
   () => import('@gitroom/frontend/components/settings/metric.component'),
@@ -24,6 +25,7 @@ export const GlobalSettings = () => {
       <p className="text-[12.5px] text-newTextColor/55 mt-[3px]">
         {t('global_settings_sub', 'Preferencje konta, powiadomień i linków')}
       </p>
+      <LanguagePreferenceComponent />
       <MetricComponent />
       <EmailNotificationsComponent />
       <ShortlinkPreferenceComponent />

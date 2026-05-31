@@ -19,8 +19,16 @@ i18next
     lng: undefined,
     fallbackNS: defaultNS,
     defaultNS,
+    // Map regional tags (en-GB, pl-PL) to base language (en, pl).
+    load: 'languageOnly',
     detection: {
-      order: ['cookie', 'header'],
+      // cookie  = explicit user choice, always wins.
+      // header  = SSR value resolved by proxy.ts from Accept-Language.
+      // navigator = the visitor's device/browser language on the client
+      //            (the only detector that fires in the browser when no cookie).
+      order: ['cookie', 'header', 'navigator'],
+      // Persist the detected language so the choice sticks across visits.
+      caches: ['cookie'],
     },
     preload: runsOnServerSide ? languages : [],
   });
