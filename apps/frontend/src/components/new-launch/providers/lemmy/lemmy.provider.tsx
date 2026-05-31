@@ -7,7 +7,7 @@ import {
 } from '@gitroom/frontend/components/new-launch/providers/high.order.provider';
 import { useSettings } from '@gitroom/frontend/components/launches/helpers/use.values';
 import { useFieldArray } from 'react-hook-form';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { Subreddit } from './subreddit';
 import { LemmySettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/lemmy.dto';

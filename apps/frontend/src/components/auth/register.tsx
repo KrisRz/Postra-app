@@ -3,7 +3,7 @@
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import Link from 'next/link';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { Input } from '@gitroom/react/form/input';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
@@ -75,7 +75,7 @@ export function Register() {
 function getHelpfulReasonForRegistrationFailure(httpCode: number) {
   switch (httpCode) {
     case 400:
-      return 'Email already exists';
+      return 'Ten e-mail jest już zajęty';
     case 404:
       return 'Your browser got a 404 when trying to contact the API, the most likely reasons for this are the NEXT_PUBLIC_BACKEND_URL is set incorrectly, or the backend is not running.';
   }
@@ -139,7 +139,7 @@ export function RegisterAfter({
       .catch((e) => {
         form.setError('email', {
           message:
-            'General error: ' +
+            'Błąd ogólny: ' +
             e.toString() +
             '. Please check your browser console.',
         });
@@ -156,7 +156,7 @@ export function RegisterAfter({
             <p className="mt-[8px] text-[15px] text-textColor/58">
               {t(
                 'auth_register_subtitle',
-                'Create your Postra workspace and start planning content faster.'
+                'Załóż swój workspace Postra i planuj treści szybciej.'
               )}
             </p>
           </div>
@@ -223,7 +223,7 @@ export function RegisterAfter({
               <div className={clsx('rounded-[14px] border border-white/8 bg-white/[0.025] px-[14px] py-[12px] text-[12px] text-textColor/68')}>
                 {t(
                   'by_registering_you_agree_to_our',
-                  'By registering you agree to our'
+                  'Rejestrując się akceptujesz nasze'
                 )}
                 &nbsp;
                 <a

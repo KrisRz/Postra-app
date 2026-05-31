@@ -1,4 +1,4 @@
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import React, { FC, useCallback, useState } from 'react';
 import clsx from 'clsx';
 import Loading from '@gitroom/frontend/components/layout/loading';
@@ -45,7 +45,7 @@ export const Modal: FC<{
 
     const customParams = form.getValues();
     if (!(await form.trigger())) {
-      toaster.show('Please fill all required fields', 'warning');
+      toaster.show('Wypełnij wszystkie wymagane pola', 'warning');
       return;
     }
     try {

@@ -23,8 +23,7 @@ export const MenuItem: FC<{ label: ReactNode; icon: ReactNode; path: string; onC
   if (onClick) {
     return (
       <button onClick={onClick} className={className}>
-        <div className="custom:hidden">{icon}</div>
-        <div className="text-[10px] leading-tight text-center">{label}</div>
+          <div className="text-[10px] leading-tight text-center">{label}</div>
       </button>
     );
   }
@@ -36,7 +35,6 @@ export const MenuItem: FC<{ label: ReactNode; icon: ReactNode; path: string; onC
       {...path.indexOf('http') === 0 && { target: '_blank' }}
       className={className}
     >
-      <div className="custom:hidden">{icon}</div>
       <div className="text-[10px] leading-tight text-center">{label}</div>
     </Link>
   );

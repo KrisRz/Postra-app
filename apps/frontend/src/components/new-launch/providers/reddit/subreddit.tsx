@@ -4,7 +4,7 @@ import { FC, FormEvent, useCallback, useMemo, useState } from 'react';
 import { useCustomProviderFunction } from '@gitroom/frontend/components/launches/helpers/use.custom.provider.function';
 import { Input } from '@gitroom/react/form/input';
 import { useDebouncedCallback } from 'use-debounce';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import clsx from 'clsx';
 import { MultiMediaComponent } from '@gitroom/frontend/components/media/media.component';
 import { useWatch } from 'react-hook-form';

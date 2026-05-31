@@ -42,7 +42,7 @@ import {
 import { useHasScroll } from '@gitroom/frontend/components/ui/is.scroll.hook';
 import { useShortlinkPreference } from '@gitroom/frontend/components/settings/shortlink-preference.component';
 import dayjs from 'dayjs';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 
 export const ManageModal: FC<AddEditModalProps> = (props) => {
   const t = useT();
@@ -213,7 +213,7 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
       ) {
         const whatToDo = await new Promise((resolve) => {
           modal.openModal({
-            title: 'What do you want to do?',
+            title: 'Co chcesz zrobić?',
             children: (
               <div className="flex flex-col">
                 <div className="text-[20px] mb-[20px]">

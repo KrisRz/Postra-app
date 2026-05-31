@@ -5,7 +5,7 @@ import React, { FC, useCallback, useEffect, useState } from 'react';
 import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.title.component';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { Input } from '@gitroom/react/form/input';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useLaunchStore } from '@gitroom/frontend/components/new-launch/store';
@@ -125,7 +125,7 @@ export const LinkedinCompany: FC<{
       onSelect(options.value);
       onClose();
     } catch (e) {
-      toast.show('Failed to load profile', 'warning');
+      toast.show('Nie udało się wczytać profilu', 'warning');
     }
   };
   return (

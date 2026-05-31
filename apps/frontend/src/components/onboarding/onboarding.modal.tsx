@@ -66,7 +66,7 @@ export const OnboardingModal: FC<OnboardingModalProps> = ({ onClose }) => {
                     step === 1 ? 'font-medium' : 'text-textColor'
                   )}
                 >
-                  {t('connect_channels', 'Connect Channels')}
+                  {t('connect_channels', 'Podłącz kanały')}
                 </span>
               </div>
               <div className="w-[40px] h-[2px] bg-boxFocused" />
@@ -87,7 +87,7 @@ export const OnboardingModal: FC<OnboardingModalProps> = ({ onClose }) => {
                     step === 2 ? 'font-medium' : 'text-textColor'
                   )}
                 >
-                  {t('watch_tutorial', 'Watch Tutorial')}
+                  {t('watch_tutorial', 'Obejrzyj samouczek')}
                 </span>
               </div>
             </div>
@@ -149,12 +149,12 @@ const OnboardingStep1: FC<{ onNext: () => void; onSkip: () => void }> = ({
     <div className="flex flex-col gap-[24px]">
       <div className="flex gap-[4px] flex-col text-center">
         <div className="text-[24px] font-semibold">
-          {t('connect_your_channels', 'Connect Your Channels')}
+          {t('connect_your_channels', 'Podłącz swoje kanały')}
         </div>
-        <div className="text-[14px] text-customColor18">
+        <div className="text-[14px] text-newTextColor/55">
           {t(
             'connect_social_media_to_start',
-            'Connect your social media accounts to start scheduling posts'
+            'Podłącz swoje konta social media, aby zacząć planować posty'
           )}
         </div>
       </div>
@@ -163,7 +163,7 @@ const OnboardingStep1: FC<{ onNext: () => void; onSkip: () => void }> = ({
       {sortedIntegrations.length > 0 && (
         <div className="bg-newTableHeader rounded-[8px] p-[16px]">
           <div className="text-[14px] font-medium mb-[12px]">
-            {t('connected_channels', 'Connected Channels')} (
+            {t('connected_channels', 'Podłączone kanały')} (
             {sortedIntegrations.length})
           </div>
           <div className="flex flex-wrap gap-[12px]">
@@ -198,7 +198,7 @@ const OnboardingStep1: FC<{ onNext: () => void; onSkip: () => void }> = ({
       {/* Available platforms - using AddProviderComponent */}
       <div className="flex flex-col gap-[12px]">
         <div className="text-[14px] font-medium">
-          {t('click_channel_to_add', 'Click a channel to add it')}
+          {t('click_channel_to_add', 'Kliknij kanał, aby go dodać')}
         </div>
         {data && (
           <AddProviderComponent
@@ -218,7 +218,7 @@ const OnboardingStep1: FC<{ onNext: () => void; onSkip: () => void }> = ({
         >
           {sortedIntegrations.length > 0
             ? t('continue', 'Continue')
-            : t('continue_without_channels', 'Continue without channels')}
+            : t('continue_without_channels', 'Kontynuuj bez kanałów')}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="20"
@@ -250,12 +250,12 @@ const OnboardingStep2: FC<{ onBack: () => void; onFinish: () => void }> = ({
     <div className="flex flex-col gap-[24px] flex-1">
       <div className="flex gap-[4px] flex-col text-center">
         <div className="text-[24px] font-semibold">
-          {t('watch_tutorial_title', 'Learn How to Use Postra')}
+          {t('watch_tutorial_title', 'Naucz się korzystać z Postra')}
         </div>
-        <div className="text-[14px] text-customColor18">
+        <div className="text-[14px] text-newTextColor/55">
           {t(
             'watch_tutorial_description',
-            'Watch this short video to learn how to get the most out of Postra'
+            'Obejrzyj krótki film, aby najlepiej wykorzystać Postra'
           )}
         </div>
       </div>
