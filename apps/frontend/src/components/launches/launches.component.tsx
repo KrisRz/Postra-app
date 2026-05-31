@@ -505,7 +505,7 @@ export const LaunchesComponent = () => {
         >
           <div
             className={clsx(
-              'launches-sidebar-panel p-[20px] flex flex-col gap-[15px] transition-all absolute start-0 top-0 w-full h-full overflow-x-hidden overflow-y-auto scrollbar scrollbar-thumb-fifth scrollbar-track-newBgColor rounded-[20px] border-e border-white/8 bg-[linear-gradient(180deg,rgba(15,23,42,0.88),rgba(10,14,26,0.94))] backdrop-blur-xl'
+              'launches-sidebar-panel p-[20px] flex flex-col gap-[15px] transition-all absolute start-0 top-0 w-full h-full overflow-x-hidden overflow-y-auto scrollbar scrollbar-thumb-fifth scrollbar-track-newBgColor rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.88),rgba(10,14,26,0.94))] backdrop-blur-xl'
             )}
           >
             <div className="flex items-center">
@@ -583,7 +583,7 @@ export const LaunchesComponent = () => {
             </div>
           </div>
         </div>
-        <div className="launches-main-panel flex-1 flex-col flex p-[20px] gap-[14px] rounded-[20px] border-s border-white/8 bg-[linear-gradient(180deg,rgba(15,23,42,0.76),rgba(10,14,26,0.9))] backdrop-blur-xl">
+        <div className="launches-main-panel flex-1 ms-[16px] flex-col flex p-[20px] gap-[14px] rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.76),rgba(10,14,26,0.9))] backdrop-blur-xl">
           <Filters />
           <div className="flex-1 flex">
             <Calendar />

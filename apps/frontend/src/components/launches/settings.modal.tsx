@@ -3,7 +3,7 @@ import React, { FC, useCallback, useState } from 'react';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { Integration } from '@prisma/client';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { Slider } from '@gitroom/react/form/slider';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 

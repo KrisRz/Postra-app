@@ -9,7 +9,7 @@ import { useIntegration } from '@gitroom/frontend/components/launches/helpers/us
 import { Subreddit } from '@gitroom/frontend/components/new-launch/providers/reddit/subreddit';
 import { useSettings } from '@gitroom/frontend/components/launches/helpers/use.values';
 import { useFieldArray, useWatch } from 'react-hook-form';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import {
   RedditSettingsDto,
   RedditSettingsValueDto,

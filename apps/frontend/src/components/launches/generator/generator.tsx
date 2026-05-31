@@ -8,7 +8,7 @@ import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { GeneratorDto } from '@gitroom/nestjs-libraries/dtos/generator/generator.dto';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { Textarea } from '@gitroom/react/form/textarea';
 import { Checkbox } from '@gitroom/react/form/checkbox';

@@ -5,7 +5,7 @@ import { Web3ProviderInterface } from '@gitroom/frontend/components/launches/web
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { timer } from '@gitroom/helpers/utils/timer';
 import { Input } from '@gitroom/react/form/input';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import copy from 'copy-to-clipboard';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -25,7 +25,7 @@ export const MoltbookProvider: FC<Web3ProviderInterface> = (props) => {
 
   const register = async () => {
     if (!agentName.trim()) {
-      toaster.show('Please enter an agent name', 'warning');
+      toaster.show('Podaj nazwę agenta', 'warning');
       return;
     }
 
@@ -82,7 +82,7 @@ export const MoltbookProvider: FC<Web3ProviderInterface> = (props) => {
 
   const copyClaimUrl = useCallback(() => {
     copy(claimUrl);
-    toaster.show('Claim URL copied to clipboard', 'success');
+    toaster.show('Skopiowano URL do schowka', 'success');
   }, [claimUrl, toaster]);
 
   useEffect(() => {
