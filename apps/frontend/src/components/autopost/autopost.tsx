@@ -29,7 +29,7 @@ export const Autopost: FC = () => {
   const addWebhook = useCallback(
     (data?: any) => () => {
       modal.openModal({
-        title: data ? t('edit_autopost', 'Edit Autopost') : t('add_autopost_title', 'Add Autopost'),
+        title: data ? t('edit_autopost', 'Edytuj Autopost') : t('add_autopost_title', 'Dodaj Autopost'),
         withCloseButton: true,
         children: <AddOrEditWebhook data={data} reload={mutate} />,
       });
@@ -74,10 +74,10 @@ export const Autopost: FC = () => {
       <div className="text-customColor18 mt-[4px]">
         {t(
           'autopost_can_automatically_posts_your_rss_new_items_to_social_media',
-          'Autopost can automatically posts your RSS new items to social media'
+          'Autopost automatycznie publikuje nowe wpisy z RSS do social mediów'
         )}
       </div>
-      <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 items-center border rounded-[12px] p-[24px] flex gap-[24px]">
+      <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 items-center border rounded-[16px] p-[24px] flex gap-[24px]">
         <div className="flex flex-col w-full">
           {!!data?.length && (
             <div className="grid grid-cols-[1fr,1fr,1fr,1fr,1fr] w-full gap-y-[10px]">
@@ -120,7 +120,7 @@ export const Autopost: FC = () => {
               onClick={addWebhook()}
               className={clsx((data?.length || 0) > 0 && 'my-[16px]')}
             >
-              {t('add_an_autopost', 'Add an autopost')}
+              {t('add_an_autopost', 'Dodaj autopost')}
             </Button>
           </div>
         </div>
@@ -298,7 +298,7 @@ export const AddOrEditWebhook: FC<{
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(callBack)}>
-        <div className="relative flex gap-[20px] flex-col flex-1 rounded-[12px] border border-white/10 pt-0">
+        <div className="relative flex gap-[20px] flex-col flex-1 rounded-[16px] border border-white/10 pt-0">
           <div>
             <Input
               label="Title"
@@ -359,7 +359,7 @@ export const AddOrEditWebhook: FC<{
                 <CopilotTextarea
                   disableBranding={true}
                   className={clsx(
-                    '!min-h-40 !max-h-80 p-2 overflow-x-hidden scrollbar scrollbar-thumb-[#612AD5] bg-white/[0.03] outline-none mb-[16px] border-white/10 border rounded-[12px]'
+                    '!min-h-40 !max-h-80 p-2 overflow-x-hidden scrollbar scrollbar-thumb-[#612AD5] bg-white/[0.03] outline-none mb-[16px] border-white/10 border rounded-[16px]'
                   )}
                   value={content}
                   onChange={(e) => {

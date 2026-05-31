@@ -115,7 +115,7 @@ export const DeveloperComponent: FC = () => {
 
   const createApp = useCallback(async () => {
     if (!name || !redirectUrl) {
-      toaster.show('Name and Redirect URL are required', 'warning');
+      toaster.show('Nazwa i Redirect URL są wymagane', 'warning');
       return;
     }
     try {
@@ -134,14 +134,14 @@ export const DeveloperComponent: FC = () => {
       if (result.clientSecret) {
         setPlaintextSecret(result.clientSecret);
         toaster.show(
-          'App created! Copy your client secret now - it will only be shown once.',
+          'Aplikacja utworzona! Skopiuj teraz client secret — pokażemy go tylko raz.',
           'success'
         );
       }
       setCreating(false);
       mutate();
     } catch {
-      toaster.show('Failed to create app', 'warning');
+      toaster.show('Nie udało się utworzyć aplikacji', 'warning');
     }
   }, [name, description, redirectUrl, pictureId]);
 
@@ -156,21 +156,21 @@ export const DeveloperComponent: FC = () => {
           pictureId,
         }),
       });
-      toaster.show('App updated', 'success');
+      toaster.show('Aplikacja zaktualizowana', 'success');
       setEditing(false);
       mutate();
     } catch {
-      toaster.show('Failed to update app', 'warning');
+      toaster.show('Nie udało się zaktualizować aplikacji', 'warning');
     }
   }, [name, description, redirectUrl, pictureId]);
 
   const rotateSecret = useCallback(async () => {
     const approved = await decision.open({
-      title: 'Rotate Client Secret?',
+      title: 'Wygenerować nowy Client Secret?',
       description:
-        'This will generate a new client secret and invalidate the current one. Any integrations using the old secret will stop working.',
-      approveLabel: 'Rotate',
-      cancelLabel: 'Cancel',
+        'Wygeneruje to nowy client secret i unieważni obecny. Integracje używające starego przestaną działać.',
+      approveLabel: 'Wygeneruj',
+      cancelLabel: 'Anuluj',
     });
     if (!approved) return;
     try {
@@ -180,23 +180,23 @@ export const DeveloperComponent: FC = () => {
       if (result.clientSecret) {
         setPlaintextSecret(result.clientSecret);
         toaster.show(
-          'Secret rotated! Copy your new client secret now.',
+          'Sekret wygenerowany! Skopiuj teraz nowy client secret.',
           'success'
         );
         mutate();
       }
     } catch {
-      toaster.show('Failed to rotate secret', 'warning');
+      toaster.show('Nie udało się wygenerować sekretu', 'warning');
     }
   }, [decision]);
 
   const deleteApp = useCallback(async () => {
     const approved = await decision.open({
-      title: 'Delete OAuth App?',
+      title: 'Usunąć aplikację OAuth?',
       description:
         'This will delete the OAuth application and revoke all user authorizations. This action cannot be undone.',
-      approveLabel: 'Delete',
-      cancelLabel: 'Cancel',
+      approveLabel: 'Usuń',
+      cancelLabel: 'Anuluj',
     });
     if (!approved) return;
     try {
@@ -228,7 +228,7 @@ export const DeveloperComponent: FC = () => {
             'After a user completes the OAuth2 flow, you receive a pos_ prefixed token that works everywhere an API Key does — API, MCP, and CLI.'
           )}
         </div>
-        <div className="bg-white/[0.03] rounded-[12px] border border-newBorder overflow-hidden">
+        <div className="bg-white/[0.03] backdrop-blur-[8px] rounded-[16px] border border-newBorder overflow-hidden">
           <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
             <div>
               <div className="text-[15px] font-[600]">
@@ -243,7 +243,7 @@ export const DeveloperComponent: FC = () => {
             </div>
             <div className="flex gap-[6px] shrink-0 pt-[2px]">
               <a
-                className="cursor-pointer px-[16px] h-[36px] bg-[#612BD3] hover:bg-[#5520CB] text-white transition-colors rounded-[8px] text-[13px] font-[600] flex items-center gap-[6px]"
+                className="cursor-pointer px-[16px] h-[36px] bg-[#38bdf8] hover:brightness-110 text-[#06222e] transition-colors rounded-[8px] text-[13px] font-[600] flex items-center gap-[6px]"
                 href="https://docs.postiz.com/public-api/oauth"
                 target="_blank"
               >
@@ -256,7 +256,7 @@ export const DeveloperComponent: FC = () => {
             <button
               type="button"
               onClick={() => setCreating(true)}
-              className="cursor-pointer px-[20px] h-[44px] bg-[#612BD3] hover:bg-[#5520CB] transition-colors text-white rounded-[8px] text-[15px] font-[600]"
+              className="cursor-pointer px-[20px] h-[44px] bg-[#38bdf8] hover:brightness-110 transition-colors text-[#06222e] rounded-[8px] text-[15px] font-[600]"
             >
               {t('create_oauth_app', 'Create OAuth App')}
             </button>
@@ -281,7 +281,7 @@ export const DeveloperComponent: FC = () => {
             'After a user completes the OAuth2 flow, you receive a pos_ prefixed token that works everywhere an API Key does — API, MCP, and CLI.'
           )}
         </div>
-        <div className="bg-white/[0.03] rounded-[12px] border border-newBorder overflow-hidden">
+        <div className="bg-white/[0.03] backdrop-blur-[8px] rounded-[16px] border border-newBorder overflow-hidden">
           <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder">
             <div className="text-[15px] font-[600]">
               {t('create_oauth_app', 'Create OAuth App')}
@@ -358,7 +358,7 @@ export const DeveloperComponent: FC = () => {
               <button
                 type="button"
                 onClick={createApp}
-                className="cursor-pointer px-[20px] h-[44px] bg-[#612BD3] hover:bg-[#5520CB] transition-colors text-white rounded-[8px] text-[15px] font-[600]"
+                className="cursor-pointer px-[20px] h-[44px] bg-[#38bdf8] hover:brightness-110 transition-colors text-[#06222e] rounded-[8px] text-[15px] font-[600]"
               >
                 {t('create', 'Create')}
               </button>
@@ -391,7 +391,7 @@ export const DeveloperComponent: FC = () => {
         )}
       </div>
       {/* App details / edit */}
-      <div className="bg-white/[0.03] rounded-[12px] border border-newBorder overflow-hidden">
+      <div className="bg-white/[0.03] backdrop-blur-[8px] rounded-[16px] border border-newBorder overflow-hidden">
         <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder flex items-start justify-between gap-[12px]">
           <div>
             <div className="text-[15px] font-[600]">
@@ -406,7 +406,7 @@ export const DeveloperComponent: FC = () => {
           </div>
           <div className="flex gap-[6px] shrink-0 pt-[2px]">
             <a
-              className="cursor-pointer px-[16px] h-[36px] bg-[#612BD3] hover:bg-[#5520CB] text-white transition-colors rounded-[8px] text-[13px] font-[600] flex items-center gap-[6px]"
+              className="cursor-pointer px-[16px] h-[36px] bg-[#38bdf8] hover:brightness-110 text-[#06222e] transition-colors rounded-[8px] text-[13px] font-[600] flex items-center gap-[6px]"
               href="https://docs.postiz.com/public-api/oauth"
               target="_blank"
             >
@@ -482,7 +482,7 @@ export const DeveloperComponent: FC = () => {
               <button
                 type="button"
                 onClick={updateApp}
-                className="cursor-pointer px-[20px] h-[44px] bg-[#612BD3] hover:bg-[#5520CB] transition-colors text-white rounded-[8px] text-[15px] font-[600]"
+                className="cursor-pointer px-[20px] h-[44px] bg-[#38bdf8] hover:brightness-110 transition-colors text-[#06222e] rounded-[8px] text-[15px] font-[600]"
               >
                 {t('save', 'Save')}
               </button>
@@ -539,7 +539,7 @@ export const DeveloperComponent: FC = () => {
       </div>
 
       {/* Credentials */}
-      <div className="bg-white/[0.03] rounded-[12px] border border-newBorder overflow-hidden">
+      <div className="bg-white/[0.03] backdrop-blur-[8px] rounded-[16px] border border-newBorder overflow-hidden">
         <div className="bg-white/[0.03] px-[20px] py-[14px] border-b border-newBorder">
           <div className="text-[15px] font-[600]">
             {t('credentials', 'Credentials')}

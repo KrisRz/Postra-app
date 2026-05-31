@@ -119,7 +119,7 @@ const ThirdPartyMediaLibraryBrowser: FC<{
                       className={clsx(
                         'w-full h-full border-[4px] rounded-[6px]',
                         isSelected
-                          ? 'border-[#612BD3]'
+                          ? 'border-[#38bdf8]'
                           : 'border-transparent'
                       )}
                     >
