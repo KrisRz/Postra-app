@@ -990,3 +990,18 @@ model Announcement {
   color       AnnouncementColor @default(INFO)
   createdAt   DateTime          @default(now())
 }
+
+// Expo push tokens for the Postra Mobile app (companion).
+// Scalar userId/organizationId (no relations) to keep this additive and isolated.
+model MobilePushToken {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  token          String   @unique
+  platform       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+}

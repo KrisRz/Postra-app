@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   Post,
@@ -31,6 +32,7 @@ import { TrackEnum } from '@gitroom/nestjs-libraries/user/track.enum';
 import { TrackService } from '@gitroom/nestjs-libraries/track/track.service';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { AuthorizationActions, Sections } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
+import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mobile-push/mobile.push.service';
 
 @ApiTags('User')
 @Controller('/user')
@@ -41,8 +43,31 @@ export class UsersController {
     private _authService: AuthService,
     private _orgService: OrganizationService,
     private _userService: UsersService,
-    private _trackService: TrackService
+    private _trackService: TrackService,
+    private _mobilePush: MobilePushService
   ) {}
+
+  // Register/refresh an Expo push token for the Postra Mobile app.
+  @Post('/push-token')
+  async registerPushToken(
+    @GetUserFromRequest() user: User,
+    @GetOrgFromRequest() organization: Organization,
+    @Body() body: { token: string; platform?: string }
+  ) {
+    await this._mobilePush.registerToken(
+      user.id,
+      organization.id,
+      body.token,
+      body.platform || 'unknown'
+    );
+    return { success: true };
+  }
+
+  @Delete('/push-token')
+  async removePushToken(@Body() body: { token: string }) {
+    await this._mobilePush.removeToken(body.token);
+    return { success: true };
+  }
   @Get('/agent-media-sso')
   async getAgentMediaSsoUrl(
     @GetUserFromRequest() user: User,
