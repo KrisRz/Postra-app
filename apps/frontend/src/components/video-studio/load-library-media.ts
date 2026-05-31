@@ -12,6 +12,11 @@ export const MAX_LIBRARY_VIDEO_BYTES = 200 * 1024 * 1024;
 /** Thrown when the library clip is over MAX_LIBRARY_VIDEO_BYTES. */
 export class VideoTooLargeError extends Error {}
 
+/** Reject an over-large disk file before we pull it into the browser editor. */
+export function assertVideoSize(file: File): void {
+  if (file.size > MAX_LIBRARY_VIDEO_BYTES) throw new VideoTooLargeError();
+}
+
 export async function fetchLibraryVideoAsFile(
   url: string,
   name?: string

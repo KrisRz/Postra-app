@@ -12,19 +12,7 @@ import {
 } from 'mediabunny';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
-
-interface VideoFormat {
-  key: string;
-  label: string;
-  width: number;
-  height: number;
-}
-
-const VIDEO_FORMATS: VideoFormat[] = [
-  { key: 'vertical-9-16', label: 'IG Reel / TikTok / Story (9:16)', width: 1080, height: 1920 },
-  { key: 'square-1-1', label: 'IG Feed (1:1)', width: 1080, height: 1080 },
-  { key: 'landscape-16-9', label: 'YouTube / X (16:9)', width: 1920, height: 1080 },
-];
+import { VIDEO_FORMATS, VideoFormat } from './video-formats';
 
 interface VideoMultiFormatProps {
   source: Blob | null;
@@ -98,7 +86,7 @@ export const VideoMultiFormat: FC<VideoMultiFormatProps> = ({ source, onExported
   if (!source) {
     return (
       <div className="text-xs text-textColor/60 p-4 text-center">
-        {t('video_no_source', 'Najpierw wytnij wideo aby wybrać formaty.')}
+        {t('video_no_source', 'Najpierw wczytaj wideo (Z dysku / Z biblioteki), aby wybrać formaty.')}
       </div>
     );
   }

@@ -8,8 +8,12 @@ import { useToaster } from '@gitroom/react/toaster/toaster';
 import { Button } from '@gitroom/frontend/components/ui/button';
 import { STUDIO_FONTS } from '../design-editor/fonts';
 import { VideoLibraryPicker, LibraryMedia } from './video-library-picker';
-import { fetchLibraryVideoAsFile, VideoTooLargeError } from './load-library-media';
-import { composeVideo } from './compositor-pipeline';
+import {
+  fetchLibraryVideoAsFile,
+  VideoTooLargeError,
+  assertVideoSize,
+} from './load-library-media';
+import { composeVideo, ClipTooLongError } from './compositor-pipeline';
 import {
   TextPosition,
   fontFamilyForLabel,
@@ -119,7 +123,9 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
       // eslint-disable-next-line no-console
       console.error('[Postra:text-overlay] failed:', err);
       toaster.show(
-        t('clip_text_failed', 'Nie udało się wypalić tekstu w wideo — sprawdź konsolę.'),
+        err instanceof ClipTooLongError
+          ? t('clip_too_long', 'Klip za długi do edycji w przeglądarce (limit 5 min). Użyj krótszego.')
+          : t('clip_text_failed', 'Nie udało się wypalić tekstu w wideo — sprawdź konsolę.'),
         'warning'
       );
     } finally {
@@ -205,8 +211,16 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) {
-            setFile(f);
-            resetResult();
+            try {
+              assertVideoSize(f);
+              setFile(f);
+              resetResult();
+            } catch {
+              toaster.show(
+                t('video_disk_too_big', 'Plik za duży do edycji w przeglądarce (limit 200 MB).'),
+                'warning'
+              );
+            }
           }
           e.target.value = '';
         }}
