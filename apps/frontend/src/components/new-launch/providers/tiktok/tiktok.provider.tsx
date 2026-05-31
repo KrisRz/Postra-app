@@ -2,7 +2,9 @@
 
 import {
   FC,
+  useEffect,
   useMemo,
+  useState,
 } from 'react';
 import {
   PostComment,
@@ -15,15 +17,42 @@ import { Checkbox } from '@gitroom/react/form/checkbox';
 import clsx from 'clsx';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useIntegration } from '@gitroom/frontend/components/launches/helpers/use.integration';
+import { useCustomProviderFunction } from '@gitroom/frontend/components/launches/helpers/use.custom.provider.function';
 import { Input } from '@gitroom/react/form/input';
 import { TiktokPreview } from '@gitroom/frontend/components/new-launch/providers/tiktok/tiktok.preview';
 
 const TikTokSettings: FC<{
   values?: any;
 }> = (props) => {
-  const { watch, register } = useSettings();
+  const { watch, register, setValue } = useSettings();
   const { value } = useIntegration();
   const t = useT();
+  const customFunc = useCustomProviderFunction();
+
+  // TikTok Content Posting API compliance: the privacy selector and the
+  // comment/duet/stitch toggles must reflect the creator's actual permissions
+  // returned by /v2/post/publish/creator_info/query/ — they cannot be hardcoded.
+  const [creatorInfo, setCreatorInfo] = useState<{
+    privacyOptions: string[];
+    commentDisabled: boolean;
+    duetDisabled: boolean;
+    stitchDisabled: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    customFunc
+      .get('creatorInfo')
+      .then((data) => {
+        setCreatorInfo(data);
+        // Force-off any interaction the creator has disabled so we never send an
+        // "allow" that TikTok would reject server-side.
+        if (data?.commentDisabled) setValue('comment', false);
+        if (data?.duetDisabled) setValue('duet', false);
+        if (data?.stitchDisabled) setValue('stitch', false);
+      })
+      .catch(() => setCreatorInfo(null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isTitle = useMemo(() => {
     return value?.[0]?.image?.some((p) => (p?.path?.indexOf?.('mp4') ?? -1) === -1);
@@ -48,11 +77,11 @@ const TikTokSettings: FC<{
     }
     return t(
       'tiktok_restriction_upload_video',
-      'TikTok restriction: For upload-only video, TikTok does not accept a title or message. The content will default to "#Postiz" and you can edit it inside the TikTok app before publishing.'
+      'TikTok restriction: For upload-only video, TikTok does not accept a title or message. You can edit the content inside the TikTok app before publishing.'
     );
   }, [hasMedia, isUploadMode, isVideo, t]);
 
-  const privacyLevel = [
+  const allPrivacyLevels = [
     {
       value: 'PUBLIC_TO_EVERYONE',
       label: t('public_to_everyone', 'Public to everyone'),
@@ -70,6 +99,12 @@ const TikTokSettings: FC<{
       label: t('self_only', 'Self only'),
     },
   ];
+  // Show only the privacy options the creator is actually allowed to use.
+  // Unaudited apps get SELF_ONLY only; audited apps get the full set — both
+  // come straight from creator_info, never hardcoded.
+  const privacyLevel = creatorInfo
+    ? allPrivacyLevels.filter((p) => creatorInfo.privacyOptions.includes(p.value))
+    : [];
   const contentPostingMethod = [
     {
       value: 'DIRECT_POST',
@@ -122,12 +157,16 @@ const TikTokSettings: FC<{
       {isTitle && <Input label="Title" {...register('title')} maxLength={89} />}
       <Select
         label={t('label_who_can_see_this_video', 'Who can see this video?')}
-        disabled={isUploadMode}
+        disabled={isUploadMode || !creatorInfo}
         {...register('privacy_level', {
-          value: 'PUBLIC_TO_EVERYONE',
+          value: '',
         })}
       >
-        <option value="">{t('select', 'Select')}</option>
+        <option value="">
+          {creatorInfo
+            ? t('select', 'Select')
+            : t('loading_tiktok_settings', 'Loading your TikTok settings…')}
+        </option>
         {privacyLevel.map((item) => (
           <option key={item.value} value={item.value}>
             {item.label}
@@ -182,7 +221,7 @@ const TikTokSettings: FC<{
         <Checkbox
           label={t('label_comments', 'Comments')}
           variant="hollow"
-          disabled={isUploadMode}
+          disabled={isUploadMode || !!creatorInfo?.commentDisabled}
           {...register('comment', {
             value: true,
           })}
@@ -190,7 +229,7 @@ const TikTokSettings: FC<{
         <Checkbox
           variant="hollow"
           label={t('label_duet', 'Duet')}
-          disabled={isUploadMode}
+          disabled={isUploadMode || !!creatorInfo?.duetDisabled}
           {...register('duet', {
             value: false,
           })}
@@ -198,7 +237,7 @@ const TikTokSettings: FC<{
         <Checkbox
           label={t('label_stitch', 'Stitch')}
           variant="hollow"
-          disabled={isUploadMode}
+          disabled={isUploadMode || !!creatorInfo?.stitchDisabled}
           {...register('stitch', {
             value: false,
           })}

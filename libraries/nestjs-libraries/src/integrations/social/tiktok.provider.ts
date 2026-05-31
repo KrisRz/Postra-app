@@ -207,7 +207,7 @@ export class TiktokProvider extends SocialAbstract implements SocialProvider {
     if (body.indexOf('url_ownership_unverified') > -1) {
       return {
         type: 'bad-body' as const,
-        value: 'You have to upload the picture/video to Postiz when sending a URL',
+        value: 'You have to upload the picture/video to Postra when sending a URL',
       };
     }
 
@@ -402,6 +402,35 @@ export class TiktokProvider extends SocialAbstract implements SocialProvider {
 
     return {
       maxDurationSeconds: max_video_post_duration_sec,
+    };
+  }
+
+  // Exposes the creator's TikTok-enforced posting restrictions to the composer.
+  // TikTok Content Posting API UX compliance requires the privacy selector to be
+  // populated from creator_info (not hardcoded) and the comment/duet/stitch
+  // toggles to respect the creator's disabled flags.
+  async creatorInfo(accessToken: string) {
+    const { data } = await (
+      await fetch(
+        'https://open.tiktokapis.com/v2/post/publish/creator_info/query/',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json; charset=UTF-8',
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      )
+    ).json();
+
+    return {
+      privacyOptions: (data?.privacy_level_options as string[]) ?? [],
+      commentDisabled: !!data?.comment_disabled,
+      duetDisabled: !!data?.duet_disabled,
+      stitchDisabled: !!data?.stitch_disabled,
+      maxDurationSeconds: data?.max_video_post_duration_sec,
+      nickname: data?.creator_nickname,
+      avatarUrl: data?.creator_avatar_url,
     };
   }
 
