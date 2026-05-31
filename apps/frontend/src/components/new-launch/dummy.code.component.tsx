@@ -1,7 +1,7 @@
 import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.title.component';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import React, { FC } from 'react';
-import { Button } from '@gitroom/react/form/button';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import copy from 'copy-to-clipboard';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 
@@ -16,7 +16,7 @@ export const DummyCodeComponent: FC<{ code: any }> = ({ code }) => {
           className="mr-[50px]"
           onClick={() => {
             copy(JSON.stringify(code, null, 2));
-            toaster.show('Code copied to clipboard', 'success');
+            toaster.show('Kod skopiowany do schowka', 'success');
           }}
         >
           Copy Code
