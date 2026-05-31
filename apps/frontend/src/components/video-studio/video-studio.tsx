@@ -10,7 +10,7 @@ import { VideoTrimmer } from './video-trimmer';
 import { VideoMultiFormat, VideoFormat } from './video-multi-format';
 import { VideoCaptions } from './video-captions';
 import { VideoStock } from './video-stock';
-import { VideoCompositorPrototype } from './video-compositor-prototype';
+import { VideoTextOverlay } from './video-text-overlay';
 import { VideoLibraryPicker, LibraryMedia } from './video-library-picker';
 import {
   fetchLibraryVideoAsFile,
@@ -22,7 +22,7 @@ interface VideoStudioProps {
   closeModal: () => void;
 }
 
-type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'compositor';
+type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text';
 
 export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const t = useT();
@@ -186,6 +186,14 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     [setMedia, closeModal]
   );
 
+  const handleComposedReady = useCallback(
+    (newMedia: { id: string; path: string }) => {
+      setMedia([newMedia]);
+      closeModal();
+    },
+    [setMedia, closeModal]
+  );
+
   if (!browserSupported) {
     return (
       <div className="flex flex-col gap-3 p-6">
@@ -206,7 +214,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     { key: 'formats', label: t('video_tab_formats', 'Formaty'), icon: '📐', needsTrim: true },
     { key: 'captions', label: t('video_tab_captions', 'Napisy AI'), icon: '💬', needsTrim: true, onClick: handleSwitchToCaptions },
     { key: 'stock', label: t('video_tab_stock', 'Stock B-roll'), icon: '🎞', needsTrim: false },
-    { key: 'compositor', label: t('video_tab_compositor', 'Tekst na video (test)'), icon: '🧪', needsTrim: false },
+    { key: 'text', label: t('video_tab_text', 'Tekst'), icon: '✍️', needsTrim: false },
   ];
 
   return (
@@ -273,7 +281,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
         {tab === 'stock' && (
           <VideoStock onImported={handleStockImported} />
         )}
-        {tab === 'compositor' && <VideoCompositorPrototype />}
+        {tab === 'text' && <VideoTextOverlay onReady={handleComposedReady} />}
       </div>
 
       {trimmedBlob && tab === 'trim' && (
