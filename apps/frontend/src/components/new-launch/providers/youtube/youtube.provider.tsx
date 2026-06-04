@@ -9,7 +9,6 @@ import { YoutubeSettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/provide
 import { useSettings } from '@gitroom/frontend/components/launches/helpers/use.values';
 import { Input } from '@gitroom/react/form/input';
 import { MediumTags } from '@gitroom/frontend/components/new-launch/providers/medium/medium.tags';
-import { MediaComponent } from '@gitroom/frontend/components/media/media.component';
 import { Select } from '@gitroom/react/form/select';
 import { YoutubePreview } from '@gitroom/frontend/components/new-launch/providers/youtube/youtube.preview';
 const type = [
@@ -67,16 +66,6 @@ const YoutubeSettings: FC = () => {
         ))}
       </Select>
       <MediumTags label="Tags" {...register('tags')} />
-      <div className="mt-[20px]">
-        <MediaComponent
-          type="image"
-          width={1280}
-          height={720}
-          label="Thumbnail"
-          description="Thumbnail picture (optional)"
-          {...register('thumbnail')}
-        />
-      </div>
     </div>
   );
 };

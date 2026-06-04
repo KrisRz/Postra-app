@@ -56,14 +56,16 @@ export class YoutubeProvider extends SocialAbstract implements SocialProvider {
   name = 'YouTube';
   isBetweenSteps = true;
   dto = YoutubeSettingsDto;
+  // Sensitive-only scopes — no RESTRICTED scopes, so Google App Review does
+  // not require a CASA third-party Security Assessment. Restricted scopes
+  // (youtube, youtube.force-ssl, youtubepartner) were only needed for custom
+  // thumbnails (thumbnails.set), which we dropped. Upload uses youtube.upload,
+  // reads use youtube.readonly / yt-analytics.readonly.
   scopes = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/youtube',
-    'https://www.googleapis.com/auth/youtube.force-ssl',
     'https://www.googleapis.com/auth/youtube.readonly',
     'https://www.googleapis.com/auth/youtube.upload',
-    'https://www.googleapis.com/auth/youtubepartner',
     'https://www.googleapis.com/auth/yt-analytics.readonly',
   ];
 
@@ -455,23 +457,6 @@ export class YoutubeProvider extends SocialAbstract implements SocialProvider {
         }),
       true
     );
-
-    if (settings?.thumbnail?.path) {
-      await this.runInConcurrent(async () =>
-        youtubeClient.thumbnails.set({
-          videoId: all?.data?.id!,
-          media: {
-            body: (
-              await axios({
-                url: settings?.thumbnail?.path,
-                method: 'GET',
-                responseType: 'stream',
-              })
-            ).data,
-          },
-        })
-      );
-    }
 
     return [
       {
