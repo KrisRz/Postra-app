@@ -13,6 +13,11 @@ import { EmailService } from '@gitroom/nestjs-libraries/services/email.service';
 import { NewsletterService } from '@gitroom/nestjs-libraries/newsletter/newsletter.service';
 import { normalizeEmail } from '@gitroom/helpers/utils/email.normalize';
 import disposableDomains from 'disposable-email-domains';
+import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+
+// Per-account login lockout (brute-force defense, independent of IP throttling).
+const MAX_LOGIN_FAILURES = 10;
+const LOGIN_LOCKOUT_WINDOW_SECONDS = 15 * 60;
 
 @Injectable()
 export class AuthService {
@@ -92,7 +97,19 @@ export class AuthService {
         return obj;
       }
 
+      const failuresKey = `login_failures:${body.email.toLowerCase()}`;
+      const failures = Number((await ioRedis.get(failuresKey)) || 0);
+      if (failures >= MAX_LOGIN_FAILURES) {
+        throw new Error(
+          'Too many failed login attempts. Please try again in a few minutes.'
+        );
+      }
+
       if (!user || !AuthChecker.comparePassword(body.password, user.password)) {
+        const total = await ioRedis.incr(failuresKey);
+        if (total === 1) {
+          await ioRedis.expire(failuresKey, LOGIN_LOCKOUT_WINDOW_SECONDS);
+        }
         throw new Error('Invalid user name or password');
       }
 
@@ -100,6 +117,7 @@ export class AuthService {
         throw new Error('User is not activated');
       }
 
+      await ioRedis.del(failuresKey);
       return { addedOrg: false, jwt: await this.jwt(user) };
     }
 
