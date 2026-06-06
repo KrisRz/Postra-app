@@ -694,11 +694,33 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
     const until = dayjs().endOf('day').unix();
     const since = dayjs().subtract(date, 'day').unix();
 
-    const { data } = await (
-      await fetch(
-        `https://graph.facebook.com/v20.0/${id}/insights?metric=page_impressions_unique,page_posts_impressions_unique,page_post_engagements,page_daily_follows,page_video_views&access_token=${accessToken}&period=day&since=${since}&until=${until}`
-      )
-    ).json();
+    // page_video_views is periodically deprecated/renamed by Meta and is not
+    // available on every Page. A single unsupported metric makes the whole
+    // insights call fail, so request it alongside the core metrics first and,
+    // if the call errors, retry without it so the core analytics still load.
+    const coreMetrics = [
+      'page_impressions_unique',
+      'page_posts_impressions_unique',
+      'page_post_engagements',
+      'page_daily_follows',
+    ];
+    const optionalMetrics = ['page_video_views'];
+
+    const fetchInsights = async (metrics: string[]) => {
+      const { data, error } = await (
+        await fetch(
+          `https://graph.facebook.com/v20.0/${id}/insights?metric=${metrics.join(
+            ','
+          )}&access_token=${accessToken}&period=day&since=${since}&until=${until}`
+        )
+      ).json();
+      return error ? null : data ?? [];
+    };
+
+    let data = await fetchInsights([...coreMetrics, ...optionalMetrics]);
+    if (data === null) {
+      data = (await fetchInsights(coreMetrics)) ?? [];
+    }
 
     return (
       data?.map((d: any) => ({
