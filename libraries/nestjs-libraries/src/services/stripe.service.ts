@@ -68,7 +68,7 @@ export class StripeService {
     try {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: 100,
-        currency: 'usd',
+        currency: 'gbp',
         payment_method: latestMethod.id,
         customer: event.data.object.customer as string,
         off_session: true,
@@ -238,7 +238,7 @@ export class StripeService {
       (await stripe.prices.create({
         active: true,
         product: findProduct!.id,
-        currency: 'usd',
+        currency: 'gbp',
         nickname: body.billing + ' ' + body.period,
         unit_amount:
           (body.period === 'MONTHLY'
@@ -690,7 +690,7 @@ export class StripeService {
       (await stripe.prices.create({
         active: true,
         product: findProduct!.id,
-        currency: 'usd',
+        currency: 'gbp',
         nickname: body.billing + ' ' + body.period,
         unit_amount:
           (body.period === 'MONTHLY'
@@ -756,7 +756,7 @@ export class StripeService {
       (await stripe.prices.create({
         active: true,
         product: findProduct!.id,
-        currency: 'usd',
+        currency: 'gbp',
         nickname: body.billing + ' ' + body.period,
         unit_amount:
           (body.period === 'MONTHLY'

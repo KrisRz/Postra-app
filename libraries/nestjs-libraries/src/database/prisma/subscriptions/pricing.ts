@@ -120,3 +120,16 @@ export const pricing: PricingInterface = {
     generate_videos: 60,
   },
 };
+
+// User-facing plan labels. Internal enum keys stay (clean upstream sync); the UI
+// only ever shows these names. STANDARD=Starter, PRO=Pro, ULTIMATE=Business, FREE=Trial.
+export const planLabels: Record<string, string> = {
+  FREE: 'Trial',
+  STANDARD: 'Starter',
+  PRO: 'Pro',
+  ULTIMATE: 'Business',
+  TEAM: 'Team',
+};
+
+export const planLabel = (tier?: string | null): string =>
+  (tier && planLabels[tier]) || tier || '';
