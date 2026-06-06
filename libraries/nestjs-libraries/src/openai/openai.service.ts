@@ -59,6 +59,9 @@ export class OpenaiService {
         prompt,
         model: 'gpt-image-1',
         size: isVertical ? '1024x1536' : '1024x1024',
+        // 'medium' is ~4x cheaper than gpt-image-1's default ('high'/'auto') with
+        // quality good enough for social graphics — keeps AI-image unit cost sane.
+        quality: 'medium',
       })
     ).data?.[0];
 
