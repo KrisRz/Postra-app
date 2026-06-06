@@ -11,7 +11,7 @@ import { AttachToFeedbackIcon } from '@gitroom/frontend/components/new-layout/se
 import NotificationComponent from '@gitroom/frontend/components/notifications/notification.component';
 import dynamic from 'next/dynamic';
 import { LogoTextComponent } from '@gitroom/frontend/components/ui/logo-text.component';
-import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
+import { pricing, planLabel } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { capitalize } from 'lodash';
 import clsx from 'clsx';
 import { LoadingComponent } from '@gitroom/frontend/components/layout/loading';
@@ -83,13 +83,13 @@ export const FirstBillingComponent = () => {
     modals.openModal({
       title: 'Grow Fast With Postra (Play the video)',
       children: (
-        <iframe
-          className="h-full aspect-video min-w-[800px]"
-          src="https://www.youtube.com/embed/BdsCVvEYgHU?si=vvhaZJ8I5oXXvVJS?autoplay=1"
-          title="Postra Tutorial"
-          allow="autoplay"
-          allowFullScreen
-        />
+        <div className="min-w-[600px] py-[60px] flex flex-col items-center justify-center gap-[8px] text-center">
+          <div className="text-[40px]">🎬</div>
+          <div className="text-[16px] font-[600]">Video tutorial coming soon</div>
+          <div className="text-[13px] text-textColor/60">
+            We are recording a walkthrough — check back shortly.
+          </div>
+        </div>
       ),
     });
   };
@@ -107,7 +107,10 @@ export const FirstBillingComponent = () => {
   );
 
   const price = useMemo(
-    () => Object.entries(pricing).filter(([key, value]) => key !== 'FREE'),
+    () =>
+      Object.entries(pricing).filter(
+        ([key, value]) => key !== 'FREE' && key !== 'TEAM'
+      ),
     []
   );
 
@@ -267,11 +270,11 @@ export const FirstBillingComponent = () => {
                     )}
                   >
                     <div className="text-[20px] mobile:text-[18px] font-[500]">
-                      {capitalize(key)}
+                      {planLabel(key)}
                     </div>
                     <div className="text-[24px] mobile:text-[18px] font-[400]">
                       <span className="text-[44px] mobile:text-[30px] font-[600]">
-                        $
+                        £
                         {
                           value[
                             period === 'MONTHLY' ? 'month_price' : 'year_price'

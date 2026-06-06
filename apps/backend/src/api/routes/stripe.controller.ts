@@ -29,7 +29,8 @@ export class StripeController {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       event?.data?.object?.metadata?.service !== 'gitroom' &&
-      event.type !== 'invoice.payment_succeeded'
+      event.type !== 'invoice.payment_succeeded' &&
+      event.type !== 'invoice.payment_failed'
     ) {
       return { ok: true };
     }
@@ -44,6 +45,8 @@ export class StripeController {
           return this._stripeService.updateSubscription(event);
         case 'customer.subscription.deleted':
           return this._stripeService.deleteSubscription(event);
+        case 'invoice.payment_failed':
+          return this._stripeService.paymentFailed(event);
         default:
           return { ok: true };
       }
