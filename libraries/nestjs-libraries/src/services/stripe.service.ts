@@ -9,6 +9,7 @@ import { groupBy } from 'lodash';
 import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import { TrackService } from '@gitroom/nestjs-libraries/track/track.service';
+import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/notifications/notification.service';
 import { UsersService } from '@gitroom/nestjs-libraries/database/prisma/users/users.service';
 import { TrackEnum } from '@gitroom/nestjs-libraries/user/track.enum';
 
@@ -20,7 +21,8 @@ export class StripeService {
     private _subscriptionService: SubscriptionService,
     private _organizationService: OrganizationService,
     private _userService: UsersService,
-    private _trackService: TrackService
+    private _trackService: TrackService,
+    private _notificationService: NotificationService
   ) {}
   validateRequest(rawBody: Buffer, signature: string, endpointSecret: string) {
     return stripe.webhooks.constructEvent(rawBody, signature, endpointSecret);
@@ -102,7 +104,7 @@ export class StripeService {
       billing,
       period,
     } = event.data.object.metadata as {
-      billing: 'STANDARD' | 'PRO';
+      billing: 'STANDARD' | 'TEAM' | 'PRO' | 'ULTIMATE';
       period: 'MONTHLY' | 'YEARLY';
       uniqueId: string;
     };
@@ -132,7 +134,7 @@ export class StripeService {
       billing,
       period,
     } = event.data.object.metadata as {
-      billing: 'STANDARD' | 'PRO';
+      billing: 'STANDARD' | 'TEAM' | 'PRO' | 'ULTIMATE';
       period: 'MONTHLY' | 'YEARLY';
       uniqueId: string;
     };
@@ -151,6 +153,28 @@ export class StripeService {
       period,
       event.data.object.cancel_at
     );
+  }
+
+  async paymentFailed(event: Stripe.InvoicePaymentFailedEvent) {
+    const customer = event.data.object.customer as string;
+    const org = await this._organizationService.getOrgByCustomerId(customer);
+    if (!org) {
+      return { ok: true };
+    }
+
+    // Stripe Smart Retries re-attempt automatically; if they all fail Stripe
+    // fires customer.subscription.deleted (handled -> downgrade). Here we alert
+    // the customer so they can fix their card before it gets that far.
+    await this._notificationService.inAppNotification(
+      org.id,
+      'Payment failed',
+      `We couldn't process your latest payment. Please update your payment method at ${process.env.FRONTEND_URL}/billing to keep your subscription active.`,
+      true,
+      false,
+      'info'
+    );
+
+    return { ok: true };
   }
 
   async deleteSubscription(event: Stripe.CustomerSubscriptionDeletedEvent) {
