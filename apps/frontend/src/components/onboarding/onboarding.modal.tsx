@@ -260,16 +260,20 @@ const OnboardingStep2: FC<{ onBack: () => void; onFinish: () => void }> = ({
         </div>
       </div>
 
-      {/* YouTube Video Embed */}
+      {/* TODO(Postra): record + embed our OWN onboarding video. Upstream Postiz
+          promo (youtube BdsCVvEYgHU) removed — it was their marketing content. */}
       <div className="relative flex-1 rounded-[12px] overflow-hidden">
-        <div className="absolute left-0 top-0 w-full h-full flex justify-center">
-          <iframe
-            className="h-full aspect-video"
-            src="https://www.youtube.com/embed/BdsCVvEYgHU?si=vvhaZJ8I5oXXvVJS?autoplay=1"
-            title="Postra Tutorial"
-            allow="autoplay"
-            allowFullScreen
-          />
+        <div className="absolute left-0 top-0 w-full h-full flex flex-col items-center justify-center gap-[8px] bg-white/[0.03] text-center px-[24px]">
+          <div className="text-[40px]">🎬</div>
+          <div className="text-[16px] font-[600]">
+            {t('onboarding_video_soon', 'Video tutorial coming soon')}
+          </div>
+          <div className="text-[13px] text-textColor/60">
+            {t(
+              'onboarding_video_soon_sub',
+              'We are recording a walkthrough — check back shortly.'
+            )}
+          </div>
         </div>
       </div>
 
