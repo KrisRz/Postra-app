@@ -6,6 +6,7 @@ import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/po
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
 import dayjs from 'dayjs';
 import { WebhooksService } from '@gitroom/nestjs-libraries/database/prisma/webhooks/webhooks.service';
+import { AutopostService } from '@gitroom/nestjs-libraries/database/prisma/autopost/autopost.service';
 import { AuthorizationActions, Sections } from './permission.exception.class';
 
 export type AppAbility = Ability<[AuthorizationActions, Sections]>;
@@ -16,7 +17,8 @@ export class PermissionsService {
     private _subscriptionService: SubscriptionService,
     private _postsService: PostsService,
     private _integrationService: IntegrationService,
-    private _webhooksService: WebhooksService
+    private _webhooksService: WebhooksService,
+    private _autopostService: AutopostService
   ) {}
   async getPackageOptions(orgId: string) {
     const subscription =
@@ -97,6 +99,20 @@ export class PermissionsService {
         const totalWebhooks = await this._webhooksService.getTotal(orgId);
         if (totalWebhooks < options.webhooks) {
           can(AuthorizationActions.Create, section);
+          continue;
+        }
+      }
+
+      if (section === Sections.AUTOPOST && options.autoPost) {
+        // Creating a new feed must respect the per-plan cap; editing an
+        // existing feed only needs the feature flag (no new feed is added).
+        if (action !== AuthorizationActions.Create) {
+          can(action, section);
+          continue;
+        }
+        const totalAutoposts = await this._autopostService.getTotal(orgId);
+        if (totalAutoposts < options.autoPostLimit) {
+          can(action, section);
           continue;
         }
       }

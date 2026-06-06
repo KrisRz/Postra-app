@@ -15,6 +15,10 @@ export interface PricingInnerInterface {
   public_api: boolean;
   webhooks: number;
   autoPost: boolean;
+  // Max number of RSS autopost feeds an org may run concurrently. Each feed
+  // polls hourly and burns AI tokens per new article, so it is capped per plan
+  // independently of the `autoPost` on/off flag.
+  autoPostLimit: number;
 }
 export interface PricingInterface {
   [key: string]: PricingInnerInterface;
@@ -36,6 +40,7 @@ export const pricing: PricingInterface = {
     public_api: false,
     webhooks: 0,
     autoPost: false,
+    autoPostLimit: 0,
     generate_videos: 0,
   },
   STANDARD: {
@@ -54,6 +59,7 @@ export const pricing: PricingInterface = {
     public_api: true,
     webhooks: 2,
     autoPost: false,
+    autoPostLimit: 0,
     generate_videos: 3,
   },
   TEAM: {
@@ -72,6 +78,7 @@ export const pricing: PricingInterface = {
     public_api: true,
     webhooks: 10,
     autoPost: true,
+    autoPostLimit: 5,
     generate_videos: 10,
   },
   PRO: {
@@ -90,6 +97,7 @@ export const pricing: PricingInterface = {
     public_api: true,
     webhooks: 30,
     autoPost: true,
+    autoPostLimit: 3,
     generate_videos: 30,
   },
   ULTIMATE: {
@@ -108,6 +116,7 @@ export const pricing: PricingInterface = {
     public_api: true,
     webhooks: 10000,
     autoPost: true,
+    autoPostLimit: 10,
     generate_videos: 60,
   },
 };
