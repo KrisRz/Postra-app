@@ -15,6 +15,10 @@ export interface PricingInnerInterface {
   public_api: boolean;
   webhooks: number;
   autoPost: boolean;
+  // Max number of RSS autopost feeds an org may run concurrently. Each feed
+  // polls hourly and burns AI tokens per new article, so it is capped per plan
+  // independently of the `autoPost` on/off flag.
+  autoPostLimit: number;
 }
 export interface PricingInterface {
   [key: string]: PricingInnerInterface;
@@ -24,7 +28,7 @@ export const pricing: PricingInterface = {
     current: 'FREE',
     month_price: 0,
     year_price: 0,
-    channel: 0,
+    channel: 2,
     image_generation_count: 0,
     posts_per_month: 0,
     team_members: false,
@@ -36,15 +40,16 @@ export const pricing: PricingInterface = {
     public_api: false,
     webhooks: 0,
     autoPost: false,
+    autoPostLimit: 0,
     generate_videos: 0,
   },
   STANDARD: {
     current: 'STANDARD',
-    month_price: 29,
-    year_price: 278,
-    channel: 5,
+    month_price: 12,
+    year_price: 120,
+    channel: 3,
     posts_per_month: 400,
-    image_generation_count: 20,
+    image_generation_count: 30,
     team_members: false,
     ai: true,
     community_features: false,
@@ -54,6 +59,7 @@ export const pricing: PricingInterface = {
     public_api: true,
     webhooks: 2,
     autoPost: false,
+    autoPostLimit: 0,
     generate_videos: 3,
   },
   TEAM: {
@@ -72,15 +78,16 @@ export const pricing: PricingInterface = {
     public_api: true,
     webhooks: 10,
     autoPost: true,
+    autoPostLimit: 5,
     generate_videos: 10,
   },
   PRO: {
     current: 'PRO',
-    month_price: 49,
-    year_price: 470,
-    channel: 30,
+    month_price: 29,
+    year_price: 290,
+    channel: 5,
     posts_per_month: 1000000,
-    image_generation_count: 300,
+    image_generation_count: 150,
     community_features: true,
     team_members: true,
     featured_by_gitroom: true,
@@ -90,15 +97,16 @@ export const pricing: PricingInterface = {
     public_api: true,
     webhooks: 30,
     autoPost: true,
+    autoPostLimit: 3,
     generate_videos: 30,
   },
   ULTIMATE: {
     current: 'ULTIMATE',
-    month_price: 99,
-    year_price: 950,
-    channel: 100,
+    month_price: 79,
+    year_price: 790,
+    channel: 5,
     posts_per_month: 1000000,
-    image_generation_count: 500,
+    image_generation_count: 600,
     community_features: true,
     team_members: true,
     featured_by_gitroom: true,
@@ -108,6 +116,7 @@ export const pricing: PricingInterface = {
     public_api: true,
     webhooks: 10000,
     autoPost: true,
+    autoPostLimit: 10,
     generate_videos: 60,
   },
 };

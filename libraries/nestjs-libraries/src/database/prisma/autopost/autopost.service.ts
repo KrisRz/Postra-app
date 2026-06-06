@@ -114,6 +114,10 @@ export class AutopostService {
     return this._autopostsRepository.getAutoposts(orgId);
   }
 
+  getTotal(orgId: string) {
+    return this._autopostsRepository.getTotal(orgId);
+  }
+
   async createAutopost(orgId: string, body: AutopostDto, id?: string) {
     const data = await this._autopostsRepository.createAutopost(
       orgId,
