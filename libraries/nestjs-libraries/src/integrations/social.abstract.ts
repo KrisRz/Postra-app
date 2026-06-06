@@ -95,9 +95,9 @@ export abstract class SocialAbstract {
       path?.indexOf('http') === -1
         ? `${process.env.FRONTEND_URL}/${path}`
         : path;
-    const { width = 0, height = 0 } = await sharp(
-      await readOrFetch(url)
-    ).metadata();
+    const { width = 0, height = 0 } = await sharp(await readOrFetch(url), {
+      limitInputPixels: 100_000_000,
+    }).metadata();
     return { width, height };
   }
 

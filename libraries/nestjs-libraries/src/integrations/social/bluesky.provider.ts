@@ -37,7 +37,9 @@ async function reduceImageBySize(url: string, maxSizeKB = 976) {
     let imageBuffer = Buffer.from(response.data);
 
     // Use sharp to get the metadata of the image
-    const metadata = await sharp(imageBuffer).metadata();
+    const metadata = await sharp(imageBuffer, {
+      limitInputPixels: 100_000_000,
+    }).metadata();
     let width = metadata.width!;
     let height = metadata.height!;
 
@@ -47,7 +49,9 @@ async function reduceImageBySize(url: string, maxSizeKB = 976) {
       height = Math.floor(height * 0.9);
 
       // Resize the image
-      const resizedBuffer = await sharp(imageBuffer)
+      const resizedBuffer = await sharp(imageBuffer, {
+        limitInputPixels: 100_000_000,
+      })
         .resize({ width, height })
         .toBuffer();
 

@@ -484,7 +484,10 @@ export class LinkedinProvider extends SocialAbstract implements SocialProvider {
     const images = await Promise.all(
       firstPost.media.map(async (media) => {
         const raw = await readOrFetch(media.path);
-        const image = sharp(raw, { animated: false }).toFormat('jpeg');
+        const image = sharp(raw, {
+          animated: false,
+          limitInputPixels: 100_000_000,
+        }).toFormat('jpeg');
         const { width, height } = await image.metadata();
         const buffer = await image.toBuffer();
         return { buffer, width: width || 0, height: height || 0 };
@@ -589,7 +592,10 @@ export class LinkedinProvider extends SocialAbstract implements SocialProvider {
       return Buffer.from(await readOrFetch(mediaUrl));
     }
 
-    return await sharp(await readOrFetch(mediaUrl), { animated: false })
+    return await sharp(await readOrFetch(mediaUrl), {
+      animated: false,
+      limitInputPixels: 100_000_000,
+    })
       .toFormat('jpeg')
       .resize({ width: 1000 })
       .toBuffer();
