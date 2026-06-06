@@ -240,6 +240,8 @@ export const useMenuItem = () => {
       role: ['ADMIN', 'SUPERADMIN', 'USER'],
       requireBilling: true,
       onClick: handleAgentMediaClick,
+      // UGC = upstream Postiz feature, not part of Postra — hidden for launch.
+      hide: true,
     },
     {
       name: (
@@ -305,6 +307,8 @@ export const useMenuItem = () => {
       path: '#',
       role: ['ADMIN', 'SUPERADMIN', 'USER'],
       requireBilling: true,
+      // Affiliate = upstream Postiz feature, not offered by Postra — hidden for launch.
+      hide: true,
     },
     {
       name: t('billing', 'Billing'),
