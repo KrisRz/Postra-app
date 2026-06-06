@@ -437,8 +437,15 @@ export const MainBillingComponent: FC<{
       },
     [monthlyOrYearly, subscription, user, utm]
   );
+  // Redirect lifetime users away from billing in an effect — calling
+  // router.replace() during render triggers a setState-in-render warning.
+  useEffect(() => {
+    if (user?.isLifetime) {
+      router.replace('/');
+    }
+  }, [user?.isLifetime, router]);
+
   if (user?.isLifetime) {
-    router.replace('/');
     return null;
   }
   return (
