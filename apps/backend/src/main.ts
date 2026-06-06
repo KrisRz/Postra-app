@@ -20,6 +20,8 @@ import { PostValidationExceptionFilter } from '@gitroom/backend/api/routes/posts
 import { HttpExceptionFilter } from '@gitroom/nestjs-libraries/services/exception.filter';
 import { ConfigurationChecker } from '@gitroom/helpers/configuration/configuration.checker';
 import { startMcp } from '@gitroom/nestjs-libraries/chat/start.mcp';
+import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
+import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 
 async function start() {
   const app = await NestFactory.create(AppModule, {
@@ -86,6 +88,10 @@ async function start() {
     await app.listen(port);
     console.log('Backend started successfully on port ' + port);
 
+    // One-off: encrypt integration tokens still stored as plaintext (A1 backfill).
+    // Fire-and-forget so it never delays or breaks boot; guarded to run once.
+    runTokenBackfill(app).catch(() => {});
+
     checkConfiguration(); // Do this last, so that users will see obvious issues at the end of the startup log without having to scroll up.
 
     Logger.log(`🚀 Backend is running on: http://localhost:${port}`);
@@ -107,6 +113,30 @@ function checkConfiguration() {
     Logger.warn('Configuration issues found: ' + checker.getIssuesCount());
   } else {
     Logger.log('Configuration check completed without any issues');
+  }
+}
+
+async function runTokenBackfill(app: Awaited<ReturnType<typeof NestFactory.create>>) {
+  // Encrypt any Integration tokens still stored as plaintext. Idempotent and
+  // guarded by a Redis flag so it runs once across restarts; wrapped so a
+  // failure (e.g. Redis blip) never affects backend boot.
+  try {
+    if (await ioRedis.get('token_encryption_backfill_v1')) {
+      return;
+    }
+    const result = await app
+      .get(IntegrationService)
+      .backfillTokenEncryption();
+    await ioRedis.set('token_encryption_backfill_v1', '1');
+    Logger.log(
+      `Token encryption backfill: ${result.updated}/${result.total} integrations encrypted`
+    );
+  } catch (e) {
+    Logger.warn(
+      `Token encryption backfill skipped: ${
+        e instanceof Error ? e.message : e
+      }`
+    );
   }
 }
 
