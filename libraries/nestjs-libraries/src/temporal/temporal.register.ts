@@ -10,28 +10,46 @@ export class TemporalRegister implements OnModuleInit {
     if (process.env.TEMPORAL_TLS === 'true') {
       return;
     }
-    const connection = this._client?.client?.getRawClient()
-      ?.connection as Connection;
 
-    const { customAttributes } =
-      await connection.operatorService.listSearchAttributes({
-        namespace: process.env.TEMPORAL_NAMESPACE || 'default',
-      });
+    // Registering Temporal search attributes must never block backend boot.
+    // On a fresh deploy the backend can start before Temporal is reachable; a
+    // thrown gRPC error here would crash-loop the whole app. Best-effort only.
+    try {
+      const connection = this._client?.client?.getRawClient()
+        ?.connection as Connection;
 
-    const neededAttribute = ['organizationId', 'postId'];
-    const missingAttributes = neededAttribute.filter(
-      (attr) => !customAttributes[attr]
-    );
+      if (!connection) {
+        console.warn(
+          '[Temporal] No client connection at boot; skipping search-attribute registration.'
+        );
+        return;
+      }
 
-    if (missingAttributes.length > 0) {
-      await connection.operatorService.addSearchAttributes({
-        namespace: process.env.TEMPORAL_NAMESPACE || 'default',
-        searchAttributes: missingAttributes.reduce((all, current) => {
-          // @ts-ignore
-          all[current] = 1;
-          return all;
-        }, {}),
-      });
+      const { customAttributes } =
+        await connection.operatorService.listSearchAttributes({
+          namespace: process.env.TEMPORAL_NAMESPACE || 'default',
+        });
+
+      const neededAttribute = ['organizationId', 'postId'];
+      const missingAttributes = neededAttribute.filter(
+        (attr) => !customAttributes[attr]
+      );
+
+      if (missingAttributes.length > 0) {
+        await connection.operatorService.addSearchAttributes({
+          namespace: process.env.TEMPORAL_NAMESPACE || 'default',
+          searchAttributes: missingAttributes.reduce((all, current) => {
+            // @ts-ignore
+            all[current] = 1;
+            return all;
+          }, {}),
+        });
+      }
+    } catch (e) {
+      console.warn(
+        '[Temporal] Could not register search attributes at boot (Temporal may still be starting). Continuing.',
+        e instanceof Error ? e.message : e
+      );
     }
   }
 }

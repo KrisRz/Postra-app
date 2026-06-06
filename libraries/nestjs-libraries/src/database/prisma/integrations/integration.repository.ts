@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { Integration } from '@prisma/client';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
+import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import { IntegrationTimeDto } from '@gitroom/nestjs-libraries/dtos/integrations/integration.time.dto';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { PlugDto } from '@gitroom/nestjs-libraries/dtos/plugs/plug.dto';
@@ -18,6 +19,29 @@ export class IntegrationRepository {
     private _customers: PrismaRepository<'customer'>,
     private _mentions: PrismaRepository<'mentions'>
   ) {}
+
+  // Decrypt the token/refreshToken of an integration (or nested integration)
+  // in place. Safe on already-plaintext values (idempotent marker scheme).
+  private decryptIntegrationTokens<
+    T extends
+      | { token?: string | null; refreshToken?: string | null }
+      | null
+      | undefined
+  >(integration: T): T {
+    if (integration) {
+      if (typeof integration.token === 'string') {
+        integration.token = AuthService.decryptIntegrationToken(
+          integration.token
+        );
+      }
+      if (typeof integration.refreshToken === 'string') {
+        integration.refreshToken = AuthService.decryptIntegrationToken(
+          integration.refreshToken
+        );
+      }
+    }
+    return integration;
+  }
 
   findActiveByProviderIdentifier(provider: string, internalId: string) {
     return this._integration.model.integration.findFirst({
@@ -127,8 +151,8 @@ export class IntegrationRepository {
     });
   }
 
-  getPlug(plugId: string) {
-    return this._plugs.model.plugs.findFirst({
+  async getPlug(plugId: string) {
+    const plug = await this._plugs.model.plugs.findFirst({
       where: {
         id: plugId,
       },
@@ -136,6 +160,12 @@ export class IntegrationRepository {
         integration: true,
       },
     });
+
+    if (plug?.integration) {
+      this.decryptIntegrationTokens(plug.integration);
+    }
+
+    return plug;
   }
 
   async getPlugs(orgId: string, integrationId: string) {
@@ -157,6 +187,15 @@ export class IntegrationRepository {
   }
 
   async updateIntegration(id: string, params: Partial<Integration>) {
+    if (params.token) {
+      params.token = AuthService.encryptIntegrationToken(params.token);
+    }
+    if (params.refreshToken) {
+      params.refreshToken = AuthService.encryptIntegrationToken(
+        params.refreshToken
+      );
+    }
+
     if (
       params.picture &&
       (params.picture.indexOf(process.env.CLOUDFLARE_BUCKET_URL!) === -1 ||
@@ -249,6 +288,9 @@ export class IntegrationRepository {
     timezone?: number,
     customInstanceDetails?: string
   ) {
+    token = AuthService.encryptIntegrationToken(token);
+    refreshToken = AuthService.encryptIntegrationToken(refreshToken);
+
     const postTimes = timezone
       ? {
           postingTimes: JSON.stringify([
@@ -345,8 +387,8 @@ export class IntegrationRepository {
     return upsert;
   }
 
-  needsToBeRefreshed() {
-    return this._integration.model.integration.findMany({
+  async needsToBeRefreshed() {
+    const list = await this._integration.model.integration.findMany({
       where: {
         tokenExpiration: {
           lte: dayjs().add(1, 'day').toDate(),
@@ -356,6 +398,10 @@ export class IntegrationRepository {
         refreshNeeded: false,
       },
     });
+
+    return list.map((integration) =>
+      this.decryptIntegrationTokens(integration)
+    );
   }
 
   async setBetweenRefreshSteps(id: string) {
@@ -392,13 +438,15 @@ export class IntegrationRepository {
     });
   }
 
-  getIntegrationById(org: string, id: string) {
-    return this._integration.model.integration.findFirst({
-      where: {
-        organizationId: org,
-        id,
-      },
-    });
+  async getIntegrationById(org: string, id: string) {
+    return this.decryptIntegrationTokens(
+      await this._integration.model.integration.findFirst({
+        where: {
+          organizationId: org,
+          id,
+        },
+      })
+    );
   }
 
   async getIntegrationForOrder(
@@ -501,8 +549,8 @@ export class IntegrationRepository {
     });
   }
 
-  getIntegrationsList(org: string) {
-    return this._integration.model.integration.findMany({
+  async getIntegrationsList(org: string) {
+    const list = await this._integration.model.integration.findMany({
       where: {
         organizationId: org,
         deletedAt: null,
@@ -511,6 +559,10 @@ export class IntegrationRepository {
         customer: true,
       },
     });
+
+    return list.map((integration) =>
+      this.decryptIntegrationTokens(integration)
+    );
   }
 
   async disableChannel(org: string, id: string) {
@@ -688,5 +740,36 @@ export class IntegrationRepository {
         postingTimes: true,
       },
     });
+  }
+
+  // One-off backfill: encrypt any integration tokens still stored as plaintext.
+  // Idempotent — already-encrypted rows (marker prefix) are skipped.
+  async backfillTokenEncryption() {
+    const all = await this._integration.model.integration.findMany({
+      select: { id: true, token: true, refreshToken: true },
+    });
+
+    let updated = 0;
+    for (const integration of all) {
+      const token = AuthService.encryptIntegrationToken(integration.token);
+      const refreshToken = AuthService.encryptIntegrationToken(
+        integration.refreshToken
+      );
+
+      if (
+        token === integration.token &&
+        refreshToken === integration.refreshToken
+      ) {
+        continue;
+      }
+
+      await this._integration.model.integration.update({
+        where: { id: integration.id },
+        data: { token, refreshToken },
+      });
+      updated++;
+    }
+
+    return { total: all.length, updated };
   }
 }

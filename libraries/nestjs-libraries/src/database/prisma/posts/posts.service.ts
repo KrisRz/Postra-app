@@ -21,6 +21,7 @@ import { shuffle } from 'lodash';
 import { CreateGeneratedPostsDto } from '@gitroom/nestjs-libraries/dtos/generator/create.generated.posts.dto';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
+import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import utc from 'dayjs/plugin/utc';
 import { MediaService } from '@gitroom/nestjs-libraries/database/prisma/media/media.service';
 import { ShortLinkService } from '@gitroom/nestjs-libraries/short-linking/short.link.service';
@@ -100,6 +101,14 @@ export class PostsService {
     }
 
     const getIntegration = post.integration!;
+    getIntegration.token = AuthService.decryptIntegrationToken(
+      getIntegration.token
+    );
+    if (getIntegration.refreshToken) {
+      getIntegration.refreshToken = AuthService.decryptIntegrationToken(
+        getIntegration.refreshToken
+      );
+    }
 
     if (
       dayjs(getIntegration?.tokenExpiration).isBefore(dayjs()) ||
@@ -173,6 +182,14 @@ export class PostsService {
     }
 
     const getIntegration = post.integration!;
+    getIntegration.token = AuthService.decryptIntegrationToken(
+      getIntegration.token
+    );
+    if (getIntegration.refreshToken) {
+      getIntegration.refreshToken = AuthService.decryptIntegrationToken(
+        getIntegration.refreshToken
+      );
+    }
 
     if (
       dayjs(getIntegration?.tokenExpiration).isBefore(dayjs()) ||
@@ -388,7 +405,9 @@ export class PostsService {
               const imageBuffer = Buffer.from(response.data);
 
               // Use sharp to get the metadata of the image
-              const buffer = await sharp(imageBuffer)
+              const buffer = await sharp(imageBuffer, {
+                limitInputPixels: 100_000_000,
+              })
                 .jpeg({ quality: 100 })
                 .toBuffer();
 

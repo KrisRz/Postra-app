@@ -433,6 +433,7 @@ export class XProvider extends SocialAbstract implements SocialProvider {
                       ? Buffer.from(await readOrFetch(m.path))
                       : await sharp(await readOrFetch(m.path), {
                           animated: lookup(m.path) === 'image/gif',
+                          limitInputPixels: 100_000_000,
                         })
                           .resize({
                             width: 1000,
