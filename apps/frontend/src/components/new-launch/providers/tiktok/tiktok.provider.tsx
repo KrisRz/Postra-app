@@ -20,14 +20,16 @@ import { useIntegration } from '@gitroom/frontend/components/launches/helpers/us
 import { useCustomProviderFunction } from '@gitroom/frontend/components/launches/helpers/use.custom.provider.function';
 import { Input } from '@gitroom/react/form/input';
 import { TiktokPreview } from '@gitroom/frontend/components/new-launch/providers/tiktok/tiktok.preview';
+import { useMediaDirectory } from '@gitroom/react/helpers/use.media.directory';
 
 const TikTokSettings: FC<{
   values?: any;
 }> = (props) => {
   const { watch, register, setValue } = useSettings();
-  const { value } = useIntegration();
+  const { value, integration } = useIntegration();
   const t = useT();
   const customFunc = useCustomProviderFunction();
+  const mediaDir = useMediaDirectory();
 
   // TikTok Content Posting API compliance: the privacy selector and the
   // comment/duet/stitch toggles must reflect the creator's actual permissions
@@ -37,7 +39,14 @@ const TikTokSettings: FC<{
     commentDisabled: boolean;
     duetDisabled: boolean;
     stitchDisabled: boolean;
+    maxDurationSeconds?: number;
+    nickname?: string;
+    avatarUrl?: string;
   } | null>(null);
+
+  // Detected duration (seconds) of the attached video, used to enforce the
+  // creator's TikTok max_video_post_duration_sec client-side before posting.
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
 
   useEffect(() => {
     customFunc
@@ -61,11 +70,54 @@ const TikTokSettings: FC<{
   const hasMedia = (value?.[0]?.image?.length ?? 0) > 0;
   const isVideo = hasMedia && !isTitle;
 
+  const videoPath = useMemo(() => {
+    const videoItem = value?.[0]?.image?.find(
+      (p) => (p?.path?.indexOf?.('mp4') ?? -1) !== -1
+    );
+    return videoItem?.path ? mediaDir.set(videoItem.path) : null;
+  }, [value, mediaDir]);
+
+  // Read the attached video's duration from its metadata so we can warn before
+  // a post that exceeds the creator's TikTok-enforced limit (creator_info).
+  useEffect(() => {
+    if (!videoPath) {
+      setVideoDuration(null);
+      return;
+    }
+    const probe = document.createElement('video');
+    probe.preload = 'metadata';
+    const onLoaded = () => {
+      setVideoDuration(
+        Number.isFinite(probe.duration) ? probe.duration : null
+      );
+    };
+    const onError = () => setVideoDuration(null);
+    probe.addEventListener('loadedmetadata', onLoaded);
+    probe.addEventListener('error', onError);
+    probe.src = videoPath;
+    return () => {
+      probe.removeEventListener('loadedmetadata', onLoaded);
+      probe.removeEventListener('error', onError);
+      probe.src = '';
+    };
+  }, [videoPath]);
+
+  const maxDurationSeconds = creatorInfo?.maxDurationSeconds;
+
   const disclose = watch('disclose');
   const brand_organic_toggle = watch('brand_organic_toggle');
   const brand_content_toggle = watch('brand_content_toggle');
   const content_posting_method = watch('content_posting_method');
   const isUploadMode = content_posting_method === 'UPLOAD';
+
+  // Direct Post must honour the creator's max video length (creator_info).
+  // Upload-only finishes inside the TikTok app, so the limit doesn't apply here.
+  const durationExceeded =
+    isVideo &&
+    !isUploadMode &&
+    typeof maxDurationSeconds === 'number' &&
+    videoDuration !== null &&
+    videoDuration > maxDurationSeconds;
 
   const tiktokRestrictionNotice = useMemo(() => {
     if (!hasMedia || !isVideo) return null;
@@ -135,6 +187,23 @@ const TikTokSettings: FC<{
   return (
     <div className="flex flex-col">
       {/*<CheckTikTokValidity picture={props?.values?.[0]?.image?.[0]?.path} />*/}
+      {/* TikTok UX compliance: show the connected creator (nickname + avatar)
+          so the user always knows which account the post will be published to. */}
+      <div className="bg-tableBorder p-[10px] mb-[18px] rounded-[10px] flex gap-[10px] items-center">
+        <img
+          src={creatorInfo?.avatarUrl || integration?.picture || '/no-picture.jpg'}
+          alt="TikTok creator"
+          className="rounded-full w-[36px] h-[36px] object-cover shrink-0"
+        />
+        <div className="flex flex-col">
+          <div className="text-[11px] opacity-70">
+            {t('tiktok_posting_to', 'Posting to')}
+          </div>
+          <div className="text-[14px] font-[500]">
+            {creatorInfo?.nickname || integration?.name || '—'}
+          </div>
+        </div>
+      </div>
       {tiktokRestrictionNotice && (
         <div className="bg-tableBorder p-[10px] mb-[18px] rounded-[10px] flex gap-[10px] items-start text-[13px] text-balance">
           <div className="shrink-0 mt-[2px]">
@@ -173,6 +242,14 @@ const TikTokSettings: FC<{
           </option>
         ))}
       </Select>
+      {durationExceeded && (
+        <div className="mt-[10px] text-[13px] text-red-600 text-balance">
+          {t(
+            'tiktok_video_too_long',
+            'This video is longer than the maximum length allowed for this TikTok account ({{max}}s). Shorten the video or use "Upload without posting".'
+          ).replace('{{max}}', String(maxDurationSeconds))}
+        </div>
+      )}
       <div className="text-[14px] mt-[10px] mb-[18px] text-balance">
         {t(
           'choose_upload_without_posting_description',
