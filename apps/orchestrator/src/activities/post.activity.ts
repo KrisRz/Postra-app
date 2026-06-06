@@ -16,6 +16,7 @@ import { AuthTokenDetails } from '@gitroom/nestjs-libraries/integrations/social/
 import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integrations/refresh.integration.service';
 import { timer } from '@gitroom/helpers/utils/timer';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
+import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import { WebhooksService } from '@gitroom/nestjs-libraries/database/prisma/webhooks/webhooks.service';
 import { TypedSearchAttributes } from '@temporalio/common';
 import {
@@ -167,6 +168,13 @@ export class PostActivity {
     integration: Integration,
     posts: Post[]
   ) {
+    integration.token = AuthService.decryptIntegrationToken(integration.token);
+    if (integration.refreshToken) {
+      integration.refreshToken = AuthService.decryptIntegrationToken(
+        integration.refreshToken
+      );
+    }
+
     const getIntegration = this._integrationManager.getSocialIntegration(
       integration.providerIdentifier
     );
@@ -206,6 +214,13 @@ export class PostActivity {
 
   @ActivityMethod()
   async postSocial(integration: Integration, posts: Post[]) {
+    integration.token = AuthService.decryptIntegrationToken(integration.token);
+    if (integration.refreshToken) {
+      integration.refreshToken = AuthService.decryptIntegrationToken(
+        integration.refreshToken
+      );
+    }
+
     if (process.env.STRIPE_SECRET_KEY) {
       const subscription = await this._subscriptionService.getSubscription(
         integration.organizationId

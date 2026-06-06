@@ -6,6 +6,12 @@ import EVP_BytesToKey from 'evp_bytestokey';
 const algorithm = 'aes-256-cbc';
 const { keyLength, ivLength } = crypto.getCipherInfo(algorithm);
 
+// Prefix that marks an integration token/refreshToken as encrypted-at-rest.
+// Real provider tokens never start with this, and the cipher output is hex,
+// so the marker can never collide — making encrypt/decrypt idempotent and
+// backward-compatible with legacy plaintext rows (which simply pass through).
+const INTEGRATION_TOKEN_MARKER = 'enc::';
+
 function deriveLegacyKeyIv(secret: string) {
   const { keyLength, ivLength } = crypto.getCipherInfo(algorithm); // 32, 16
   const pass = Buffer.isBuffer(secret) ? secret : Buffer.from(secret ?? '', 'utf8');
@@ -63,5 +69,43 @@ export class AuthService {
 
   static fixedDecryption(hash: string) {
     return decrypt_legacy_using_IV(hash);
+  }
+
+  // Encrypt a social integration token for storage at rest. Idempotent: an
+  // already-encrypted value (or empty/null) is returned unchanged, so it is
+  // safe to call on values that may already be encrypted.
+  static encryptIntegrationToken(value: string): string;
+  static encryptIntegrationToken(value: string | null): string | null;
+  static encryptIntegrationToken(
+    value: string | null | undefined
+  ): string | null | undefined;
+  static encryptIntegrationToken(value: string | null | undefined) {
+    if (typeof value !== 'string' || value === '') {
+      return value;
+    }
+    if (value.startsWith(INTEGRATION_TOKEN_MARKER)) {
+      return value;
+    }
+    return INTEGRATION_TOKEN_MARKER + encrypt_legacy_using_IV(value);
+  }
+
+  // Decrypt a stored integration token. Idempotent: a plaintext value (legacy
+  // row, or a freshly-refreshed token still in memory) has no marker and is
+  // returned unchanged, so it is safe to call at any consumption point.
+  static decryptIntegrationToken(value: string): string;
+  static decryptIntegrationToken(value: string | null): string | null;
+  static decryptIntegrationToken(
+    value: string | null | undefined
+  ): string | null | undefined;
+  static decryptIntegrationToken(value: string | null | undefined) {
+    if (
+      typeof value !== 'string' ||
+      !value.startsWith(INTEGRATION_TOKEN_MARKER)
+    ) {
+      return value;
+    }
+    return decrypt_legacy_using_IV(
+      value.slice(INTEGRATION_TOKEN_MARKER.length)
+    );
   }
 }
