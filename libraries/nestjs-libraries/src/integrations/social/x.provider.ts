@@ -90,10 +90,25 @@ export class XProvider extends SocialAbstract implements SocialProvider {
       };
     }
 
+    if (body.includes('You are not allowed to create a Tweet')) {
+      return {
+        type: 'bad-body',
+        value: 'You are not allowed to create a post with duplicate content',
+      }
+    }
+
     if (body.includes('usage-capped')) {
       return {
         type: 'bad-body',
         value: 'Posting failed - capped reached. Please try again later',
+      };
+    }
+
+    if (body.includes('user-suspended')) {
+      return {
+        type: 'bad-body',
+        value:
+          'Your X account has been suspended, please reconnect with another account',
       };
     }
     if (body.includes('duplicate-rules')) {
@@ -101,6 +116,13 @@ export class XProvider extends SocialAbstract implements SocialProvider {
         type: 'bad-body',
         value:
           'You have already posted this post, please wait before posting again',
+      };
+    }
+    if (body.includes('Your account is not permitted to access this feature')) {
+      return {
+        type: 'bad-body',
+        value:
+          'X blocked your request',
       };
     }
     if (body.includes('The Tweet contains an invalid URL.')) {

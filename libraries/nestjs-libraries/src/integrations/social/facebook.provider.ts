@@ -33,7 +33,7 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
     'pages_read_engagement',
     'read_insights',
   ];
-  override maxConcurrentJob = 100; // Facebook has reasonable rate limits
+  override maxConcurrentJob = 500; // Facebook has reasonable rate limits
   editor = 'normal' as const;
   maxLength() {
     return 63206;
@@ -66,13 +66,6 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
       return {
         type: 'refresh-token' as const,
         value: 'Please re-authenticate your Facebook account',
-      };
-    }
-
-    if (body.indexOf('490') > -1) {
-      return {
-        type: 'refresh-token' as const,
-        value: 'Access token expired, please re-authenticate',
       };
     }
 
@@ -113,6 +106,13 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
       };
     }
 
+    if (body.indexOf('2069019') > -1) {
+      return {
+        type: 'bad-body' as const,
+        value: 'Invalid file',
+      }
+    }
+
     if (body.indexOf('1404102') > -1) {
       return {
         type: 'bad-body' as const,
@@ -125,6 +125,13 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
       return {
         type: 'refresh-token' as const,
         value: 'Page publishing authorization required, please re-authenticate',
+      };
+    }
+
+    if (body.indexOf('1366051') > -1) {
+      return {
+        type: 'bad-body' as const,
+        value: 'These photos were already posted.',
       };
     }
 
@@ -177,6 +184,26 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
       return {
         type: 'bad-body' as const,
         value: 'Facebook service temporarily unavailable',
+      };
+    }
+
+    if (body.indexOf('4854002') > -1) {
+      return {
+        type: 'bad-body' as const,
+        value:
+          'Confirm your identity before you can publish as this Page. Open the Facebook app on your phone and follow the instructions',
+      };
+    }
+    if (body.indexOf('(#100) No permission to publish the video') > -1) {
+      return {
+        type: 'bad-body' as const,
+        value: 'Facebook return: No permission to publish the video',
+      };
+    }
+    if (body.indexOf('490') > -1) {
+      return {
+        type: 'refresh-token' as const,
+        value: 'Access token expired, please re-authenticate',
       };
     }
 
@@ -667,11 +694,33 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
     const until = dayjs().endOf('day').unix();
     const since = dayjs().subtract(date, 'day').unix();
 
-    const { data } = await (
-      await fetch(
-        `https://graph.facebook.com/v20.0/${id}/insights?metric=page_impressions_unique,page_posts_impressions_unique,page_post_engagements,page_daily_follows,page_video_views&access_token=${accessToken}&period=day&since=${since}&until=${until}`
-      )
-    ).json();
+    // page_video_views is periodically deprecated/renamed by Meta and is not
+    // available on every Page. A single unsupported metric makes the whole
+    // insights call fail, so request it alongside the core metrics first and,
+    // if the call errors, retry without it so the core analytics still load.
+    const coreMetrics = [
+      'page_impressions_unique',
+      'page_posts_impressions_unique',
+      'page_post_engagements',
+      'page_daily_follows',
+    ];
+    const optionalMetrics = ['page_video_views'];
+
+    const fetchInsights = async (metrics: string[]) => {
+      const { data, error } = await (
+        await fetch(
+          `https://graph.facebook.com/v20.0/${id}/insights?metric=${metrics.join(
+            ','
+          )}&access_token=${accessToken}&period=day&since=${since}&until=${until}`
+        )
+      ).json();
+      return error ? null : data ?? [];
+    };
+
+    let data = await fetchInsights([...coreMetrics, ...optionalMetrics]);
+    if (data === null) {
+      data = (await fetchInsights(coreMetrics)) ?? [];
+    }
 
     return (
       data?.map((d: any) => ({
@@ -770,4 +819,3 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
     }
   }
 }
-
