@@ -50,7 +50,9 @@ interface WorkflowChannelsState {
 
 const model = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
-  model: 'gpt-4.1',
+  // gpt-4.1-mini: ~5x cheaper than gpt-4.1 with negligible quality drop for
+  // short social captions generated from an article (no complex reasoning).
+  model: 'gpt-4.1-mini',
   temperature: 0.7,
 });
 
