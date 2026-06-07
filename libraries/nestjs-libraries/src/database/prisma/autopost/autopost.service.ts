@@ -13,6 +13,7 @@ import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
 import Parser from 'rss-parser';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
+import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/notifications/notification.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { parseDataUrl } from '@gitroom/nestjs-libraries/upload/data.url';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
@@ -91,7 +92,8 @@ export class AutopostService {
     private _autopostsRepository: AutopostRepository,
     private _temporalService: TemporalService,
     private _integrationService: IntegrationService,
-    private _postsService: PostsService
+    private _postsService: PostsService,
+    private _notificationService: NotificationService
   ) {}
 
   // Autopost produces text + (optional) image. Skip platforms that can't accept
@@ -102,6 +104,10 @@ export class AutopostService {
     'instagram-standalone',
     'pinterest',
   ]);
+
+  // Cap items processed per hourly run so a feed that publishes a burst (or a
+  // first sync without syncLast) can't flood every connected channel at once.
+  static readonly MAX_ITEMS_PER_RUN = 5;
 
   async stopAll(org: string) {
     const getAll = (await this.getAutoposts(org)).filter((f) => f.active);
@@ -142,12 +148,18 @@ export class AutopostService {
 
   async processCron(active: boolean, orgId: string, id: string) {
     if (active) {
+      // TERMINATE_EXISTING makes (re)activation idempotent: starting with an
+      // already-running workflowId replaces it instead of throwing
+      // WorkflowExecutionAlreadyStarted. Without it, a swallowed throw would
+      // fall through to terminateWorkflow below and silently kill the live
+      // autopost on every edit / repeat toggle.
       try {
-        return this._temporalService.client
+        return await this._temporalService.client
           .getRawClient()
           ?.workflow.start('autoPostWorkflow', {
             workflowId: `autopost-${id}`,
             taskQueue: 'main',
+            workflowIdConflictPolicy: 'TERMINATE_EXISTING',
             args: [{ id, immediately: true }],
             typedSearchAttributes: new TypedSearchAttributes([
               {
@@ -156,7 +168,9 @@ export class AutopostService {
               },
             ]),
           });
-      } catch (err) {}
+      } catch (err) {
+        return false;
+      }
     }
 
     try {
@@ -217,6 +231,73 @@ export class AutopostService {
     return { success: false };
   }
 
+  private itemToLoad(item: any) {
+    return {
+      date: item.pubDate,
+      url: item.link,
+      description: striptags(
+        item?.['content:encoded'] || item?.content || item?.description || ''
+      )
+        .replace(/\n/g, ' ')
+        .trim(),
+    };
+  }
+
+  // Return loads for every feed item newer than lastUrl, oldest-first and
+  // capped, so a burst of new articles isn't collapsed into a single post.
+  // If lastUrl rolled off the feed we only take the newest item (never the
+  // whole backlog).
+  async loadNewLoads(
+    url: string,
+    lastUrl: string,
+    max = AutopostService.MAX_ITEMS_PER_RUN
+  ) {
+    try {
+      const { items } = await parser.parseURL(url);
+      const valid = (items || []).filter((i: any) => i?.link);
+      if (!valid.length) {
+        return [];
+      }
+
+      const hasDates = valid.some(
+        (i: any) => i.pubDate && dayjs(i.pubDate).isValid()
+      );
+      const ordered = hasDates
+        ? [...valid].sort(
+            (a: any, b: any) =>
+              dayjs(b.pubDate).valueOf() - dayjs(a.pubDate).valueOf()
+          )
+        : valid;
+
+      const idx = ordered.findIndex((i: any) => i.link === lastUrl);
+      const fresh = idx === -1 ? ordered.slice(0, 1) : ordered.slice(0, idx);
+
+      return fresh
+        .slice(0, max)
+        .reverse()
+        .map((i: any) => this.itemToLoad(i));
+    } catch (err) {
+      return [];
+    }
+  }
+
+  private async notifyFailure(getPost: AutoPost, err: any) {
+    try {
+      await this._notificationService.inAppNotification(
+        getPost.organizationId,
+        'Autopost failed',
+        `Autopost "${getPost.title}" could not publish the latest item from ${
+          getPost.url
+        }: ${String(err?.message || err)}`,
+        false,
+        false,
+        'fail'
+      );
+    } catch (e) {
+      /** never let a failed notification mask the original error path **/
+    }
+  }
+
   static state = () =>
     new StateGraph<WorkflowChannelsState>({
       channels: {
@@ -269,26 +350,26 @@ export class AutopostService {
     }
 
     const toneInstruction = state.body.tone
-      ? `- Ton wypowiedzi: ${state.body.tone}`
-      : '- Ton: profesjonalny ale przystępny';
+      ? `- Tone of voice: ${state.body.tone}`
+      : '- Tone: professional but approachable';
 
     const structuredOutput = model.withStructuredOutput(generatePlatformContent);
     const platformContent = await ChatPromptTemplate.fromTemplate(
       `
-        Jesteś asystentem social media. Na podstawie artykułu generujesz posty dostosowane do każdej platformy.
+        You are a social media assistant. Based on the article, generate posts tailored to each platform.
         
-        Zasady:
-        - Pisz w tym samym języku co artykuł (jeśli artykuł po polsku — posty po polsku, jeśli po angielsku — po angielsku)
+        Rules:
+        - Write in the SAME language as the article (article in English -> posts in English; article in Polish -> posts in Polish, etc.)
         ${toneInstruction}
-        - LinkedIn: profesjonalny ton, 150-200 słów, krótkie akapity z line breaks (\\n\\n), zakończ angażującym pytaniem
-        - X/Twitter: max 250 znaków, chwytliwy hook, 1-2 hashtagi na końcu
-        - Instagram: scroll-stopping pierwszy wiersz, 2-3 akapity wartości, CTA, potem \\n\\n i 5 hashtagów
-        - Facebook: swobodny przyjazny ton, 2-3 zdania, CTA do przeczytania artykułu
-        - Generic: uniwersalny, 1-2 zdania, angażujący
-        - Używaj emoji tam gdzie pasują
-        - NIE dodawaj linku do artykułu — link zostanie dołączony automatycznie
+        - LinkedIn: professional tone, 150-200 words, short paragraphs with line breaks (\\n\\n), end with an engaging question
+        - X/Twitter: max 250 characters, punchy hook, 1-2 hashtags at the end
+        - Instagram: scroll-stopping first line, 2-3 value paragraphs, CTA, then \\n\\n and 5 hashtags
+        - Facebook: casual friendly tone, 2-3 sentences, CTA to read the article
+        - Generic: universal, 1-2 sentences, engaging
+        - Use emoji where they fit
+        - Do NOT add a link to the article — the link is appended automatically
         
-        Artykuł:
+        Article:
         {content}
       `
     )
@@ -485,7 +566,10 @@ export class AutopostService {
       date,
       order: makeId(10),
       shortLink: false,
-      type: useSlot ? 'draft' : 'now',
+      // useSlot -> 'schedule' queues the post at the next free slot so it
+      // actually auto-publishes (legacy 'draft' created a never-published draft
+      // despite the "post on next available slot" label). !useSlot -> publish now.
+      type: useSlot ? 'schedule' : 'now',
       tags: [],
       posts: integrations.map((i) => ({
         settings: {
@@ -530,15 +614,33 @@ export class AutopostService {
       return;
     }
 
-    const load = await this.loadXML(getPost.url);
-    if (!load.success || load.url === getPost.lastUrl) {
-      return;
+    let loads: { date: any; url: string; description: string }[];
+
+    if (!getPost.lastUrl) {
+      // First activation: consider only the newest item so we never replay the
+      // whole feed history.
+      const newest = await this.loadXML(getPost.url);
+      if (!newest.success) {
+        return;
+      }
+      // "sync last": remember the current latest item as already seen so
+      // enabling an autopost doesn't immediately republish an old article.
+      if (getPost.syncLast) {
+        await this._autopostsRepository.updateUrl(id, newest.url);
+        return;
+      }
+      loads = [
+        {
+          date: newest.date,
+          url: newest.url,
+          description: newest.description,
+        },
+      ];
+    } else {
+      loads = await this.loadNewLoads(getPost.url, getPost.lastUrl);
     }
 
-    // First run with "sync last": remember the current latest item as already
-    // seen, so enabling an autopost doesn't immediately republish an old article.
-    if (!getPost.lastUrl && getPost.syncLast) {
-      await this._autopostsRepository.updateUrl(id, load.url);
+    if (!loads.length) {
       return;
     }
 
@@ -561,8 +663,7 @@ export class AutopostService {
       return;
     }
 
-    const state = AutopostService.state();
-    const workflow = state
+    const app = AutopostService.state()
       .addNode('generate-description', this.generateDescription.bind(this))
       .addNode('generate-picture', this.generatePicture.bind(this))
       .addNode('schedule-post', this.schedulePost.bind(this))
@@ -582,15 +683,25 @@ export class AutopostService {
       )
       .addEdge('generate-picture', 'schedule-post')
       .addEdge('schedule-post', 'update-url')
-      .addEdge('update-url', END);
+      .addEdge('update-url', END)
+      .compile();
 
-    const app = workflow.compile();
-    await app.invoke({
-      messages: [],
-      id,
-      body: getPost,
-      load,
-      integrations: integrationsToSend,
-    });
+    // Oldest-first so update-url advances lastUrl in order. Stop on the first
+    // failure (and surface it) so lastUrl never skips past an unposted item —
+    // the hourly run resumes from there next time.
+    for (const load of loads) {
+      try {
+        await app.invoke({
+          messages: [],
+          id,
+          body: getPost,
+          load,
+          integrations: integrationsToSend,
+        });
+      } catch (err) {
+        await this.notifyFailure(getPost, err);
+        break;
+      }
+    }
   }
 }
