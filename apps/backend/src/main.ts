@@ -22,6 +22,7 @@ import { ConfigurationChecker } from '@gitroom/helpers/configuration/configurati
 import { startMcp } from '@gitroom/nestjs-libraries/chat/start.mcp';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+import { startMetricsServer } from './metrics/metrics';
 
 async function start() {
   const app = await NestFactory.create(AppModule, {
@@ -87,6 +88,10 @@ async function start() {
   try {
     await app.listen(port);
     console.log('Backend started successfully on port ' + port);
+
+    // Prometheus /metrics on a dedicated internal port (not behind the app's
+    // throttle/auth guards). Internal docker-net only; Alloy scrapes it.
+    startMetricsServer();
 
     // One-off: encrypt integration tokens still stored as plaintext (A1 backfill).
     // Fire-and-forget so it never delays or breaks boot; guarded to run once.
