@@ -142,12 +142,18 @@ export class AutopostService {
 
   async processCron(active: boolean, orgId: string, id: string) {
     if (active) {
+      // TERMINATE_EXISTING makes (re)activation idempotent: starting with an
+      // already-running workflowId replaces it instead of throwing
+      // WorkflowExecutionAlreadyStarted. Without it, a swallowed throw would
+      // fall through to terminateWorkflow below and silently kill the live
+      // autopost on every edit / repeat toggle.
       try {
-        return this._temporalService.client
+        return await this._temporalService.client
           .getRawClient()
           ?.workflow.start('autoPostWorkflow', {
             workflowId: `autopost-${id}`,
             taskQueue: 'main',
+            workflowIdConflictPolicy: 'TERMINATE_EXISTING',
             args: [{ id, immediately: true }],
             typedSearchAttributes: new TypedSearchAttributes([
               {
@@ -156,7 +162,9 @@ export class AutopostService {
               },
             ]),
           });
-      } catch (err) {}
+      } catch (err) {
+        return false;
+      }
     }
 
     try {
