@@ -88,6 +88,7 @@ export class AutopostRepository {
         onSlot: body.onSlot,
         lastUrl: body.lastUrl,
         tone: body.tone,
+        customInstructions: body.customInstructions,
       },
       update: {
         url: body.url,
@@ -101,6 +102,7 @@ export class AutopostRepository {
         onSlot: body.onSlot,
         lastUrl: body.lastUrl,
         tone: body.tone,
+        customInstructions: body.customInstructions,
       },
     });
 
