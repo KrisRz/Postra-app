@@ -61,6 +61,10 @@ export class AutopostDto {
   @IsOptional()
   tone?: string;
 
+  @IsString()
+  @IsOptional()
+  customInstructions?: string;
+
   @IsArray()
   @Type(() => Integrations)
   @ValidateNested({ each: true })

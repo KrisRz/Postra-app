@@ -355,11 +355,20 @@ export class AutopostService {
       ? `- Tone of voice: ${state.body.tone}`
       : '- Tone: professional but approachable';
 
+    // Extra brand/topic context from the user (e.g. "fitness brand, add one
+    // actionable gym tip"). Layered ON TOP of the per-platform rules — it must
+    // not override the hard platform constraints (language, length limits,
+    // hashtag counts). Passed as a template variable (not string-interpolated)
+    // so any { } the user types stays literal and never breaks the f-string.
+    const extraInstructions = state.body.customInstructions?.trim()
+      ? `Additional context from the user — weave it in where relevant, but ALWAYS keep the per-platform rules above (language, length limits, hashtag counts):\n        ${state.body.customInstructions.trim()}`
+      : '';
+
     const structuredOutput = model.withStructuredOutput(generatePlatformContent);
     const platformContent = await ChatPromptTemplate.fromTemplate(
       `
         You are a social media assistant. Based on the article, generate posts tailored to each platform.
-        
+
         Rules:
         - Write in the SAME language as the article (article in English -> posts in English; article in Polish -> posts in Polish, etc.)
         ${toneInstruction}
@@ -370,7 +379,8 @@ export class AutopostService {
         - Generic: universal, 1-2 sentences, engaging
         - Use emoji where they fit
         - Do NOT add a link to the article — the link is appended automatically
-        
+        {extraInstructions}
+
         Article:
         {content}
       `
@@ -378,6 +388,7 @@ export class AutopostService {
       .pipe(structuredOutput)
       .invoke({
         content: description,
+        extraInstructions,
       });
 
     return {

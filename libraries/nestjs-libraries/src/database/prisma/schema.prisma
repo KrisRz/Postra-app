@@ -630,23 +630,24 @@ model Webhooks {
 }
 
 model AutoPost {
-  id              String       @id @default(uuid())
-  organizationId  String
-  title           String
-  content         String?
-  onSlot          Boolean
-  syncLast        Boolean
-  url             String
-  lastUrl         String
-  active          Boolean
-  addPicture      Boolean
-  generateContent Boolean
-  tone            String?
-  integrations    String
-  deletedAt       DateTime?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                 String       @id @default(uuid())
+  organizationId     String
+  title              String
+  content            String?
+  onSlot             Boolean
+  syncLast           Boolean
+  url                String
+  lastUrl            String
+  active             Boolean
+  addPicture         Boolean
+  generateContent    Boolean
+  tone               String?
+  customInstructions String?
+  integrations       String
+  deletedAt          DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([deletedAt])
 }

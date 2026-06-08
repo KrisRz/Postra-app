@@ -132,6 +132,7 @@ const details = object().shape({
   title: string().required(),
   content: string(),
   tone: string(),
+  customInstructions: string(),
   onSlot: boolean().required(),
   syncLast: boolean().required(),
   url: string().url().required(),
@@ -199,6 +200,7 @@ export const AddOrEditWebhook: FC<{
       title: data?.title || '',
       content: data?.content || '',
       tone: data?.tone || '',
+      customInstructions: data?.customInstructions || '',
       onSlot: data?.onSlot || false,
       syncLast: data?.syncLast || false,
       url: data?.url || '',
@@ -374,12 +376,28 @@ export const AddOrEditWebhook: FC<{
               </>
             )}
             {generateContent && (
-              <Input
-                label="Tone / Style (optional)"
-                translationKey="label_tone"
-                placeholder="e.g. professional, casual, humorous, inspirational"
-                {...form.register('tone')}
-              />
+              <>
+                <Input
+                  label="Tone / Style (optional)"
+                  translationKey="label_tone"
+                  placeholder="e.g. professional, casual, humorous, inspirational"
+                  {...form.register('tone')}
+                />
+                <div className="text-[14px] mb-[6px]">
+                  {t(
+                    'autopost_extra_context',
+                    'Extra context for AI (optional)'
+                  )}
+                </div>
+                <textarea
+                  className="w-full min-h-24 max-h-60 p-2 overflow-x-hidden scrollbar scrollbar-thumb-[#38bdf8] bg-white/[0.03] outline-none mb-[16px] border-white/10 border rounded-[16px] text-[14px]"
+                  placeholder={t(
+                    'autopost_extra_context_placeholder',
+                    'e.g. fitness brand — add one actionable gym tip; end with a question'
+                  )}
+                  {...form.register('customInstructions')}
+                />
+              </>
             )}
             <Select
               label="Generate Picture?"
