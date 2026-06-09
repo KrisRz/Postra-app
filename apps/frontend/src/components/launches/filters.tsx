@@ -289,8 +289,8 @@ export const Filters = () => {
   return (
     <div className="launches-filters text-textColor flex flex-col md:flex-row gap-[10px] items-center select-none rounded-[18px] border border-white/10 bg-white/[0.03] px-[12px] py-[10px] shadow-[0_18px_60px_rgba(2,6,23,0.2)] backdrop-blur-xl">
       {!isListView && (
-        <div className="flex flex-grow flex-row items-center gap-[10px]">
-          <div className="launches-control-surface h-[42px] border border-white/10 bg-[rgba(15,23,42,0.78)] gap-[1px] flex items-center rounded-[12px] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <div className="flex flex-grow flex-row phone:flex-col phone:w-full phone:items-stretch items-center gap-[10px]">
+          <div className="launches-control-surface phone:w-full h-[42px] border border-white/10 bg-[rgba(15,23,42,0.78)] gap-[1px] flex items-center rounded-[12px] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div
               onClick={previous}
               className="cursor-pointer text-textColor rtl:rotate-180 px-[11px] bg-transparent h-full flex items-center justify-center hover:text-textItemFocused hover:bg-white/[0.06] transition-colors"
@@ -311,7 +311,7 @@ export const Filters = () => {
                 />
               </svg>
             </div>
-            <div className="min-w-[220px] text-center bg-transparent h-full flex items-center justify-center">
+            <div className="min-w-[220px] phone:min-w-0 phone:flex-1 text-center bg-transparent h-full flex items-center justify-center">
               <div className="py-[3px] px-[9px] rounded-[5px] transition-all text-[14px] font-[600] tracking-[-0.02em]">
                 {getDisplayText()}
               </div>
@@ -350,8 +350,8 @@ export const Filters = () => {
         </div>
       )}
       {isListView && (
-        <div className="flex flex-grow flex-row items-center gap-[10px]">
-          <div className="launches-control-surface h-[42px] border border-white/10 bg-[rgba(15,23,42,0.78)] gap-[1px] flex items-center rounded-[12px] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+        <div className="flex flex-grow flex-row phone:flex-col phone:w-full phone:items-stretch items-center gap-[10px]">
+          <div className="launches-control-surface phone:w-full h-[42px] border border-white/10 bg-[rgba(15,23,42,0.78)] gap-[1px] flex items-center rounded-[12px] overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div
               onClick={previousPage}
               className={clsx(
@@ -377,7 +377,7 @@ export const Filters = () => {
                 />
               </svg>
             </div>
-            <div className="min-w-[220px] text-center bg-transparent h-full flex items-center justify-center">
+            <div className="min-w-[220px] phone:min-w-0 phone:flex-1 text-center bg-transparent h-full flex items-center justify-center">
               <div className="py-[3px] px-[9px] rounded-[5px] transition-all text-[14px] font-[600] tracking-[-0.02em]">
                 {t('page', 'Page')} {calendar.listPage + 1} {t('of', 'of')} {Math.max(1, calendar.listTotalPages)}
               </div>
@@ -408,13 +408,13 @@ export const Filters = () => {
               </svg>
             </div>
           </div>
-          <div className="flex flex-row p-[4px] border border-newTableBorder rounded-[8px] text-[14px] font-[500]">
+          <div className="flex flex-row phone:flex-wrap phone:justify-center phone:w-full p-[4px] border border-newTableBorder rounded-[8px] text-[14px] font-[500]">
             {listStateOptions.map((option) => (
               <div
                 key={option.value}
                 onClick={setListStateFilter(option.value)}
                 className={clsx(
-                  'pt-[6px] pb-[5px] cursor-pointer min-w-[80px] px-[12px] text-center rounded-[6px]',
+                  'pt-[6px] pb-[5px] cursor-pointer min-w-[80px] px-[12px] text-center rounded-[6px] phone:whitespace-nowrap',
                   calendar.listState === option.value &&
                     'text-textItemFocused bg-boxFocused'
                 )}
@@ -468,7 +468,7 @@ export const Filters = () => {
           </div>
         </div>
       )}
-      <div className="launches-toggle-surface flex flex-row p-[4px] border border-white/10 bg-[rgba(15,23,42,0.74)] rounded-[12px] text-[14px] font-[500] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+      <div className="launches-toggle-surface phone:hidden flex flex-row p-[4px] border border-white/10 bg-[rgba(15,23,42,0.74)] rounded-[12px] text-[14px] font-[500] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
         <div
           onClick={setCalendarView}
           className={clsx(

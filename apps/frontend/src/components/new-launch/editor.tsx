@@ -833,7 +833,7 @@ export const Editor: FC<{
                       <div className="relative">
                         <div
                           className={clsx(
-                            'absolute z-[500] -start-[50px]',
+                            'absolute z-[500] -start-[50px] phone:fixed phone:!start-[50%] phone:-translate-x-[50%] phone:!top-auto phone:!bottom-[80px]',
                             num === 0 && allValues?.length > 1
                               ? 'top-[35px]'
                               : 'bottom-[35px]'

@@ -575,7 +575,7 @@
   "select_channels": "Wybierz Kanały",
   "start_a_new_chat": "Rozpocznij nowy czat",
   "your_assistant": "Twój Asystent",
-  "agent_welcome_message": "Witam, jestem Twoim agentem Postra 🙌🏻.\n\nMogę zaplanować post lub wiele postów na wielu kanałach oraz generować zdjęcia i filmy.\n\nMożesz wybrać kanały, których chcesz używać, z lewego menu.\n\nMożesz zobaczyć swoje poprzednie rozmowy po prawej stronie menu.\n\nMożesz także użyć mnie jako serwera MCP, sprawdź Ustawienia >>Publiczne API",
+  "agent_welcome_message": "Cześć! Jestem Twoim agentem Postra 🙌🏻 Napisz, co chcesz opublikować — zaplanuję posty na wielu kanałach i wygeneruję zdjęcia oraz filmy.",
   "last_github_trending": "Ostatni trend na Githubie",
   "next_predicted_github_trending": "Następne przewidywane trendy w GitHub",
   "repository": "Repozytorium",

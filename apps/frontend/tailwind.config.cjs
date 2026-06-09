@@ -281,6 +281,13 @@ module.exports = {
         xs: {
           max: '401px',
         },
+        // Telefon = poniżej `md` (768px), spójne z app-shellem.
+        // Używamy własnego screena (a nie wbudowanego `max-md:`), bo customowe
+        // screeny z `raw` powyżej sprawiają, że Tailwind nie generuje
+        // wariantów `max-*`. `phone:` to działający odpowiednik `max-md:`.
+        phone: {
+          max: '767px',
+        },
       },
     },
   },
