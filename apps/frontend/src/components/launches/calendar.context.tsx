@@ -23,6 +23,7 @@ import useCookie from 'react-use-cookie';
 import { newDayjs } from '@gitroom/frontend/components/layout/set.timezone';
 import { timer } from '@gitroom/helpers/utils/timer';
 import { expandPostsList, expandPosts } from '@gitroom/helpers/utils/posts.list.minify';
+import { useIsMobile } from '@gitroom/frontend/components/ui/use.is.mobile';
 extend(isoWeek);
 extend(weekOfYear);
 
@@ -293,6 +294,23 @@ export const CalendarWeekProvider: FC<{
     },
     []
   );
+
+  // Na telefonie siatki tydzień/miesiąc/dzień są nieczytelne — wymuszamy
+  // widok agendy (list), dokładnie jak robi to apka mobilna. Lista korzysta
+  // z osobnego endpointu (/posts/list), więc to przełącza też dane.
+  // Desktop (isMobile=false) jest nietknięty.
+  const isMobile = useIsMobile();
+  useEffect(() => {
+    if (isMobile && filters.display !== 'list') {
+      const today = newDayjs().format('YYYY-MM-DD');
+      setFiltersWrapper({
+        startDate: today,
+        endDate: today,
+        display: 'list',
+        customer: filters.customer,
+      });
+    }
+  }, [isMobile, filters.display, filters.customer, setFiltersWrapper]);
 
   const posts = useMemo(() => calendarData?.posts || [], [calendarData?.posts]);
   const comments = useMemo(() => calendarData?.comments || [], [calendarData?.comments]);

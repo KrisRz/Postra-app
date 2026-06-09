@@ -450,16 +450,22 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
   );
 
   return (
-    <div className="w-full h-full flex-1 p-[40px] flex relative">
+    <div className="w-full h-full flex-1 p-[40px] phone:p-0 flex relative">
       <div className="flex flex-1 bg-white/[0.03] rounded-[20px] flex-col">
         <div className="flex-1 flex">
-          <div className="flex flex-col flex-1 border-e border-newBorder">
-            <div className="bg-newBgColor h-[65px] rounded-s-[20px] !rounded-b-[0] flex items-center gap-[12px] px-[20px] text-[20px] font-[600]">
+          <div className="flex flex-col flex-1 border-e border-newBorder phone:border-e-0">
+            <div className="bg-newBgColor h-[65px] rounded-s-[20px] !rounded-b-[0] flex items-center phone:justify-center gap-[12px] px-[20px] text-[20px] font-[600] relative">
               {t('create_post_title', 'Create Post')}
               <CreationMethodBadge
                 creationMethod={existingData?.posts?.[0]?.creationMethod}
                 size="sm"
               />
+              <div
+                onClick={askClose}
+                className="hidden phone:flex absolute end-[16px] top-1/2 -translate-y-1/2 cursor-pointer text-[#A3A3A3] hover:text-white"
+              >
+                <CloseIcon />
+              </div>
             </div>
             <div className="flex-1 flex flex-col gap-[16px]">
               <div
@@ -552,7 +558,7 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
               </div>
             </div>
           </div>
-          <div className="w-[580px] flex flex-col">
+          <div className="w-[580px] phone:hidden flex flex-col">
             <div className="bg-newBgColor h-[65px] rounded-e-[20px] !rounded-b-[0] flex items-center px-[20px] text-[20px] font-[600]">
               <div className="flex-1">{t('post_preview', 'Post Preview')}</div>
               <div className="cursor-pointer">
@@ -569,8 +575,8 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
             </div>
           </div>
         </div>
-        <div className="select-none h-[84px] py-[20px] border-t border-newBorder flex items-center">
-          <div className="flex-1 flex ps-[20px] gap-[8px]">
+        <div className="select-none h-[84px] phone:h-auto phone:flex-col phone:items-stretch phone:gap-[12px] phone:py-[12px] py-[20px] border-t border-newBorder flex items-center">
+          <div className="flex-1 flex phone:flex-wrap phone:justify-center ps-[20px] phone:ps-0 gap-[8px]">
             {!dummy && (
               <TagsComponent
                 name="tags"
@@ -586,7 +592,7 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
               <RepeatComponent repeat={repeater} onChange={setRepeater} />
             )}
           </div>
-          <div className="pe-[20px] flex items-center justify-end gap-[8px]">
+          <div className="pe-[20px] phone:pe-0 flex items-center justify-end phone:justify-center phone:flex-wrap gap-[8px]">
             {existingData?.integration && (
               <button
                 onClick={deletePost}

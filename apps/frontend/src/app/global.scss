@@ -1208,6 +1208,15 @@ body.light .agent {
   max-width: calc(100% / 6);
 }
 
+// Na mobile (poniżej `md`) 6 kolumn miniatur jest za ciasne i nachodzą na
+// siebie — schodzimy do 3 kolumn. Desktop (>=768px) bez zmian.
+@media (max-width: 767px) {
+  .w8-max {
+    width: calc(100% / 3);
+    max-width: calc(100% / 3);
+  }
+}
+
 .withp3 {
   width: calc(100% + 9px);
   height: calc(100% + 6px);

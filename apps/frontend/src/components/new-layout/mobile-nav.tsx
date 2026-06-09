@@ -64,7 +64,7 @@ export const BottomNav: FC = () => {
   return (
     <nav
       aria-label={t('mobile_nav', 'Nawigacja mobilna')}
-      className="md:hidden fixed bottom-0 start-0 end-0 h-[64px] bg-[rgba(15,23,42,0.92)] backdrop-blur-xl border-t border-white/10 flex items-stretch z-40 pb-[env(safe-area-inset-bottom)]"
+      className="js-bottom-nav md:hidden fixed bottom-0 start-0 end-0 h-[64px] bg-[rgba(15,23,42,0.92)] backdrop-blur-xl border-t border-white/10 flex items-stretch z-40 pb-[env(safe-area-inset-bottom)]"
     >
       {items.map((item) => (
         <BottomNavItem

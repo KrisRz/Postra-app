@@ -370,7 +370,7 @@ export const WeekView = () => {
   }, [i18next.resolvedLanguage, startDate]);
 
   return (
-    <div className="flex flex-col text-textColor flex-1">
+    <div className="flex flex-col text-textColor flex-1 phone:hidden">
       <div className="flex-1 relative">
         <div className="launches-calendar-grid grid [grid-template-columns:80px_repeat(7,_minmax(0,_1fr))] gap-[6px] rounded-[18px] absolute h-full start-0 top-0 w-full overflow-auto border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.9),rgba(10,14,26,0.94))] p-[6px] shadow-[0_28px_80px_rgba(2,6,23,0.28)] backdrop-blur-xl scrollbar scrollbar-thumb-fifth scrollbar-track-newBgColor">
           <div className="launches-calendar-header z-10 flex justify-center items-center flex-col h-[62px] rounded-[14px] border border-white/8 bg-[rgba(15,23,42,0.78)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sticky top-0"></div>
@@ -465,7 +465,7 @@ export const MonthView = () => {
   }, [startDate]);
 
   return (
-    <div className="flex flex-col text-textColor flex-1">
+    <div className="flex flex-col text-textColor flex-1 phone:hidden">
       <div className="flex-1 flex relative">
         <div className="launches-calendar-grid grid grid-cols-7 grid-rows-[62px_auto] gap-[6px] rounded-[18px] absolute start-0 top-0 overflow-auto w-full h-full border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.9),rgba(10,14,26,0.94))] p-[6px] shadow-[0_28px_80px_rgba(2,6,23,0.28)] backdrop-blur-xl scrollbar scrollbar-thumb-tableBorder scrollbar-track-secondary">
           {localizedDays.map((day) => (

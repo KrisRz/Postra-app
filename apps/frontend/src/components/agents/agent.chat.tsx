@@ -64,21 +64,36 @@ export const AgentChat: FC = () => {
         className="agent-chat-shell trz agent flex flex-col gap-[15px] transition-all flex-1 items-center relative bg-[linear-gradient(180deg,rgba(10,14,26,0.94),rgba(8,14,28,0.98))]"
       >
         <div className="absolute left-0 w-full h-full px-[14px] pt-[14px] pb-[24px]">
+          <style>{`
+            @media (max-width: 767px) {
+              .agent-chat-shell .copilotKitMessages,
+              .agent-chat-shell .copilotKitMessagesContainer {
+                width: 100% !important;
+                max-width: 100% !important;
+                align-self: stretch !important;
+              }
+              .agent-chat-shell .copilotKitMessages,
+              .agent-chat-shell .copilotKitMessagesContainer {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+              }
+              .agent-chat-shell .copilotKitMessage.copilotKitUserMessage,
+              .agent-chat-shell .copilotKitMessage.copilotKitAssistantMessage {
+                max-width: 100% !important;
+                width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                min-width: 0 !important;
+              }
+            }
+          `}</style>
           <CopilotChat
             className="w-full h-full"
             labels={{
               title: t('your_assistant', 'Twój Asystent'),
               initial: t(
                 'agent_welcome_message',
-                `Witam, jestem Twoim agentem Postra 🙌🏻.
-
-Mogę zaplanować jeden post albo całą serię postów na wielu kanałach oraz generować zdjęcia i filmy.
-
-Kanały, których chcesz używać, wybierzesz w menu po lewej stronie.
-
-Po prawej stronie znajdziesz swoje wcześniejsze rozmowy.
-
-Możesz też używać mnie jako serwera MCP. Zajrzyj do Ustawienia >> Publiczne API.`
+                `Cześć! Jestem Twoim agentem Postra 🙌🏻 Napisz, co chcesz opublikować — zaplanuję posty na wielu kanałach i wygeneruję zdjęcia oraz filmy.`
               ),
             }}
             UserMessage={Message}

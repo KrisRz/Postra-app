@@ -107,11 +107,11 @@ export const AgentList: FC<{ onChange: (arr: any[]) => void }> = ({
   return (
     <div
       className={clsx(
-        'agent-side-panel trz flex flex-col gap-[15px] transition-all relative border-e border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.88),rgba(8,14,28,0.96))] backdrop-blur-xl',
+        'agent-side-panel trz flex flex-col gap-[15px] transition-all relative border-e border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.88),rgba(8,14,28,0.96))] backdrop-blur-xl phone:hidden',
         collapseMenu === '1' ? 'group sidebar w-[100px]' : 'w-[280px]'
       )}
     >
-      <div className="absolute top-0 start-0 w-full h-full p-[20px] overflow-auto scrollbar scrollbar-thumb-fifth scrollbar-track-transparent">
+      <div className="absolute top-0 start-0 w-full h-full phone:static phone:h-auto phone:max-h-[40vh] p-[20px] overflow-auto scrollbar scrollbar-thumb-fifth scrollbar-track-transparent">
         <div className="flex items-center">
           <h2 className="group-[.sidebar]:hidden flex-1 text-[20px] font-[500] mb-[15px]">
             {t('select_channels', 'Select Channels')}
@@ -205,7 +205,7 @@ export const Agent: FC<{ children: ReactNode }> = ({ children }) => {
   return (
     <PropertiesContext.Provider value={{ properties }}>
       <AgentList onChange={setProperties} />
-      <div className="agent-main-shell flex flex-1 bg-[linear-gradient(180deg,rgba(10,14,26,0.94),rgba(8,14,28,0.98))]">
+      <div className="agent-main-shell flex flex-1 phone:min-h-[55vh] bg-[linear-gradient(180deg,rgba(10,14,26,0.94),rgba(8,14,28,0.98))]">
         {children}
       </div>
       <Threads />
@@ -228,11 +228,11 @@ const Threads: FC = () => {
   return (
     <div
       className={clsx(
-        'agent-side-panel trz flex flex-col gap-[15px] transition-all relative border-s border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.88),rgba(8,14,28,0.96))] backdrop-blur-xl',
+        'agent-side-panel trz flex flex-col gap-[15px] transition-all relative border-s border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.88),rgba(8,14,28,0.96))] backdrop-blur-xl phone:hidden',
         'w-[280px]'
       )}
     >
-      <div className="absolute top-0 start-0 w-full h-full p-[20px] overflow-auto scrollbar scrollbar-thumb-fifth scrollbar-track-transparent">
+      <div className="absolute top-0 start-0 w-full h-full phone:static phone:h-auto phone:max-h-[40vh] p-[20px] overflow-auto scrollbar scrollbar-thumb-fifth scrollbar-track-transparent">
         <div className="mb-[15px] justify-center flex group-[.sidebar]:pb-[15px]">
           <Link
             href={`/agents`}
