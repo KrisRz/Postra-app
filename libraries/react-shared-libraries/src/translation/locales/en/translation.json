@@ -1124,4 +1124,19 @@
   "image_stock_search_ph": "e.g. coffee, office, summer",
   "image_stock_search_failed": "Image search failed.",
   "image_stock_import_failed": "Image import failed.",
-  "image_stock_hint": "Free photos (Pixabay License, commercial use OK). Click a photo to add it to the canvas — it is also saved to your media library."}
+  "image_stock_hint": "Free photos (Pixabay License, commercial use OK). Click a photo to add it to the canvas — it is also saved to your media library.",
+  "brand_kit_nudge": "Set up your Brand Kit once — AI will use your colours, font and logo in every design.",
+  "brand_kit_nudge_cta": "Set up brand",
+  "filter_section": "Filters",
+  "filter_brightness": "Brightness",
+  "filter_contrast": "Contrast",
+  "filter_saturation": "Saturation",
+  "filter_blur": "Blur",
+  "filter_preset_original": "Original",
+  "filter_preset_bw": "B&W",
+  "filter_preset_sepia": "Sepia",
+  "filter_preset_vivid": "Vivid",
+  "filter_preset_cool": "Cool",
+  "filter_preset_warm": "Warm",
+  "filter_reset": "Reset filters"
+}
