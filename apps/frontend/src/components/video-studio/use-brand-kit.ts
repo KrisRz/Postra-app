@@ -30,10 +30,17 @@ export const BRAND_KIT_DEFAULTS: BrandKit = {
  * Fetch the active org's Brand Kit once. Falls back to defaults on any failure
  * (no kit set yet, network error) so callers can always render.
  */
-export function useBrandKit(): { kit: BrandKit; loading: boolean } {
+export function useBrandKit(): {
+  kit: BrandKit;
+  loading: boolean;
+  exists: boolean;
+} {
   const fetch = useFetch();
   const [kit, setKit] = useState<BrandKit>(BRAND_KIT_DEFAULTS);
   const [loading, setLoading] = useState(true);
+  // Whether the org actually saved a kit — GET /brand-kit returns an empty
+  // body until then, and callers like the AI panel nudge need to know.
+  const [exists, setExists] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,6 +52,7 @@ export function useBrandKit(): { kit: BrandKit; loading: boolean } {
         if (!text) return;
         const data = JSON.parse(text);
         if (!cancelled && data) {
+          setExists(true);
           setKit({
             logoPath: data.logoPath ?? null,
             primaryColor: data.primaryColor ?? BRAND_KIT_DEFAULTS.primaryColor,
@@ -65,5 +73,5 @@ export function useBrandKit(): { kit: BrandKit; loading: boolean } {
     };
   }, [fetch]);
 
-  return { kit, loading };
+  return { kit, loading, exists };
 }
