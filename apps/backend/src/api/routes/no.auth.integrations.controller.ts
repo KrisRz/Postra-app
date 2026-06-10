@@ -363,6 +363,13 @@ export class NoAuthIntegrationsController {
       throw new HttpException('Not a Chrome extension integration', 400);
     }
 
+    let cookiesPayload: any;
+    try {
+      cookiesPayload = JSON.parse(Buffer.from(body.cookies, 'base64').toString());
+    } catch {
+      throw new HttpException('Invalid cookies payload', 400);
+    }
+
     const authResult = await integrationProvider.authenticate({
       code: body.cookies,
       codeVerifier: '',
@@ -396,9 +403,7 @@ export class NoAuthIntegrationsController {
       false,
       undefined,
       undefined,
-      AuthService.signJWT(
-        JSON.parse(Buffer.from(body.cookies, 'base64').toString())
-      )
+      AuthService.signJWT(cookiesPayload)
     );
 
     return { success: true };

@@ -1,4 +1,4 @@
-import { proxyActivities, sleep } from '@temporalio/workflow';
+import { log, proxyActivities, sleep } from '@temporalio/workflow';
 import { AutopostActivity } from '@gitroom/orchestrator/activities/autopost.activity';
 
 const { autoPost } = proxyActivities<AutopostActivity>({
@@ -23,7 +23,11 @@ export async function autoPostWorkflow({
       if (immediately) {
         await autoPost(id);
       }
-    } catch (err) {}
+    } catch (err) {
+      // Swallowing keeps the hourly loop alive, but a feed that fails every
+      // run would otherwise go dark with no trace.
+      log.error('autoPost run failed', { autopostId: id, error: String(err) });
+    }
     immediately = true;
     await sleep(3600000);
   }

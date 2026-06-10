@@ -95,7 +95,11 @@ async function start() {
 
     // One-off: encrypt integration tokens still stored as plaintext (A1 backfill).
     // Fire-and-forget so it never delays or breaks boot; guarded to run once.
-    runTokenBackfill(app).catch(() => {});
+    runTokenBackfill(app).catch((e) =>
+      Logger.warn(
+        `Token backfill failed: ${e instanceof Error ? e.message : e}`
+      )
+    );
 
     checkConfiguration(); // Do this last, so that users will see obvious issues at the end of the startup log without having to scroll up.
 

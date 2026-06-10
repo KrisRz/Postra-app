@@ -905,5 +905,19 @@
   "code": "Kod",
   "enter_your_code": "Wpisz swój kod",
   "code_claimed": "Kod aktywowany pomyślnie",
-  "code_invalid": "Kod już wykorzystany lub nieprawidłowy"
+  "code_invalid": "Kod już wykorzystany lub nieprawidłowy",
+  "oauth_app_name_redirect_required": "Nazwa i Redirect URL są wymagane",
+  "oauth_app_created_copy_secret": "Aplikacja utworzona! Skopiuj teraz client secret — pokażemy go tylko raz.",
+  "oauth_app_create_failed": "Nie udało się utworzyć aplikacji",
+  "oauth_app_updated": "Aplikacja zaktualizowana",
+  "oauth_app_update_failed": "Nie udało się zaktualizować aplikacji",
+  "oauth_rotate_secret_title": "Wygenerować nowy Client Secret?",
+  "oauth_rotate_secret_description": "Wygeneruje to nowy client secret i unieważni obecny. Integracje używające starego przestaną działać.",
+  "oauth_secret_rotated_copy": "Sekret wygenerowany! Skopiuj teraz nowy client secret.",
+  "oauth_rotate_secret_failed": "Nie udało się wygenerować sekretu",
+  "oauth_delete_app_title": "Usunąć aplikację OAuth?",
+  "oauth_delete_app_description": "Usunie to aplikację OAuth i unieważni wszystkie autoryzacje użytkowników. Tej operacji nie można cofnąć.",
+  "oauth_app_deleted": "Aplikacja OAuth usunięta",
+  "oauth_app_delete_failed": "Nie udało się usunąć aplikacji",
+  "plugin_updated": "Wtyczka zaktualizowana"
 }

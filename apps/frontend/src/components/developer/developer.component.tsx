@@ -115,7 +115,13 @@ export const DeveloperComponent: FC = () => {
 
   const createApp = useCallback(async () => {
     if (!name || !redirectUrl) {
-      toaster.show('Nazwa i Redirect URL są wymagane', 'warning');
+      toaster.show(
+        t(
+          'oauth_app_name_redirect_required',
+          'Name and Redirect URL are required'
+        ),
+        'warning'
+      );
       return;
     }
     try {
@@ -134,16 +140,22 @@ export const DeveloperComponent: FC = () => {
       if (result.clientSecret) {
         setPlaintextSecret(result.clientSecret);
         toaster.show(
-          'Aplikacja utworzona! Skopiuj teraz client secret — pokażemy go tylko raz.',
+          t(
+            'oauth_app_created_copy_secret',
+            'App created! Copy the client secret now — it is shown only once.'
+          ),
           'success'
         );
       }
       setCreating(false);
       mutate();
     } catch {
-      toaster.show('Nie udało się utworzyć aplikacji', 'warning');
+      toaster.show(
+        t('oauth_app_create_failed', 'Failed to create the app'),
+        'warning'
+      );
     }
-  }, [name, description, redirectUrl, pictureId]);
+  }, [name, description, redirectUrl, pictureId, t]);
 
   const updateApp = useCallback(async () => {
     try {
@@ -156,21 +168,26 @@ export const DeveloperComponent: FC = () => {
           pictureId,
         }),
       });
-      toaster.show('Aplikacja zaktualizowana', 'success');
+      toaster.show(t('oauth_app_updated', 'App updated'), 'success');
       setEditing(false);
       mutate();
     } catch {
-      toaster.show('Nie udało się zaktualizować aplikacji', 'warning');
+      toaster.show(
+        t('oauth_app_update_failed', 'Failed to update the app'),
+        'warning'
+      );
     }
-  }, [name, description, redirectUrl, pictureId]);
+  }, [name, description, redirectUrl, pictureId, t]);
 
   const rotateSecret = useCallback(async () => {
     const approved = await decision.open({
-      title: 'Wygenerować nowy Client Secret?',
-      description:
-        'Wygeneruje to nowy client secret i unieważni obecny. Integracje używające starego przestaną działać.',
-      approveLabel: 'Wygeneruj',
-      cancelLabel: 'Anuluj',
+      title: t('oauth_rotate_secret_title', 'Generate a new client secret?'),
+      description: t(
+        'oauth_rotate_secret_description',
+        'This generates a new client secret and invalidates the current one. Integrations using the old secret will stop working.'
+      ),
+      approveLabel: t('generate', 'Generate'),
+      cancelLabel: t('cancel', 'Cancel'),
     });
     if (!approved) return;
     try {
@@ -180,34 +197,45 @@ export const DeveloperComponent: FC = () => {
       if (result.clientSecret) {
         setPlaintextSecret(result.clientSecret);
         toaster.show(
-          'Sekret wygenerowany! Skopiuj teraz nowy client secret.',
+          t(
+            'oauth_secret_rotated_copy',
+            'Secret generated! Copy the new client secret now.'
+          ),
           'success'
         );
         mutate();
       }
     } catch {
-      toaster.show('Nie udało się wygenerować sekretu', 'warning');
+      toaster.show(
+        t('oauth_rotate_secret_failed', 'Failed to generate the secret'),
+        'warning'
+      );
     }
-  }, [decision]);
+  }, [decision, t]);
 
   const deleteApp = useCallback(async () => {
     const approved = await decision.open({
-      title: 'Usunąć aplikację OAuth?',
-      description:
-        'This will delete the OAuth application and revoke all user authorizations. This action cannot be undone.',
-      approveLabel: 'Usuń',
-      cancelLabel: 'Anuluj',
+      title: t('oauth_delete_app_title', 'Delete the OAuth app?'),
+      description: t(
+        'oauth_delete_app_description',
+        'This will delete the OAuth application and revoke all user authorizations. This action cannot be undone.'
+      ),
+      approveLabel: t('delete', 'Delete'),
+      cancelLabel: t('cancel', 'Cancel'),
     });
     if (!approved) return;
     try {
       await fetch('/user/oauth-app', { method: 'DELETE' });
-      toaster.show('OAuth app deleted', 'success');
+      toaster.show(t('oauth_app_deleted', 'OAuth app deleted'), 'success');
       setPlaintextSecret(null);
       mutate();
     } catch {
-      toaster.show('Failed to delete app', 'warning');
+      toaster.show(
+        t('oauth_app_delete_failed', 'Failed to delete the app'),
+        'warning'
+      );
     }
-  }, [decision]);
+  }, [decision, t]);
 
   if (app === undefined) {
     return null;

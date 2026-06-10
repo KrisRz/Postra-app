@@ -78,8 +78,8 @@ export class PostsService {
     return this._postRepository.searchForMissingThreeHoursPosts();
   }
 
-  updatePost(id: string, postId: string, releaseURL: string) {
-    return this._postRepository.updatePost(id, postId, releaseURL);
+  updatePost(id: string, postId: string, releaseURL: string, orgId?: string) {
+    return this._postRepository.updatePost(id, postId, releaseURL, orgId);
   }
 
   async getMissingContent(
