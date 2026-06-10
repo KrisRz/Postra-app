@@ -1082,5 +1082,10 @@
   "carousel_delete_slide": "Usuń ten slajd",
   "tpl_cat_reel_cover": "Cover Reels",
   "studio_tab_graphic": "🎨 Grafika",
-  "studio_tab_video": "🎬 Wideo"
+  "studio_tab_video": "🎬 Wideo",
+  "image_stock_title": "Zdjęcia stockowe",
+  "image_stock_search_ph": "np. kawa, biuro, lato",
+  "image_stock_search_failed": "Wyszukiwanie zdjęć nie powiodło się.",
+  "image_stock_import_failed": "Import zdjęcia nie powiódł się.",
+  "image_stock_hint": "Darmowe zdjęcia (Pixabay License, użycie komercyjne OK). Kliknij zdjęcie, aby dodać je na canvas — zapisze się też w Twojej bibliotece mediów."
 }
