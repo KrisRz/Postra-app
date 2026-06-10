@@ -1087,5 +1087,19 @@
   "image_stock_search_ph": "np. kawa, biuro, lato",
   "image_stock_search_failed": "Wyszukiwanie zdjęć nie powiodło się.",
   "image_stock_import_failed": "Import zdjęcia nie powiódł się.",
-  "image_stock_hint": "Darmowe zdjęcia (Pixabay License, użycie komercyjne OK). Kliknij zdjęcie, aby dodać je na canvas — zapisze się też w Twojej bibliotece mediów."
+  "image_stock_hint": "Darmowe zdjęcia (Pixabay License, użycie komercyjne OK). Kliknij zdjęcie, aby dodać je na canvas — zapisze się też w Twojej bibliotece mediów.",
+  "brand_kit_nudge": "Ustaw Brand Kit raz — AI użyje Twoich kolorów, fontu i logo w każdym projekcie.",
+  "brand_kit_nudge_cta": "Ustaw markę",
+  "filter_section": "Filtry",
+  "filter_brightness": "Jasność",
+  "filter_contrast": "Kontrast",
+  "filter_saturation": "Nasycenie",
+  "filter_blur": "Rozmycie",
+  "filter_preset_original": "Oryginał",
+  "filter_preset_bw": "Czarno-biały",
+  "filter_preset_sepia": "Sepia",
+  "filter_preset_vivid": "Żywe kolory",
+  "filter_preset_cool": "Chłodny",
+  "filter_preset_warm": "Ciepły",
+  "filter_reset": "Resetuj filtry"
 }
