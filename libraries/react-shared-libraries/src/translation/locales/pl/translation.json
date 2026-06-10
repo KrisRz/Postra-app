@@ -1119,5 +1119,9 @@
   "delete_account_description": "Trwałe usunięcie konta kasuje Twoje dane, podłączone kanały (wraz z tokenami dostępu), zaplanowane posty i media. Organizacje, których jesteś jedynym członkiem, zostaną usunięte w całości. Tej operacji nie można cofnąć. Dane rozliczeniowe wymagane prawem przechowujemy zgodnie z polityką prywatności.",
   "type_to_confirm_2": "aby potwierdzić",
   "delete_my_account": "Usuń moje konto",
-  "global_settings_sub": "Preferencje konta, powiadomień i linków"
-}
+  "global_settings_sub": "Preferencje konta, powiadomień i linków",
+  "image_stock_title": "Zdjęcia stockowe",
+  "image_stock_search_ph": "np. kawa, biuro, lato",
+  "image_stock_search_failed": "Wyszukiwanie zdjęć nie powiodło się.",
+  "image_stock_import_failed": "Import zdjęcia nie powiódł się.",
+  "image_stock_hint": "Darmowe zdjęcia (Pixabay License, użycie komercyjne OK). Kliknij zdjęcie, aby dodać je na canvas — zapisze się też w Twojej bibliotece mediów."}
