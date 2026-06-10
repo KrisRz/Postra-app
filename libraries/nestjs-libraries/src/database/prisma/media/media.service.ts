@@ -267,6 +267,38 @@ export class MediaService {
     );
   }
 
+  async importPixabayImage(org: string, sourceUrl: string, sourceId?: number) {
+    // Basic API keys only expose webformatURL (640px). Pixabay documents that
+    // the _640 suffix can be swapped for _1280 — try the bigger variant first
+    // (1080px canvases need it), fall back to the original URL.
+    const hiRes = sourceUrl.replace('_640.', '_1280.');
+    let res = hiRes !== sourceUrl ? await fetch(hiRes) : null;
+    if (!res?.ok) {
+      res = await fetch(sourceUrl);
+    }
+    if (!res.ok) {
+      throw new HttpException(
+        `Failed to fetch Pixabay image (${res.status})`,
+        502
+      );
+    }
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const isPng = /\.png(\?|$)/.test(sourceUrl);
+    const fakeFile = {
+      buffer,
+      originalname: `pixabay-${sourceId ?? Date.now()}.${isPng ? 'png' : 'jpg'}`,
+      mimetype: isPng ? 'image/png' : 'image/jpeg',
+      size: buffer.length,
+    } as unknown as Express.Multer.File;
+    const uploaded = await this.storage.uploadFile(fakeFile);
+    return this._mediaRepository.saveFile(
+      org,
+      uploaded.originalname,
+      uploaded.path,
+      `pixabay-${sourceId ?? 'unknown'}`
+    );
+  }
+
   saveFile(org: string, fileName: string, filePath: string, originalName?: string) {
     return this._mediaRepository.saveFile(org, fileName, filePath, originalName);
   }

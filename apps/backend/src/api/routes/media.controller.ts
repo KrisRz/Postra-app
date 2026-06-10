@@ -172,6 +172,36 @@ export class MediaController {
     return data;
   }
 
+  @Get('/pixabay-images')
+  async pixabayImages(
+    @Query('q') q: string,
+    @Query('page') page = '1'
+  ) {
+    const apiKey = process.env.PIXABAY_API_KEY;
+    if (!apiKey) {
+      return { hits: [], note: 'PIXABAY_API_KEY not configured' };
+    }
+    const safeQuery = (q || '').slice(0, 100).trim().toLowerCase();
+    const safePage = Math.max(1, Number(page) || 1);
+    // Pixabay license requires caching responses for 24h to avoid duplicate calls.
+    const cacheKey = `pixabay:images:${createHash('md5').update(`${safeQuery}|${safePage}`).digest('hex')}`;
+    const cached = await ioRedis.get(cacheKey);
+    if (cached) {
+      return JSON.parse(cached);
+    }
+    const url = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(safeQuery)}&image_type=photo&page=${safePage}&per_page=24&safesearch=true`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new HttpException(`Pixabay error ${res.status}`, 502);
+    }
+    const remaining = Number(res.headers.get('x-ratelimit-remaining') ?? '999');
+    const data = await res.json();
+    // 24h cache per Pixabay TOS. Tighten when rate limit is nearly exhausted.
+    const ttl = remaining < 5 ? 60 * 60 * 48 : 60 * 60 * 24;
+    await ioRedis.set(cacheKey, JSON.stringify(data), 'EX', ttl);
+    return data;
+  }
+
   @Get('/:id')
   getMediaForEdit(
     @GetOrgFromRequest() org: Organization,
@@ -221,6 +251,18 @@ export class MediaController {
     }
     // Pixabay TOS: store video on our server rather than hotlinking.
     return this._mediaService.importPixabayVideo(org.id, body.url, body.sourceId);
+  }
+
+  @Post('/pixabay-images/import')
+  async pixabayImagesImport(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: { url: string; sourceId?: number }
+  ) {
+    if (!body.url || !/^https:\/\/(cdn\.)?pixabay\.com\//.test(body.url)) {
+      throw new HttpException('Invalid Pixabay image URL', 400);
+    }
+    // Pixabay TOS: store the image on our server rather than hotlinking.
+    return this._mediaService.importPixabayImage(org.id, body.url, body.sourceId);
   }
 
   @Post('/refine-design')
