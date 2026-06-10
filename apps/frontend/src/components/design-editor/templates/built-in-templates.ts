@@ -1122,6 +1122,1102 @@ const reelCoverList: DesignTemplate = {
   },
 };
 
+const promoFlashSale: DesignTemplate = {
+  key: 'promo-flash-sale',
+  category: 'promo',
+  label: 'Flash Sale',
+  labelPl: 'Flash Sale',
+  description: 'Urgency bar + big flash sale headline with deadline',
+  descriptionPl: 'Pasek pilności + duży nagłówek flash sale z terminem',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+
+    addRect(canvas, {
+      left: 0,
+      top: 0,
+      width: p.width,
+      height: p.height * 0.09,
+      fill: brand.primary,
+      selectable: false,
+    });
+
+    addTextbox(canvas, tx('⏰ KOŃCZY SIĘ WKRÓTCE', '⏰ ENDS SOON'), {
+      left: p.width / 2,
+      top: p.height * 0.028,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.032,
+      fill: brand.background,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      charSpacing: 150,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'FLASH\nSALE', {
+      left: p.width * 0.08,
+      top: p.height * 0.2,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.19,
+      fill: brand.text,
+      textAlign: 'left',
+      lineHeight: 0.95,
+      fontFamily: '"Bebas Neue", Impact, sans-serif',
+    });
+
+    addTextbox(canvas, '-30%', {
+      left: p.width * 0.08,
+      top: p.height * 0.58,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.12,
+      fill: brand.primary,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: p.width * 0.08,
+      top: p.height * 0.76,
+      width: p.width * 0.18,
+      height: 3,
+      fill: brand.primary,
+    });
+
+    addTextbox(canvas, tx('Tylko do niedzieli', 'Ends Sunday'), {
+      left: p.width * 0.08,
+      top: p.height * 0.8,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.045,
+      fill: brand.text,
+      textAlign: 'left',
+      opacity: 0.85,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const promoPriceDrop: DesignTemplate = {
+  key: 'promo-price-drop',
+  category: 'promo',
+  label: 'Price Drop',
+  labelPl: 'Obniżka ceny',
+  description: 'Old price struck through, new price huge',
+  descriptionPl: 'Stara cena przekreślona, nowa cena bardzo duża',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, tx('NIŻSZA CENA', 'PRICE DROP'), {
+      left: cx,
+      top: p.height * 0.08,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.04,
+      fill: brand.primary,
+      originX: 'center',
+      fontWeight: 'bold',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, '199', {
+      left: cx,
+      top: p.height * 0.2,
+      width: p.width * 0.5,
+      fontSize: p.width * 0.09,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.5,
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.2 + p.width * 0.05,
+      width: p.width * 0.24,
+      height: p.width * 0.012,
+      fill: brand.primary,
+      originX: 'center',
+      angle: -6,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.36,
+      width: p.width * 0.26,
+      height: p.height * 0.055,
+      fill: brand.primary,
+      rx: p.height * 0.0275,
+      ry: p.height * 0.0275,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, tx('TERAZ', 'NOW'), {
+      left: cx,
+      top: p.height * 0.372,
+      width: p.width * 0.26,
+      fontSize: p.width * 0.03,
+      fill: brand.background,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, '99', {
+      left: cx,
+      top: p.height * 0.44,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.3,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Do wyczerpania zapasów', 'While stocks last'), {
+      left: cx,
+      top: p.height * 0.84,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.035,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.6,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const promoGiveaway: DesignTemplate = {
+  key: 'promo-giveaway',
+  category: 'promo',
+  label: 'Giveaway',
+  labelPl: 'Konkurs',
+  description: 'Giveaway header with 3 steps to enter',
+  descriptionPl: 'Nagłówek konkursu z 3 krokami udziału',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, '🎁', {
+      left: cx,
+      top: p.height * 0.05,
+      width: p.width * 0.3,
+      fontSize: p.width * 0.1,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, tx('KONKURS', 'GIVEAWAY'), {
+      left: cx,
+      top: p.height * 0.17,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.12,
+      fill: brand.primary,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontFamily: '"Bebas Neue", Impact, sans-serif',
+    });
+
+    const steps = [
+      tx('Obserwuj nasz profil', 'Follow our page'),
+      tx('Polub ten post', 'Like this post'),
+      tx('Oznacz znajomego', 'Tag a friend'),
+    ];
+
+    steps.forEach((step, i) => {
+      const top = p.height * (0.36 + i * 0.14);
+      addRect(canvas, {
+        left: p.width * 0.1,
+        top,
+        width: p.width * 0.08,
+        height: p.width * 0.08,
+        fill: brand.primary,
+        rx: p.width * 0.015,
+        ry: p.width * 0.015,
+      });
+      addTextbox(canvas, `${i + 1}`, {
+        left: p.width * 0.1,
+        top: top + p.width * 0.018,
+        width: p.width * 0.08,
+        fontSize: p.width * 0.04,
+        fill: brand.background,
+        textAlign: 'center',
+        fontWeight: 'bold',
+        fontFamily: brand.fontFamily,
+      });
+      addTextbox(canvas, step, {
+        left: p.width * 0.24,
+        top: top + p.width * 0.018,
+        width: p.width * 0.68,
+        fontSize: p.width * 0.045,
+        fill: brand.text,
+        textAlign: 'left',
+        fontFamily: brand.fontFamily,
+      });
+    });
+
+    addTextbox(canvas, tx('Wyniki ogłosimy w piątek!', 'Winner announced on Friday!'), {
+      left: cx,
+      top: p.height * 0.85,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.032,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.6,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const quoteReview: DesignTemplate = {
+  key: 'quote-review',
+  category: 'quote',
+  label: 'Customer Review',
+  labelPl: 'Opinia klienta',
+  description: '5 stars, review and customer name',
+  descriptionPl: '5 gwiazdek, opinia i imię klienta',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, '★★★★★', {
+      left: cx,
+      top: p.height * 0.16,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.085,
+      fill: brand.primary,
+      originX: 'center',
+      charSpacing: 100,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Najlepsza obsługa, z jaką\nmiałam do czynienia.\nPolecam każdemu!', 'The best service I have\never experienced.\nHighly recommend!'), {
+      left: cx,
+      top: p.height * 0.34,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.055,
+      fill: brand.text,
+      originX: 'center',
+      fontStyle: 'italic',
+      lineHeight: 1.35,
+      fontFamily: '"Playfair Display", Georgia, serif',
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.7,
+      width: p.width * 0.12,
+      height: 2,
+      fill: brand.primary,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, tx('— Anna K.', '— Sarah M.'), {
+      left: cx,
+      top: p.height * 0.74,
+      width: p.width * 0.7,
+      fontSize: p.width * 0.04,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('✓ zweryfikowany klient', '✓ verified customer'), {
+      left: cx,
+      top: p.height * 0.81,
+      width: p.width * 0.7,
+      fontSize: p.width * 0.028,
+      fill: brand.primary,
+      originX: 'center',
+      opacity: 0.8,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const announcementHiring: DesignTemplate = {
+  key: 'announcement-hiring',
+  category: 'announcement',
+  label: "We're Hiring",
+  labelPl: 'Zatrudniamy',
+  description: 'Job opening with role and apply CTA',
+  descriptionPl: 'Oferta pracy ze stanowiskiem i CTA aplikuj',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+
+    addRect(canvas, {
+      left: p.width * 0.08,
+      top: p.height * 0.1,
+      width: p.width * 0.012,
+      height: p.height * 0.26,
+      fill: brand.primary,
+    });
+
+    addTextbox(canvas, tx('DOŁĄCZ DO NAS', 'JOIN OUR TEAM'), {
+      left: p.width * 0.13,
+      top: p.height * 0.11,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.035,
+      fill: brand.primary,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('ZATRUDNIAMY', "WE'RE\nHIRING"), {
+      left: p.width * 0.13,
+      top: p.height * 0.18,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.135,
+      fill: brand.text,
+      textAlign: 'left',
+      lineHeight: 1.0,
+      fontFamily: '"Bebas Neue", Impact, sans-serif',
+    });
+
+    addRect(canvas, {
+      left: p.width * 0.08,
+      top: p.height * 0.52,
+      width: p.width * 0.84,
+      height: p.height * 0.12,
+      fill: 'transparent',
+      stroke: brand.primary,
+      strokeWidth: 2,
+      rx: p.width * 0.02,
+      ry: p.width * 0.02,
+    });
+
+    addTextbox(canvas, tx('Specjalista ds. social media', 'Social Media Specialist'), {
+      left: p.width / 2,
+      top: p.height * 0.555,
+      width: p.width * 0.78,
+      fontSize: p.width * 0.05,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Pełny etat · praca hybrydowa', 'Full-time · hybrid'), {
+      left: p.width / 2,
+      top: p.height * 0.7,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.035,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.7,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Aplikuj: twojastrona.pl/kariera', 'Apply: yoursite.com/jobs'), {
+      left: p.width / 2,
+      top: p.height * 0.82,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.04,
+      fill: brand.primary,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const announcementHours: DesignTemplate = {
+  key: 'announcement-hours',
+  category: 'announcement',
+  label: 'Opening Hours',
+  labelPl: 'Godziny otwarcia',
+  description: 'Business hours card with weekday rows',
+  descriptionPl: 'Karta godzin otwarcia z wierszami dni tygodnia',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, '🕐', {
+      left: cx,
+      top: p.height * 0.06,
+      width: p.width * 0.3,
+      fontSize: p.width * 0.09,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, tx('Godziny otwarcia', 'Opening hours'), {
+      left: cx,
+      top: p.height * 0.17,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.08,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.3,
+      width: p.width * 0.84,
+      height: p.height * 0.42,
+      fill: 'transparent',
+      stroke: brand.primary,
+      strokeWidth: 2,
+      rx: p.width * 0.025,
+      ry: p.width * 0.025,
+      originX: 'center',
+    });
+
+    const rows: [string, string][] = [
+      [tx('Pn–Pt', 'Mon–Fri'), '9:00–17:00'],
+      [tx('Sob', 'Sat'), '10:00–14:00'],
+      [tx('Nd', 'Sun'), tx('zamknięte', 'closed')],
+    ];
+
+    rows.forEach(([day, time], i) => {
+      const top = p.height * (0.355 + i * 0.12);
+      addTextbox(canvas, day, {
+        left: p.width * 0.15,
+        top,
+        width: p.width * 0.33,
+        fontSize: p.width * 0.042,
+        fill: brand.primary,
+        textAlign: 'left',
+        fontWeight: 'bold',
+        fontFamily: brand.fontFamily,
+      });
+      addTextbox(canvas, time, {
+        left: p.width * 0.5,
+        top,
+        width: p.width * 0.35,
+        fontSize: p.width * 0.042,
+        fill: brand.text,
+        textAlign: 'right',
+        fontFamily: brand.fontFamily,
+      });
+      if (i < rows.length - 1) {
+        addRect(canvas, {
+          left: cx,
+          top: top + p.height * 0.085,
+          width: p.width * 0.7,
+          height: 1,
+          fill: brand.text,
+          opacity: 0.2,
+          originX: 'center',
+        });
+      }
+    });
+
+    addTextbox(canvas, tx('Zapraszamy!', 'See you soon!'), {
+      left: cx,
+      top: p.height * 0.8,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.04,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.7,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const announcementClosure: DesignTemplate = {
+  key: 'announcement-closure',
+  category: 'announcement',
+  label: 'Holiday Closure',
+  labelPl: 'Przerwa świąteczna',
+  description: 'Closed dates with a see-you-soon note',
+  descriptionPl: 'Daty zamknięcia z notką do zobaczenia',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, tx('PRZERWA ŚWIĄTECZNA', 'HOLIDAY CLOSURE'), {
+      left: cx,
+      top: p.height * 0.1,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.034,
+      fill: brand.primary,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Zamknięte', "We're\nclosed"), {
+      left: cx,
+      top: p.height * 0.22,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.15,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      lineHeight: 1.0,
+      fontFamily: '"Bebas Neue", Impact, sans-serif',
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.55,
+      width: p.width * 0.6,
+      height: p.height * 0.1,
+      fill: 'transparent',
+      stroke: brand.primary,
+      strokeWidth: 3,
+      rx: p.width * 0.02,
+      ry: p.width * 0.02,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, tx('24–26 grudnia', '24–26 December'), {
+      left: cx,
+      top: p.height * 0.582,
+      width: p.width * 0.55,
+      fontSize: p.width * 0.05,
+      fill: brand.primary,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Do zobaczenia 27 grudnia! 👋', 'See you on 27 December! 👋'), {
+      left: cx,
+      top: p.height * 0.76,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.045,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.85,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const statsMilestone: DesignTemplate = {
+  key: 'stats-milestone',
+  category: 'stats',
+  label: 'Milestone',
+  labelPl: 'Kamień milowy',
+  description: 'Big follower number with confetti dots',
+  descriptionPl: 'Duża liczba obserwujących z konfetti',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    const confetti: [number, number, number][] = [
+      [0.12, 0.08, 0.012],
+      [0.28, 0.16, 0.008],
+      [0.5, 0.06, 0.01],
+      [0.72, 0.14, 0.008],
+      [0.88, 0.09, 0.012],
+      [0.18, 0.88, 0.01],
+      [0.45, 0.93, 0.008],
+      [0.7, 0.9, 0.012],
+      [0.9, 0.84, 0.008],
+    ];
+    confetti.forEach(([x, y, r], i) => {
+      addCircle(canvas, {
+        left: p.width * x,
+        top: p.height * y,
+        radius: p.width * r,
+        fill: i % 2 === 0 ? brand.primary : brand.text,
+        opacity: i % 2 === 0 ? 0.9 : 0.5,
+        selectable: false,
+      });
+    });
+
+    addTextbox(canvas, tx('10 000', '10,000'), {
+      left: cx,
+      top: p.height * 0.28,
+      width: p.width * 0.95,
+      fontSize: p.width * 0.22,
+      fill: brand.primary,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('obserwujących — dziękujemy!', 'followers — thank you!'), {
+      left: cx,
+      top: p.height * 0.56,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.05,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('To dopiero początek 🎉', 'And this is just the beginning 🎉'), {
+      left: cx,
+      top: p.height * 0.7,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.035,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.7,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const tipDoDont: DesignTemplate = {
+  key: 'tip-dodont',
+  category: 'tip',
+  label: "Do & Don't",
+  labelPl: 'Rób i nie rób',
+  description: 'Two-column do vs don’t comparison',
+  descriptionPl: 'Dwie kolumny: rób vs unikaj',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+
+    addRect(canvas, {
+      left: 0,
+      top: 0,
+      width: p.width / 2,
+      height: p.height,
+      fill: brand.primary,
+      opacity: 0.16,
+      selectable: false,
+      evented: false,
+    });
+
+    addRect(canvas, {
+      left: p.width / 2,
+      top: 0,
+      width: p.width / 2,
+      height: p.height,
+      fill: brand.text,
+      opacity: 0.05,
+      selectable: false,
+      evented: false,
+    });
+
+    addRect(canvas, {
+      left: p.width / 2,
+      top: 0,
+      width: 2,
+      height: p.height,
+      fill: brand.text,
+      opacity: 0.25,
+      selectable: false,
+      evented: false,
+    });
+
+    addTextbox(canvas, tx('✅ RÓB', '✅ DO'), {
+      left: p.width * 0.25,
+      top: p.height * 0.12,
+      width: p.width * 0.42,
+      fontSize: p.width * 0.05,
+      fill: brand.primary,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      charSpacing: 100,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('❌ UNIKAJ', "❌ DON'T"), {
+      left: p.width * 0.75,
+      top: p.height * 0.12,
+      width: p.width * 0.42,
+      fontSize: p.width * 0.05,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      charSpacing: 100,
+      fontFamily: brand.fontFamily,
+    });
+
+    const doItems = [
+      tx('Planuj posty\nz wyprzedzeniem', 'Plan posts\nahead of time'),
+      tx('Odpowiadaj na\nkomentarze', 'Reply to\ncomments'),
+    ];
+    const dontItems = [
+      tx('Kupuj\nobserwujących', 'Buy\nfollowers'),
+      tx('Ignoruj\nwiadomości', 'Ignore\nyour DMs'),
+    ];
+
+    doItems.forEach((item, i) => {
+      addTextbox(canvas, item, {
+        left: p.width * 0.25,
+        top: p.height * (0.32 + i * 0.22),
+        width: p.width * 0.4,
+        fontSize: p.width * 0.04,
+        fill: brand.text,
+        originX: 'center',
+        textAlign: 'center',
+        lineHeight: 1.25,
+        fontFamily: brand.fontFamily,
+      });
+    });
+    dontItems.forEach((item, i) => {
+      addTextbox(canvas, item, {
+        left: p.width * 0.75,
+        top: p.height * (0.32 + i * 0.22),
+        width: p.width * 0.4,
+        fontSize: p.width * 0.04,
+        fill: brand.text,
+        originX: 'center',
+        textAlign: 'center',
+        lineHeight: 1.25,
+        opacity: 0.75,
+        fontFamily: brand.fontFamily,
+      });
+    });
+
+    addTextbox(canvas, tx('Social media w praktyce', 'Social media done right'), {
+      left: p.width / 2,
+      top: p.height * 0.86,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.032,
+      fill: brand.text,
+      originX: 'center',
+      textAlign: 'center',
+      opacity: 0.6,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const eventLive: DesignTemplate = {
+  key: 'event-live',
+  category: 'event',
+  label: 'Live / Webinar',
+  labelPl: 'Live / Webinar',
+  description: 'LIVE badge, title, date and reminder CTA',
+  descriptionPl: 'Odznaka LIVE, tytuł, data i CTA przypomnienia',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addRect(canvas, {
+      left: p.width * 0.08,
+      top: p.height * 0.08,
+      width: p.width * 0.28,
+      height: p.height * 0.06,
+      fill: 'transparent',
+      stroke: '#ef4444',
+      strokeWidth: 2,
+      rx: p.height * 0.03,
+      ry: p.height * 0.03,
+    });
+
+    addCircle(canvas, {
+      left: p.width * 0.12,
+      top: p.height * 0.08 + p.height * 0.03 - p.width * 0.012,
+      radius: p.width * 0.012,
+      fill: '#ef4444',
+    });
+
+    addTextbox(canvas, 'LIVE', {
+      left: p.width * 0.17,
+      top: p.height * 0.08 + p.height * 0.03 - p.width * 0.018,
+      width: p.width * 0.16,
+      fontSize: p.width * 0.032,
+      fill: '#ef4444',
+      textAlign: 'left',
+      fontWeight: 'bold',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Q&A na żywo\nz naszym\nzespołem', 'Live Q&A\nwith our\nteam'), {
+      left: p.width * 0.08,
+      top: p.height * 0.24,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.1,
+      fill: brand.text,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      lineHeight: 1.1,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('📅 Czwartek · 18:00', '📅 Thursday · 6 PM'), {
+      left: p.width * 0.08,
+      top: p.height * 0.66,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.045,
+      fill: brand.primary,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.8,
+      width: p.width * 0.6,
+      height: p.height * 0.08,
+      fill: brand.primary,
+      rx: p.height * 0.04,
+      ry: p.height * 0.04,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, tx('Ustaw przypomnienie 🔔', 'Set a reminder 🔔'), {
+      left: cx,
+      top: p.height * 0.823,
+      width: p.width * 0.6,
+      fontSize: p.width * 0.035,
+      fill: brand.background,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const communityQuestion: DesignTemplate = {
+  key: 'community-question',
+  category: 'community',
+  label: 'Question Post',
+  labelPl: 'Post z pytaniem',
+  description: 'Engaging question with comment CTA',
+  descriptionPl: 'Angażujące pytanie z CTA do komentarzy',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+
+    addTextbox(canvas, 'Q:', {
+      left: p.width * 0.08,
+      top: p.height * 0.08,
+      width: p.width * 0.5,
+      fontSize: p.width * 0.22,
+      fill: brand.primary,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      fontFamily: '"Playfair Display", Georgia, serif',
+    });
+
+    addTextbox(canvas, tx('Jaki jest Twój\nulubiony produkt\nz naszej oferty?', "What's your\nfavourite product\nfrom our range?"), {
+      left: p.width * 0.08,
+      top: p.height * 0.38,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.07,
+      fill: brand.text,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      lineHeight: 1.25,
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: p.width * 0.08,
+      top: p.height * 0.76,
+      width: p.width * 0.15,
+      height: 3,
+      fill: brand.primary,
+    });
+
+    addTextbox(canvas, tx('Napisz w komentarzu 👇', 'Comment below 👇'), {
+      left: p.width * 0.08,
+      top: p.height * 0.81,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.045,
+      fill: brand.primary,
+      textAlign: 'left',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const communityFollow: DesignTemplate = {
+  key: 'community-follow',
+  category: 'community',
+  label: 'Follow Us',
+  labelPl: 'Obserwuj nas',
+  description: 'Handle, platforms and follow CTA',
+  descriptionPl: 'Nazwa profilu, platformy i CTA obserwuj',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addCircle(canvas, {
+      left: cx,
+      top: p.height * 0.2,
+      radius: p.width * 0.11,
+      fill: brand.primary,
+      originX: 'center',
+      originY: 'center',
+    });
+
+    addTextbox(canvas, '@', {
+      left: cx,
+      top: p.height * 0.2,
+      width: p.width * 0.25,
+      fontSize: p.width * 0.12,
+      fill: brand.background,
+      originX: 'center',
+      originY: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, '@yourbrand', {
+      left: cx,
+      top: p.height * 0.38,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.09,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, 'Instagram · Facebook · TikTok', {
+      left: cx,
+      top: p.height * 0.52,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.038,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.7,
+      charSpacing: 60,
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.68,
+      width: p.width * 0.55,
+      height: p.height * 0.08,
+      fill: brand.primary,
+      rx: p.height * 0.04,
+      ry: p.height * 0.04,
+      originX: 'center',
+    });
+
+    addTextbox(canvas, tx('Obserwuj po więcej', 'Follow for more'), {
+      left: cx,
+      top: p.height * 0.703,
+      width: p.width * 0.55,
+      fontSize: p.width * 0.038,
+      fill: brand.background,
+      originX: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Codziennie nowe treści ✨', 'New content every day ✨'), {
+      left: cx,
+      top: p.height * 0.85,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.032,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.6,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const reelCoverBeforeAfter: DesignTemplate = {
+  key: 'reel-cover-beforeafter',
+  category: 'reel-cover',
+  label: 'Cover: Before / After',
+  labelPl: 'Cover: Przed / Po',
+  description: 'Split background with before and after labels',
+  descriptionPl: 'Tło podzielone na pół z etykietami przed i po',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addRect(canvas, {
+      left: 0,
+      top: 0,
+      width: p.width,
+      height: p.height / 2,
+      fill: brand.background,
+      selectable: false,
+      evented: false,
+    });
+
+    addRect(canvas, {
+      left: 0,
+      top: p.height / 2,
+      width: p.width,
+      height: p.height / 2,
+      fill: brand.primary,
+      selectable: false,
+      evented: false,
+    });
+
+    addTextbox(canvas, tx('PRZED', 'BEFORE'), {
+      left: p.width * 0.08,
+      top: p.height * 0.08,
+      width: p.width * 0.5,
+      fontSize: p.width * 0.06,
+      fill: brand.text,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      charSpacing: 250,
+      opacity: 0.85,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('PO', 'AFTER'), {
+      left: p.width * 0.42,
+      top: p.height * 0.85,
+      width: p.width * 0.5,
+      fontSize: p.width * 0.06,
+      fill: brand.background,
+      textAlign: 'right',
+      fontWeight: 'bold',
+      charSpacing: 250,
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.5,
+      width: p.width * 0.76,
+      height: p.height * 0.14,
+      fill: brand.background,
+      stroke: brand.text,
+      strokeWidth: 2,
+      rx: p.width * 0.02,
+      ry: p.width * 0.02,
+      originX: 'center',
+      originY: 'center',
+    });
+
+    addTextbox(canvas, tx('ZOBACZ\nRÓŻNICĘ', 'SEE THE\nDIFFERENCE'), {
+      left: cx,
+      top: p.height * 0.5,
+      width: p.width * 0.7,
+      fontSize: p.width * 0.055,
+      fill: brand.text,
+      originX: 'center',
+      originY: 'center',
+      textAlign: 'center',
+      fontWeight: 'bold',
+      lineHeight: 1.1,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
 export const BUILT_IN_TEMPLATES: DesignTemplate[] = [
   promoModern,
   promoBadge,
@@ -1140,6 +2236,19 @@ export const BUILT_IN_TEMPLATES: DesignTemplate[] = [
   reelCoverHook,
   reelCoverReveal,
   reelCoverList,
+  promoFlashSale,
+  promoPriceDrop,
+  promoGiveaway,
+  quoteReview,
+  announcementHiring,
+  announcementHours,
+  announcementClosure,
+  statsMilestone,
+  tipDoDont,
+  eventLive,
+  communityQuestion,
+  communityFollow,
+  reelCoverBeforeAfter,
 ];
 
 export const applyTemplate = (
