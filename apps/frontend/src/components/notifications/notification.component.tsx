@@ -8,12 +8,18 @@ import dayjs from 'dayjs';
 import { useClickAway } from '@uidotdev/usehooks';
 import ReactLoading from '@gitroom/frontend/components/layout/loading';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import DOMPurify from 'dompurify';
 function replaceLinks(text: string) {
   const urlRegex =
     /(\bhttps?:\/\/[-A-Z0-9+&@#/%?=~_|!:,.;]*[-A-Z0-9+&@#/%=~_|])/gi;
-  return text.replace(
-    urlRegex,
-    '<a class="cursor-pointer underline font-bold" target="_blank" href="$1">$1</a>'
+  // Notification content can quote user-controlled text (post titles etc.) —
+  // sanitize after linkifying so markup smuggled into it never executes.
+  return DOMPurify.sanitize(
+    text.replace(
+      urlRegex,
+      '<a class="cursor-pointer underline font-bold" target="_blank" href="$1">$1</a>'
+    ),
+    { ADD_ATTR: ['target'] }
   );
 }
 export const ShowNotification: FC<{

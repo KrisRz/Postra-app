@@ -9,6 +9,7 @@ import React, {
   useState,
 } from 'react';
 import { CopilotChat, CopilotKitCSSProperties } from '@copilotkit/react-ui';
+import DOMPurify from 'dompurify';
 import {
   InputProps,
   UserMessageProps,
@@ -135,7 +136,9 @@ const LoadMessages: FC<{ id: string }> = ({ id }) => {
 
 const Message: FC<UserMessageProps> = (props) => {
   const convertContentToImagesAndVideo = useMemo(() => {
-    return (props.message?.content || '')
+    // Sanitized at the end — message content echoes user input, and the
+    // regex templating alone is not an XSS boundary.
+    const html = (props.message?.content || '')
       .replace(/Video: (http.*mp4\n)/g, (match, p1) => {
         return `<video controls class="h-[150px] w-[150px] rounded-[8px] mb-[10px]"><source src="${p1.trim()}" type="video/mp4">Your browser does not support the video tag.</video>`;
       })
@@ -151,6 +154,7 @@ const Message: FC<UserMessageProps> = (props) => {
           return ``;
         }
       );
+    return DOMPurify.sanitize(html, { ADD_ATTR: ['controls'] });
   }, [props.message?.content]);
   return (
     <div

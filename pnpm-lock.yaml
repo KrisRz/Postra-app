@@ -894,6 +894,9 @@ importers:
       '@tabler/icons-react':
         specifier: ^3.44.0
         version: 3.44.0(react@19.2.4)
+      dompurify:
+        specifier: ^3.4.9
+        version: 3.4.9
       geist:
         specifier: ^1.7.0
         version: 1.7.1(next@16.2.6(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.58.2)(babel-plugin-macros@3.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.97.3))
@@ -908,7 +911,7 @@ importers:
         version: 4.1.1(mobx@6.15.0)(react-dom@19.2.4(react@19.2.4))(react-native@0.84.1(@babel/core@7.29.0)(@types/react@19.1.8)(bufferutil@4.1.0)(react@19.2.4)(utf-8-validate@5.0.10))(react@19.2.4)
       polotno:
         specifier: 3.0.0-beta.25
-        version: 3.0.0-beta.25(@types/react@19.1.8)(@types/sortablejs@1.15.9)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react-native@0.84.1(@babel/core@7.29.0)(@types/react@19.1.8)(bufferutil@4.1.0)(react@19.2.4)(utf-8-validate@5.0.10))(react@19.2.4)(typescript@5.5.4)
+        version: 3.0.0-beta.25(@types/react@19.1.8)(@types/sortablejs@1.15.9)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react-native@0.84.1(@babel/core@7.29.0)(@types/react@19.1.8)(bufferutil@4.1.0)(react@19.2.4)(utf-8-validate@5.0.10))(react@19.2.4)(typescript@5.9.3)
       wavesurfer.js:
         specifier: ^7
         version: 7.12.7
@@ -11183,12 +11186,11 @@ packages:
     resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
     engines: {node: '>= 4'}
 
-  dompurify@3.3.2:
-    resolution: {integrity: sha512-6obghkliLdmKa56xdbLOpUZ43pAR6xFy1uOrxBaIDjT+yaRuuybLjGS9eVBoSR/UPU5fq3OXClEHLJNGvbxKpQ==}
-    engines: {node: '>=20'}
-
   dompurify@3.4.1:
     resolution: {integrity: sha512-JahakDAIg1gyOm7dlgWSDjV4n7Ip2PKR55NIT6jrMfIgLFgWo81vdr1/QGqWtFNRqXP9UV71oVePtjqS2ebnPw==}
+
+  dompurify@3.4.9:
+    resolution: {integrity: sha512-4dPSRMRDqHvs0V4YDFCsaIZo4if5u0xM+llyxiM2fwuZFdKArUBAF3VtI2+n8NKg9P870WMdYk0UhqQNoWXbfQ==}
 
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
@@ -31150,11 +31152,11 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
-  dompurify@3.3.2:
+  dompurify@3.4.1:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
-  dompurify@3.4.1:
+  dompurify@3.4.9:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
@@ -35704,6 +35706,13 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
+  mobx-state-tree@7.0.2(mobx@6.15.0)(typescript@5.9.3):
+    dependencies:
+      mobx: 6.15.0
+      ts-essentials: 9.4.2(typescript@5.9.3)
+    transitivePeerDependencies:
+      - typescript
+
   mobx@6.15.0: {}
 
   module-details-from-path@1.0.4: {}
@@ -36713,6 +36722,40 @@ snapshots:
       - react-native
       - typescript
 
+  polotno@3.0.0-beta.25(@types/react@19.1.8)(@types/sortablejs@1.15.9)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react-native@0.84.1(@babel/core@7.29.0)(@types/react@19.1.8)(bufferutil@4.1.0)(react@19.2.4)(utf-8-validate@5.0.10))(react@19.2.4)(typescript@5.9.3):
+    dependencies:
+      '@blueprintjs/core': 6.10.0(@types/react@19.1.8)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@blueprintjs/icons': 6.8.0(@types/react@19.1.8)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@blueprintjs/select': 6.1.4(@types/react@19.1.8)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      gifuct-js: 2.1.2
+      gradient-parser: 1.2.0
+      lodash-es: 4.17.23
+      mediabunny: 1.45.3
+      mensch: 0.3.4
+      mobx: 6.15.0
+      mobx-react-lite: 4.1.1(mobx@6.15.0)(react-dom@19.2.4(react@19.2.4))(react-native@0.84.1(@babel/core@7.29.0)(@types/react@19.1.8)(bufferutil@4.1.0)(react@19.2.4)(utf-8-validate@5.0.10))(react@19.2.4)
+      mobx-state-tree: 7.0.2(mobx@6.15.0)(typescript@5.9.3)
+      nanoid: 3.3.11
+      quill: 2.0.3
+      rasterizehtml: 1.4.1
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+      react-konva: 19.2.3(@types/react@19.1.8)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react-konva-utils: 2.0.0(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react-konva@19.2.3(@types/react@19.1.8)(konva@10.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      react-sortablejs: 6.1.4(@types/sortablejs@1.15.9)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sortablejs@1.15.7)
+      react-window: 1.8.11(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      sortablejs: 1.15.7
+      svg-round-corners: 0.4.3
+      swr: 2.4.1(react@19.2.4)
+      tinycolor2: 1.6.0
+      use-image: 1.1.4(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/sortablejs'
+      - konva
+      - react-native
+      - typescript
+
   possible-typed-array-names@1.1.0: {}
 
   postcss-import@15.1.0(postcss@8.5.8):
@@ -36793,7 +36836,7 @@ snapshots:
       '@posthog/core': 1.23.2
       '@posthog/types': 1.359.1
       core-js: 3.48.0
-      dompurify: 3.3.2
+      dompurify: 3.4.1
       fflate: 0.4.8
       preact: 10.28.4
       query-selector-shadow-dom: 1.0.1
@@ -39178,6 +39221,10 @@ snapshots:
   ts-essentials@9.4.2(typescript@5.5.4):
     optionalDependencies:
       typescript: 5.5.4
+
+  ts-essentials@9.4.2(typescript@5.9.3):
+    optionalDependencies:
+      typescript: 5.9.3
 
   ts-interface-checker@0.1.13: {}
 
