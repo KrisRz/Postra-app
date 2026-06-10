@@ -497,7 +497,12 @@ export class AutopostService {
         buf = Buffer.from(await res.arrayBuffer());
       }
 
-      const img = sharp(buf, { failOn: 'none' });
+      const img = sharp(buf, {
+        failOn: 'none',
+        // RSS OG images are remote/untrusted — same decompression-bomb cap
+        // as every other sharp call site (Faza A).
+        limitInputPixels: 100_000_000,
+      });
       const meta = await img.metadata();
       const w = meta.width || 0;
       const h = meta.height || 0;
