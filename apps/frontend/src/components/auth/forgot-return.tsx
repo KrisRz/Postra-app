@@ -30,23 +30,29 @@ export function ForgotReturn({ token }: { token: string }) {
   const fetchData = useFetch();
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setLoading(true);
-    const { reset } = await (
-      await fetchData('/auth/forgot-return', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...data,
-        }),
-      })
-    ).json();
-    setState(true);
-    if (!reset) {
+    const response = await fetchData('/auth/forgot-return', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...data,
+      }),
+    });
+    const json = await response.json().catch(() => ({} as any));
+    setLoading(false);
+    if (!response.ok || !json.reset) {
+      // A 400 carries the reason (e.g. breached password) — show it instead
+      // of misreporting every failure as an expired link.
       form.setError('password', {
         type: 'manual',
-        message: t('password_reset_link_expired', 'Your password reset link has expired. Please try again.'),
+        message:
+          json.message ||
+          t(
+            'password_reset_link_expired',
+            'Your password reset link has expired. Please try again.'
+          ),
       });
       return false;
     }
-    setLoading(false);
+    setState(true);
   };
   return (
     <FormProvider {...form}>

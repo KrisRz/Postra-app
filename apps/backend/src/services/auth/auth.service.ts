@@ -18,6 +18,10 @@ import {
   authEmails,
   EmailLang,
 } from '@gitroom/backend/services/auth/auth.emails';
+import {
+  isPwnedPassword,
+  PWNED_PASSWORD_MESSAGE,
+} from '@gitroom/backend/services/auth/pwned.passwords';
 import { randomBytes } from 'crypto';
 
 // Per-account login lockout (brute-force defense, independent of IP throttling).
@@ -65,6 +69,10 @@ export class AuthService {
         const existingNormalized = await this._userService.getUserByNormalizedEmail(normalized);
         if (existingNormalized) {
           throw new Error('Email already exists');
+        }
+
+        if (body.password && (await isPwnedPassword(body.password))) {
+          throw new Error(PWNED_PASSWORD_MESSAGE);
         }
       }
       const user = await this._userService.getUserByEmail(body.email);
@@ -271,13 +279,17 @@ export class AuthService {
     );
   }
 
-  forgotReturn(body: ForgotReturnPasswordDto) {
+  async forgotReturn(body: ForgotReturnPasswordDto) {
     const user = AuthChecker.verifyJWT(body.token) as {
       id: string;
       expires: string;
     };
     if (dayjs(user.expires).isBefore(dayjs())) {
       return false;
+    }
+
+    if (await isPwnedPassword(body.password)) {
+      throw new Error(PWNED_PASSWORD_MESSAGE);
     }
 
     return this._userService.updatePassword(user.id, body.password);

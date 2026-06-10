@@ -82,7 +82,7 @@ export function Register() {
 function getHelpfulReasonForRegistrationFailure(httpCode: number) {
   switch (httpCode) {
     case 400:
-      return 'Ten e-mail jest już zajęty';
+      return 'This email is already taken';
     case 404:
       return 'Your browser got a 404 when trying to contact the API, the most likely reasons for this are the NEXT_PUBLIC_BACKEND_URL is set incorrectly, or the backend is not running.';
   }
@@ -159,7 +159,7 @@ export function RegisterAfter({
       .catch((e) => {
         form.setError('email', {
           message:
-            'Błąd ogólny: ' +
+            'Unexpected error: ' +
             e.toString() +
             '. Please check your browser console.',
         });

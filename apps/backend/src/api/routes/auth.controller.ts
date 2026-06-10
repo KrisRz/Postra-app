@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpException,
   Param,
   Post,
   Query,
@@ -220,10 +221,14 @@ export class AuthController {
 
   @Post('/forgot-return')
   async forgotReturn(@Body() body: ForgotReturnPasswordDto) {
-    const reset = await this._authService.forgotReturn(body);
-    return {
-      reset: !!reset,
-    };
+    try {
+      const reset = await this._authService.forgotReturn(body);
+      return {
+        reset: !!reset,
+      };
+    } catch (e: any) {
+      throw new HttpException(e.message, 400);
+    }
   }
 
   @Get('/oauth-mobile-callback')
