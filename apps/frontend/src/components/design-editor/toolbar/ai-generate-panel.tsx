@@ -5,10 +5,7 @@ import * as fabric from 'fabric';
 import { useEditorStore } from '../editor.store';
 import { useCarouselStore, CarouselSlide } from '../carousel.store';
 import { renderDesignSpec, PostDesignSpec } from '../utils/canvas-renderer';
-import {
-  usePolishHolidays,
-  getUpcomingHolidays,
-} from '../utils/polish-holidays';
+import { useHolidays, getUpcomingHolidays } from '../utils/holidays';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -33,7 +30,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const t = useT();
   const user = useUser();
   const allowed = !!user?.tier?.image_generator;
-  const holidays = usePolishHolidays();
+  const holidays = useHolidays();
   const upcoming = getUpcomingHolidays(holidays, 4, 90);
   const abortRef = useRef<AbortController | null>(null);
   const [slidesCount, setSlidesCount] = useState(1);
