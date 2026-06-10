@@ -11,6 +11,7 @@ import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { Button } from '@gitroom/frontend/components/ui/button';
+import { useBrandKit } from '@gitroom/frontend/components/video-studio/use-brand-kit';
 
 interface Props {
   canvas: MutableRefObject<fabric.Canvas | null>;
@@ -24,6 +25,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
     setGenerating,
     platform,
     pushHistory,
+    setTool,
   } = useEditorStore();
   const fetch = useFetch();
   const toaster = useToaster();
@@ -32,6 +34,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const allowed = !!user?.tier?.image_generator;
   const holidays = useHolidays();
   const upcoming = getUpcomingHolidays(holidays, 4, 90);
+  const brandKit = useBrandKit();
   const abortRef = useRef<AbortController | null>(null);
   const [slidesCount, setSlidesCount] = useState(1);
 
@@ -165,6 +168,23 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       <span className="text-[10px] uppercase tracking-wide text-textColor/60">
         {t('ai_generate', 'AI Generate')}
       </span>
+      {!brandKit.loading && !brandKit.exists && (
+        <div className="rounded-md bg-forth/10 border border-forth/30 px-2 py-1.5 flex flex-col gap-1.5">
+          <p className="text-[10px] leading-snug text-textColor/80">
+            🎨{' '}
+            {t(
+              'brand_kit_nudge',
+              'Set up your Brand Kit once — AI will use your colours, font and logo in every design.'
+            )}
+          </p>
+          <button
+            onClick={() => setTool('brand')}
+            className="self-start text-[10px] px-2 py-1 rounded bg-forth/20 hover:bg-forth/40 text-textColor transition-colors"
+          >
+            {t('brand_kit_nudge_cta', 'Set up brand')}
+          </button>
+        </div>
+      )}
       {upcoming.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <span className="text-[10px] uppercase tracking-wide text-textColor/50">
