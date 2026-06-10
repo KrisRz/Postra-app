@@ -24,6 +24,47 @@ import {
   postId as postIdSearchParam,
 } from '@gitroom/nestjs-libraries/temporal/temporal.search.attribute';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
+import { lookup } from 'node:dns/promises';
+import { isIP } from 'node:net';
+
+function isPrivateIp(ip: string): boolean {
+  if (ip.includes(':')) {
+    const v6 = ip.toLowerCase();
+    if (v6.startsWith('::ffff:')) return isPrivateIp(v6.slice(7));
+    return (
+      v6 === '::1' ||
+      v6 === '::' ||
+      /^f[cd]/.test(v6) ||
+      v6.startsWith('fe80')
+    );
+  }
+  const [a, b] = ip.split('.').map(Number);
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168)
+  );
+}
+
+// Webhook URLs are user-supplied — without this check a webhook pointed at the
+// VPC (Temporal UI, Redis, IMDS) turns every published post into an internal
+// request proxy.
+async function assertPublicWebhookUrl(raw: string) {
+  const url = new URL(raw);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new Error(`webhook protocol not allowed: ${url.protocol}`);
+  }
+  const address = isIP(url.hostname)
+    ? url.hostname
+    : (await lookup(url.hostname)).address;
+  if (isPrivateIp(address)) {
+    throw new Error(`webhook resolves to a private address: ${url.hostname}`);
+  }
+}
 
 // Drops fields the workflow and downstream activities never read — biggest wins are `error` (grows per retry) and `childrenPost` (Prisma side-loads it on every recursive row).
 function slimPost(post: any) {
@@ -107,8 +148,13 @@ export class PostActivity {
   }
 
   @ActivityMethod()
-  async updatePost(id: string, postId: string, releaseURL: string) {
-    await this._postService.updatePost(id, postId, releaseURL);
+  async updatePost(
+    id: string,
+    postId: string,
+    releaseURL: string,
+    orgId?: string
+  ) {
+    await this._postService.updatePost(id, postId, releaseURL, orgId);
   }
 
   @ActivityMethod()
@@ -341,12 +387,14 @@ export class PostActivity {
     await Promise.all(
       webhooks.map(async (webhook) => {
         try {
+          await assertPublicWebhookUrl(webhook.url);
           await fetch(webhook.url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify(post),
+            signal: AbortSignal.timeout(5000),
           });
         } catch (e) {
           /**empty**/

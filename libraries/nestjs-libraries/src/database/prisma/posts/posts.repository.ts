@@ -403,10 +403,11 @@ export class PostsRepository {
     });
   }
 
-  updatePost(id: string, postId: string, releaseURL: string) {
+  updatePost(id: string, postId: string, releaseURL: string, orgId?: string) {
     return this._post.model.post.update({
       where: {
         id,
+        ...(orgId ? { organizationId: orgId } : {}),
       },
       data: {
         state: 'PUBLISHED',

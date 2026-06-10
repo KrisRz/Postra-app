@@ -196,7 +196,8 @@ export async function postWorkflowV105({
         await updatePost(
           postsList[i].id,
           postsResults[i].postId,
-          postsResults[i].releaseURL
+          postsResults[i].releaseURL,
+          organizationId
         );
 
         if (i === 0) {
