@@ -3,6 +3,7 @@
 import { FC, MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as fabric from 'fabric';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
@@ -14,6 +15,7 @@ import {
 import {
   TEMPLATE_CATEGORIES,
   TemplateCategory,
+  TemplateLang,
   DEFAULT_BRAND,
   BrandStyle,
 } from '../templates/template-types';
@@ -27,6 +29,11 @@ const MIN_SEARCH_LEN = 3;
 
 export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
   const t = useT();
+  const { i18n } = useTranslation();
+  const isPl = (i18n.resolvedLanguage ?? i18n.language ?? '')
+    .toLowerCase()
+    .startsWith('pl');
+  const lang: TemplateLang = isPl ? 'pl' : 'en';
   const toaster = useToaster();
   const fetch = useFetch();
   const { platform, pushHistory } = useEditorStore();
@@ -55,7 +62,9 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
             query: query.trim(),
             templates: BUILT_IN_TEMPLATES.map((tpl) => ({
               id: tpl.key,
-              text: `${tpl.label}. ${tpl.description}. Kategoria: ${tpl.category}.`,
+              text: isPl
+                ? `${tpl.labelPl}. ${tpl.descriptionPl}. Kategoria: ${tpl.category}.`
+                : `${tpl.label}. ${tpl.description}. Category: ${tpl.category}.`,
             })),
           }),
         });
@@ -78,7 +87,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
       window.clearTimeout(id);
       ctrl.abort();
     };
-  }, [query, fetch]);
+  }, [query, fetch, isPl]);
 
   useEffect(() => () => searchAbort.current?.abort(), []);
 
@@ -100,7 +109,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
 
       try {
         const brand: BrandStyle = DEFAULT_BRAND;
-        applyTemplate(tpl, canvas.current, platform, brand);
+        applyTemplate(tpl, canvas.current, platform, brand, lang);
         pushHistory(JSON.stringify(canvas.current.toJSON()));
       } catch {
         toaster.show(
@@ -109,7 +118,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         );
       }
     },
-    [canvas, platform, pushHistory, t, toaster]
+    [canvas, platform, pushHistory, t, toaster, lang]
   );
 
   return (
@@ -161,9 +170,11 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
             onClick={() => handleApply(tpl.key)}
             className="text-left p-2 rounded bg-newColColor hover:bg-forth hover:text-white text-textColor transition-colors group"
           >
-            <div className="text-xs font-semibold">{tpl.label}</div>
+            <div className="text-xs font-semibold">
+              {isPl ? tpl.labelPl : tpl.label}
+            </div>
             <div className="text-[10px] text-textColor/60 group-hover:text-white/70 mt-0.5">
-              {tpl.description}
+              {isPl ? tpl.descriptionPl : tpl.description}
             </div>
           </button>
         ))}

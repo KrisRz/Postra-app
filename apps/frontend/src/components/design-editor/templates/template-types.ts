@@ -1,6 +1,8 @@
 import type * as fabric from 'fabric';
 import type { PlatformSize } from '../editor.store';
 
+export type TemplateLang = 'pl' | 'en';
+
 export type TemplateCategory =
   | 'promo'
   | 'quote'
@@ -22,8 +24,15 @@ export interface DesignTemplate {
   key: string;
   category: TemplateCategory;
   label: string;
+  labelPl: string;
   description: string;
-  apply: (canvas: fabric.Canvas, platform: PlatformSize, brand: BrandStyle) => void;
+  descriptionPl: string;
+  apply: (
+    canvas: fabric.Canvas,
+    platform: PlatformSize,
+    brand: BrandStyle,
+    lang: TemplateLang
+  ) => void;
 }
 
 export const TEMPLATE_CATEGORIES: {
