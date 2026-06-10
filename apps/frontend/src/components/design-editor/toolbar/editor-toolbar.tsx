@@ -11,6 +11,7 @@ import { AiRefinePanel } from './ai-refine-panel';
 import { BrandKitPanel } from './brand-kit-panel';
 import { IconsPanel } from './icons-panel';
 import { TemplatesPanel } from './templates-panel';
+import { StockImagesPanel } from './stock-images-panel';
 import { STUDIO_FONTS, DEFAULT_FONT, findFontByFamily } from '../fonts';
 import {
   removeBackgroundFromImage,
@@ -527,6 +528,8 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
                 'Select an image and click. The first run downloads the AI model (~30MB); later runs are faster.'
               )}
             </p>
+
+            <StockImagesPanel canvas={canvas} />
           </div>
         )}
 
