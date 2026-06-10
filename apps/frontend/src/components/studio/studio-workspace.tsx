@@ -49,8 +49,8 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
   const [mode, setMode] = useState<StudioMode>(initialMode);
 
   const tabs: { key: StudioMode; label: string }[] = [
-    { key: 'graphic', label: t('studio_tab_graphic', '🎨 Grafika') },
-    { key: 'video', label: t('studio_tab_video', '🎬 Wideo') },
+    { key: 'graphic', label: t('studio_tab_graphic', '🎨 Graphics') },
+    { key: 'video', label: t('studio_tab_video', '🎬 Video') },
   ];
 
   return (

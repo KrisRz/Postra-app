@@ -37,29 +37,29 @@ const objectLabel = (
     const text = (obj as fabric.Textbox).text || '';
     return {
       type: 'text',
-      label: text ? truncate(text) : t('layer_text', 'Tekst'),
+      label: text ? truncate(text) : t('layer_text', 'Text'),
       icon: 'T',
     };
   }
   if (obj instanceof fabric.FabricImage) {
-    return { type: 'image', label: t('layer_image', 'Obraz'), icon: '🖼' };
+    return { type: 'image', label: t('layer_image', 'Image'), icon: '🖼' };
   }
   if (obj instanceof fabric.Group) {
-    return { type: 'group', label: t('layer_group', 'Grupa'), icon: '◇' };
+    return { type: 'group', label: t('layer_group', 'Group'), icon: '◇' };
   }
   if (obj instanceof fabric.Rect) {
-    return { type: 'rect', label: t('layer_rect', 'Prostokąt'), icon: '▭' };
+    return { type: 'rect', label: t('layer_rect', 'Rectangle'), icon: '▭' };
   }
   if (obj instanceof fabric.Circle) {
-    return { type: 'circle', label: t('layer_circle', 'Koło'), icon: '●' };
+    return { type: 'circle', label: t('layer_circle', 'Circle'), icon: '●' };
   }
   if (obj instanceof fabric.Line) {
-    return { type: 'line', label: t('layer_line', 'Linia'), icon: '─' };
+    return { type: 'line', label: t('layer_line', 'Line'), icon: '─' };
   }
   if (obj instanceof fabric.Path) {
-    return { type: 'path', label: t('layer_path', 'Ścieżka'), icon: '✎' };
+    return { type: 'path', label: t('layer_path', 'Path'), icon: '✎' };
   }
-  return { type: 'object', label: t('layer_object', 'Obiekt'), icon: '◻' };
+  return { type: 'object', label: t('layer_object', 'Object'), icon: '◻' };
 };
 
 export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
@@ -201,7 +201,7 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
   if (layers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-6 text-[11px] text-textColor/50 text-center">
-        {t('layers_empty', 'Brak warstw. Dodaj tekst, kształt lub obraz.')}
+        {t('layers_empty', 'No layers. Add text, a shape or an image.')}
       </div>
     );
   }
@@ -233,8 +233,8 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
             className="opacity-60 hover:opacity-100 px-1"
             title={
               entry.visible
-                ? t('layer_hide', 'Ukryj')
-                : t('layer_show', 'Pokaż')
+                ? t('layer_hide', 'Hide')
+                : t('layer_show', 'Show')
             }
           >
             {entry.visible ? '👁' : '🚫'}
@@ -244,8 +244,8 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
             className="opacity-60 hover:opacity-100 px-1"
             title={
               entry.locked
-                ? t('layer_unlock', 'Odblokuj')
-                : t('layer_lock', 'Zablokuj')
+                ? t('layer_unlock', 'Unlock')
+                : t('layer_lock', 'Lock')
             }
           >
             {entry.locked ? '🔒' : '🔓'}
@@ -253,14 +253,14 @@ export const LayersPanel: FC<LayersPanelProps> = ({ canvas }) => {
           <button
             onClick={(e) => handleDelete(entry, e)}
             className="opacity-0 group-hover:opacity-60 hover:!opacity-100 px-1 text-red-300"
-            title={t('layer_delete', 'Usuń')}
+            title={t('layer_delete', 'Delete')}
           >
             🗑
           </button>
         </div>
       ))}
       <p className="text-[10px] text-textColor/40 leading-snug mt-2">
-        {t('layers_hint', 'Przeciągnij warstwę aby zmienić kolejność.')}
+        {t('layers_hint', 'Drag a layer to reorder.')}
       </p>
     </div>
   );

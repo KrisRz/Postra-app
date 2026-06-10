@@ -29,9 +29,9 @@ interface VideoTextOverlayProps {
 }
 
 const POSITIONS: { key: TextPosition; label: string; icon: string }[] = [
-  { key: 'top', label: 'Góra', icon: '⬆' },
-  { key: 'middle', label: 'Środek', icon: '⏺' },
-  { key: 'bottom', label: 'Dół', icon: '⬇' },
+  { key: 'top', label: 'Top', icon: '⬆' },
+  { key: 'middle', label: 'Middle', icon: '⏺' },
+  { key: 'bottom', label: 'Bottom', icon: '⬇' },
 ];
 
 const SIZES: { key: string; label: string; scale: number }[] = [
@@ -56,7 +56,7 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
-  const [text, setText] = useState('Nowość w sklepie');
+  const [text, setText] = useState(() => t('video_text_default_headline', 'New in store'));
   const [position, setPosition] = useState<TextPosition>('bottom');
   const [color, setColor] = useState<string | null>(null);
   const [fontLabel, setFontLabel] = useState<string | null>(null);
@@ -124,8 +124,8 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
       console.error('[Postra:text-overlay] failed:', err);
       toaster.show(
         err instanceof ClipTooLongError
-          ? t('clip_too_long', 'Klip za długi do edycji w przeglądarce (limit 5 min). Użyj krótszego.')
-          : t('clip_text_failed', 'Nie udało się wypalić tekstu w wideo — sprawdź konsolę.'),
+          ? t('clip_too_long', 'Clip is too long to edit in the browser (5 min limit). Use a shorter one.')
+          : t('clip_text_failed', 'Failed to burn the text into the video — check the console.'),
         'warning'
       );
     } finally {
@@ -162,7 +162,7 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
         throw new Error('upload returned no media');
       }
     } catch {
-      toaster.show(t('clip_text_upload_failed', 'Upload klipu nie powiódł się.'), 'warning');
+      toaster.show(t('clip_text_upload_failed', 'Clip upload failed.'), 'warning');
     } finally {
       setUploading(false);
     }
@@ -181,9 +181,9 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
           e instanceof VideoTooLargeError
             ? t(
                 'video_library_too_big',
-                'Ten klip jest za duży do edycji w przeglądarce (limit 200 MB). Użyj krótszego.'
+                'This clip is too large to edit in the browser (200 MB limit). Use a shorter one.'
               )
-            : t('video_library_load_failed', 'Nie udało się wczytać wideo z biblioteki.'),
+            : t('video_library_load_failed', 'Failed to load the video from the library.'),
           'warning'
         );
       } finally {
@@ -199,7 +199,7 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
         ✍️{' '}
         {t(
           'clip_text_intro',
-          'Wgraj klip (albo weź B-roll z biblioteki), wpisz tekst — wypalimy go w wideo w kolorze i foncie Twojego Brand Kitu. Dźwięk zostaje.'
+          'Upload a clip (or grab B-roll from the library), type your text — we burn it into the video in your Brand Kit colour and font. Audio stays.'
         )}
       </div>
 
@@ -217,7 +217,7 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
               resetResult();
             } catch {
               toaster.show(
-                t('video_disk_too_big', 'Plik za duży do edycji w przeglądarce (limit 200 MB).'),
+                t('video_disk_too_big', 'File is too large to edit in the browser (200 MB limit).'),
                 'warning'
               );
             }
@@ -231,14 +231,14 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
           disabled={busy || importing}
           className="flex-1 text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors disabled:opacity-50"
         >
-          📁 {t('video_source_disk', 'Z dysku')}
+          📁 {t('video_source_disk', 'From disk')}
         </button>
         <button
           onClick={() => setShowLibrary(true)}
           disabled={busy || importing}
           className="flex-1 text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors disabled:opacity-50"
         >
-          🗂 {t('video_source_library', 'Z biblioteki')}
+          🗂 {t('video_source_library', 'From library')}
         </button>
       </div>
       {file && (
@@ -250,13 +250,13 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
         onChange={(e) => setText(e.target.value)}
         disabled={busy}
         rows={2}
-        placeholder={t('clip_text_placeholder', 'Tekst na wideo')}
+        placeholder={t('clip_text_placeholder', 'Text on video')}
         className="text-xs px-2 py-2 rounded bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 focus:outline-none focus:border-forth disabled:opacity-50 resize-none"
       />
 
       {/* Position */}
       <div className="flex flex-col gap-1">
-        <label className="text-[10px] text-textColor/60">{t('clip_text_position', 'Pozycja')}</label>
+        <label className="text-[10px] text-textColor/60">{t('clip_text_position', 'Position')}</label>
         <div className="flex gap-2">
           {POSITIONS.map((p) => (
             <button
@@ -278,7 +278,7 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
       {/* Colour + size, defaulting to the Brand Kit */}
       <div className="flex gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] text-textColor/60">{t('clip_text_color', 'Kolor')}</label>
+          <label className="text-[10px] text-textColor/60">{t('clip_text_color', 'Colour')}</label>
           <div className="flex items-center gap-2">
             <div className="relative w-8 h-8 shrink-0">
               <div
@@ -291,7 +291,7 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
                 onChange={(e) => setColor(e.target.value)}
                 disabled={busy}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
-                aria-label={t('clip_text_color', 'Kolor')}
+                aria-label={t('clip_text_color', 'Colour')}
               />
             </div>
             {color && color.toLowerCase() !== kit.primaryColor.toLowerCase() && (
@@ -306,7 +306,7 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
           </div>
         </div>
         <div className="flex flex-col gap-1 flex-1">
-          <label className="text-[10px] text-textColor/60">{t('clip_text_size', 'Rozmiar')}</label>
+          <label className="text-[10px] text-textColor/60">{t('clip_text_size', 'Size')}</label>
           <div className="flex gap-2">
             {SIZES.map((s) => (
               <button
@@ -349,8 +349,8 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
         className="px-3 py-2 text-sm rounded bg-newAccent text-white hover:bg-forth disabled:opacity-50 transition-colors"
       >
         {busy
-          ? `${t('clip_text_running', 'Renderuję…')} ${progress}%`
-          : t('clip_text_run', '🎬 Wypal tekst w wideo')}
+          ? `${t('clip_text_running', 'Rendering…')} ${progress}%`
+          : t('clip_text_run', '🎬 Burn text into video')}
       </button>
 
       {resultUrl && (
@@ -358,8 +358,8 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
           <div className="text-[10px] text-green-400">
             ✓{' '}
             {hadAudio
-              ? t('compositor_with_audio', 'z dźwiękiem')
-              : t('compositor_no_audio', 'bez dźwięku')}
+              ? t('compositor_with_audio', 'with audio')
+              : t('compositor_no_audio', 'no audio')}
           </div>
           <video
             src={resultUrl}
@@ -368,14 +368,14 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
           />
           <div className="flex items-center gap-2">
             <Button loading={uploading} onClick={useInPost} className="!h-[30px] !text-xs">
-              {t('clip_text_use_in_post', 'Użyj w poście')}
+              {t('clip_text_use_in_post', 'Use in post')}
             </Button>
             <a
               href={resultUrl}
               download="postra-clip.mp4"
               className="text-[10px] text-newAccent underline"
             >
-              {t('clip_text_download', 'Pobierz')}
+              {t('clip_text_download', 'Download')}
             </a>
           </div>
         </div>

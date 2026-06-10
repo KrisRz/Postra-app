@@ -133,12 +133,12 @@ export const BrandKitPanel: FC = () => {
 
       <div className="rounded-md bg-forth/10 border border-forth/30 p-2.5 text-[11px] leading-relaxed text-textColor/85">
         <div className="font-semibold mb-1">
-          {t('brand_kit_intro_title', '💡 Co robi Brand Kit?')}
+          {t('brand_kit_intro_title', '💡 What does Brand Kit do?')}
         </div>
         <p>
           {t(
             'brand_kit_intro_body',
-            'Twoje kolory, font, ton i logo są automatycznie zastosowane przy ✨ AI Generuj. Ustaw raz, używa się zawsze. Logo trafia bottom-right na każdą AI grafikę.'
+            'Your colors, font, tone and logo are applied automatically with ✨ AI Generate. Set once, used every time. The logo goes bottom-right on every AI graphic.'
           )}
         </p>
       </div>
@@ -201,7 +201,7 @@ export const BrandKitPanel: FC = () => {
           <div className="flex items-center gap-2">
             <img
               src={kit.logoPath}
-              alt="brand logo"
+              alt={t('brand_logo_alt', 'Brand logo')}
               className="w-12 h-12 object-contain rounded bg-black/30 p-1"
             />
             <Button

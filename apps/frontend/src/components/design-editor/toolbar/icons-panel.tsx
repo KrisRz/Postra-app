@@ -4,6 +4,7 @@ import { FC, MutableRefObject, useCallback, useMemo, useState } from 'react';
 import * as fabric from 'fabric';
 import { renderToStaticMarkup } from 'react-dom/server';
 import clsx from 'clsx';
+import { useTranslation } from 'react-i18next';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import {
@@ -22,6 +23,10 @@ const ICON_CANVAS_SIZE = 120;
 
 export const IconsPanel: FC<IconsPanelProps> = ({ canvas }) => {
   const t = useT();
+  const { i18n } = useTranslation();
+  const isPl = (i18n.resolvedLanguage ?? i18n.language ?? '')
+    .toLowerCase()
+    .startsWith('pl');
   const toaster = useToaster();
   const [category, setCategory] = useState<IconCategory>('reactions');
   const [query, setQuery] = useState('');
@@ -31,7 +36,9 @@ export const IconsPanel: FC<IconsPanelProps> = ({ canvas }) => {
     return ICONS.filter((icon) => {
       const matchesCategory = q ? true : icon.category === category;
       const matchesQuery = q
-        ? `${icon.label} ${icon.tags} ${icon.key}`.toLowerCase().includes(q)
+        ? `${icon.label} ${icon.labelPl} ${icon.tags} ${icon.key}`
+            .toLowerCase()
+            .includes(q)
         : true;
       return matchesCategory && matchesQuery;
     });
@@ -73,7 +80,7 @@ export const IconsPanel: FC<IconsPanelProps> = ({ canvas }) => {
         c.renderAll();
       } catch {
         toaster.show(
-          t('icon_add_failed', 'Nie udało się dodać ikony'),
+          t('icon_add_failed', 'Could not add icon'),
           'warning'
         );
       }
@@ -87,7 +94,7 @@ export const IconsPanel: FC<IconsPanelProps> = ({ canvas }) => {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={t('icon_search_placeholder', 'Szukaj ikony…')}
+        placeholder={t('icon_search_placeholder', 'Search icons…')}
         className="text-xs px-2 py-1.5 rounded bg-newColColor text-textColor border border-newBorder focus:outline-none focus:border-textColor/40"
       />
 
@@ -117,7 +124,7 @@ export const IconsPanel: FC<IconsPanelProps> = ({ canvas }) => {
             <button
               key={entry.key}
               onClick={() => addIcon(entry)}
-              title={entry.label}
+              title={isPl ? entry.labelPl : entry.label}
               className="aspect-square flex items-center justify-center rounded bg-newColColor hover:bg-forth text-textColor hover:text-white transition-colors"
             >
               <IconComp size={ICON_PREVIEW_SIZE} stroke={2} />
@@ -126,7 +133,7 @@ export const IconsPanel: FC<IconsPanelProps> = ({ canvas }) => {
         })}
         {filtered.length === 0 && (
           <div className="col-span-4 text-center text-[11px] text-textColor/50 py-4">
-            {t('icon_no_results', 'Brak wyników')}
+            {t('icon_no_results', 'No results')}
           </div>
         )}
       </div>

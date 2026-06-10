@@ -26,7 +26,12 @@ interface Picked {
 }
 
 const MAX_IMAGES = 10;
-const PRESETS = ['Nowość', 'Wyprzedaż', 'Promocja', 'Już dostępne'];
+const PRESETS: { key: string; label: string }[] = [
+  { key: 'video_slideshow_preset_new', label: 'New arrival' },
+  { key: 'video_slideshow_preset_sale', label: 'Sale' },
+  { key: 'video_slideshow_preset_promo', label: 'Promotion' },
+  { key: 'video_slideshow_preset_available', label: 'Available now' },
+];
 
 let pickedSeq = 0;
 
@@ -45,7 +50,7 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
   const [images, setImages] = useState<Picked[]>([]);
   const [format, setFormat] = useState<VideoFormat>(VIDEO_FORMATS[0]);
   const [secondsPer, setSecondsPer] = useState(2.5);
-  const [text, setText] = useState('Nowość w sklepie');
+  const [text, setText] = useState(() => t('video_text_default_headline', 'New in store'));
   const [color, setColor] = useState<string | null>(null);
   const [fontLabel, setFontLabel] = useState<string | null>(null);
 
@@ -92,7 +97,7 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
         const room = MAX_IMAGES - prev.length;
         if (room <= 0) {
           toaster.show(
-            t('slideshow_max', 'Maksymalnie {n} zdjęć na klip.').replace('{n}', String(MAX_IMAGES)),
+            t('slideshow_max', 'Maximum {n} photos per clip.').replace('{n}', String(MAX_IMAGES)),
             'warning'
           );
           return prev;
@@ -165,7 +170,7 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
       // eslint-disable-next-line no-console
       console.error('[Postra:slideshow] failed:', err);
       toaster.show(
-        t('slideshow_failed', 'Nie udało się złożyć wideo ze zdjęć — sprawdź konsolę.'),
+        t('slideshow_failed', 'Failed to build the video from photos — check the console.'),
         'warning'
       );
     } finally {
@@ -196,7 +201,7 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
       if (data?.id && data?.path) onReady({ id: data.id, path: data.path });
       else throw new Error('upload returned no media');
     } catch {
-      toaster.show(t('clip_text_upload_failed', 'Upload klipu nie powiódł się.'), 'warning');
+      toaster.show(t('clip_text_upload_failed', 'Clip upload failed.'), 'warning');
     } finally {
       setUploading(false);
     }
@@ -208,7 +213,7 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
         🖼{' '}
         {t(
           'slideshow_intro',
-          'Masz zdjęcia produktów, nie filmy? Wrzuć kilka — złożymy z nich pionowy klip z delikatnym ruchem i tekstem w Twoim brandzie.'
+          'Got product photos but no footage? Drop in a few — we turn them into a vertical clip with subtle motion and text in your brand.'
         )}
       </div>
 
@@ -228,7 +233,7 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
         disabled={busy || images.length >= MAX_IMAGES}
         className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors disabled:opacity-50"
       >
-        📁 {t('slideshow_add', 'Dodaj zdjęcia')} ({images.length}/{MAX_IMAGES})
+        📁 {t('slideshow_add', 'Add photos')} ({images.length}/{MAX_IMAGES})
       </button>
 
       {images.length > 0 && (
@@ -244,7 +249,7 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
                 onClick={() => removeImage(p.id)}
                 disabled={busy}
                 className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-black/70 text-white text-[11px] leading-none disabled:opacity-50"
-                aria-label={t('remove', 'Usuń')}
+                aria-label={t('remove', 'Remove')}
               >
                 ×
               </button>
@@ -290,7 +295,7 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
         </div>
         <div className="flex flex-col gap-1 w-28">
           <label className="text-[10px] text-textColor/60">
-            {t('slideshow_seconds', 'Sekundy/zdjęcie')}
+            {t('slideshow_seconds', 'Seconds/photo')}
           </label>
           <select
             value={secondsPer}
@@ -313,20 +318,23 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
         value={text}
         onChange={(e) => setText(e.target.value)}
         disabled={busy}
-        placeholder={t('slideshow_text', 'Tekst (zostaw puste = bez tekstu)')}
+        placeholder={t('slideshow_text', 'Text (leave empty = no text)')}
         className="text-xs px-2 py-2 rounded bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 focus:outline-none focus:border-forth disabled:opacity-50"
       />
       <div className="flex gap-1.5 flex-wrap">
-        {PRESETS.map((p) => (
-          <button
-            key={p}
-            onClick={() => setText(p)}
-            disabled={busy}
-            className="text-[10px] px-2 py-1 rounded bg-newColColor hover:bg-forth text-textColor/80 transition-colors disabled:opacity-50"
-          >
-            {p}
-          </button>
-        ))}
+        {PRESETS.map((p) => {
+          const label = t(p.key, p.label);
+          return (
+            <button
+              key={p.key}
+              onClick={() => setText(label)}
+              disabled={busy}
+              className="text-[10px] px-2 py-1 rounded bg-newColColor hover:bg-forth text-textColor/80 transition-colors disabled:opacity-50"
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       <button
@@ -335,26 +343,26 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
         className="px-3 py-2 text-sm rounded bg-newAccent text-white hover:bg-forth disabled:opacity-50 transition-colors"
       >
         {busy
-          ? `${t('slideshow_running', 'Składam wideo…')} ${progress}%`
-          : t('slideshow_run', '🎬 Złóż wideo ze zdjęć')}
+          ? `${t('slideshow_running', 'Building video…')} ${progress}%`
+          : t('slideshow_run', '🎬 Build video from photos')}
       </button>
 
       {resultUrl && (
         <div className="flex flex-col gap-2">
           <div className="text-[10px] text-green-400">
-            ✓ {t('compositor_no_audio', 'bez dźwięku')}
+            ✓ {t('compositor_no_audio', 'no audio')}
           </div>
           <video src={resultUrl} controls className="w-full rounded border border-newBorder" />
           <div className="flex items-center gap-2">
             <Button loading={uploading} onClick={useInPost} className="!h-[30px] !text-xs">
-              {t('clip_text_use_in_post', 'Użyj w poście')}
+              {t('clip_text_use_in_post', 'Use in post')}
             </Button>
             <a
               href={resultUrl}
               download="postra-slideshow.mp4"
               className="text-[10px] text-newAccent underline"
             >
-              {t('clip_text_download', 'Pobierz')}
+              {t('clip_text_download', 'Download')}
             </a>
           </div>
         </div>

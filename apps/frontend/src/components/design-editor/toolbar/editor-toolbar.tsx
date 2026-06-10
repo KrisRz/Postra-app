@@ -35,15 +35,15 @@ type ShapeType =
   | 'line';
 
 const SHAPE_BUTTONS: { type: ShapeType; icon: string; titleKey: string; fallback: string }[] = [
-  { type: 'rect', icon: '▭', titleKey: 'shape_rect', fallback: 'Prostokąt' },
-  { type: 'circle', icon: '●', titleKey: 'shape_circle', fallback: 'Koło' },
-  { type: 'triangle', icon: '▲', titleKey: 'shape_triangle', fallback: 'Trójkąt' },
-  { type: 'star', icon: '★', titleKey: 'shape_star', fallback: 'Gwiazda' },
-  { type: 'hexagon', icon: '⬡', titleKey: 'shape_hexagon', fallback: 'Heksagon' },
-  { type: 'heart', icon: '♥', titleKey: 'shape_heart', fallback: 'Serce' },
-  { type: 'arrow', icon: '➜', titleKey: 'shape_arrow', fallback: 'Strzałka' },
-  { type: 'speech', icon: '💬', titleKey: 'shape_speech', fallback: 'Dymek' },
-  { type: 'line', icon: '─', titleKey: 'shape_line', fallback: 'Linia' },
+  { type: 'rect', icon: '▭', titleKey: 'shape_rect', fallback: 'Rectangle' },
+  { type: 'circle', icon: '●', titleKey: 'shape_circle', fallback: 'Circle' },
+  { type: 'triangle', icon: '▲', titleKey: 'shape_triangle', fallback: 'Triangle' },
+  { type: 'star', icon: '★', titleKey: 'shape_star', fallback: 'Star' },
+  { type: 'hexagon', icon: '⬡', titleKey: 'shape_hexagon', fallback: 'Hexagon' },
+  { type: 'heart', icon: '♥', titleKey: 'shape_heart', fallback: 'Heart' },
+  { type: 'arrow', icon: '➜', titleKey: 'shape_arrow', fallback: 'Arrow' },
+  { type: 'speech', icon: '💬', titleKey: 'shape_speech', fallback: 'Speech bubble' },
+  { type: 'line', icon: '─', titleKey: 'shape_line', fallback: 'Line' },
 ];
 
 const BG_COLORS = [
@@ -69,13 +69,13 @@ const BG_COLORS = [
 
 const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string }[] = [
   { key: 'ai', icon: '✨', labelKey: 'tool_ai', fallback: 'AI Generate' },
-  { key: 'refine', icon: '🪄', labelKey: 'tool_refine', fallback: 'AI Popraw' },
-  { key: 'templates', icon: '📐', labelKey: 'tool_templates', fallback: 'Szablony' },
+  { key: 'refine', icon: '🪄', labelKey: 'tool_refine', fallback: 'AI Refine' },
+  { key: 'templates', icon: '📐', labelKey: 'tool_templates', fallback: 'Templates' },
   { key: 'brand', icon: '🎨', labelKey: 'tool_brand', fallback: 'Brand Kit' },
   { key: 'select', icon: '↖', labelKey: 'tool_select', fallback: 'Select' },
   { key: 'text', icon: 'T', labelKey: 'tool_text', fallback: 'Text' },
   { key: 'shapes', icon: '◻', labelKey: 'tool_shapes', fallback: 'Shapes' },
-  { key: 'icons', icon: '🎯', labelKey: 'tool_icons', fallback: 'Ikony' },
+  { key: 'icons', icon: '🎯', labelKey: 'tool_icons', fallback: 'Icons' },
   { key: 'images', icon: '🖼', labelKey: 'tool_images', fallback: 'Images' },
 ];
 
@@ -97,14 +97,14 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     const active = canvas.current.getActiveObject();
     if (!active || !(active instanceof fabric.FabricImage)) {
       toaster.show(
-        t('crop_no_image', 'Zaznacz obraz na canvas'),
+        t('crop_no_image', 'Select an image on the canvas'),
         'warning'
       );
       return;
     }
     const el = active.getElement();
     if (!(el instanceof HTMLImageElement) || !el.src) {
-      toaster.show(t('crop_no_image', 'Zaznacz obraz na canvas'), 'warning');
+      toaster.show(t('crop_no_image', 'Select an image on the canvas'), 'warning');
       return;
     }
 
@@ -114,7 +114,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       await replaceImageOnCanvas(canvas.current, active, dataUrl);
     } catch {
       toaster.show(
-        t('crop_failed', 'Smart crop nie powiódł się.'),
+        t('crop_failed', 'Smart crop failed.'),
         'warning'
       );
     }
@@ -125,7 +125,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     const active = canvas.current.getActiveObject();
     if (!active || !(active instanceof fabric.FabricImage)) {
       toaster.show(
-        t('bg_remove_no_image', 'Zaznacz obraz na canvas'),
+        t('bg_remove_no_image', 'Select an image on the canvas'),
         'warning'
       );
       return;
@@ -133,7 +133,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     const sourceEl = active.getElement();
     if (!(sourceEl instanceof HTMLImageElement)) {
       toaster.show(
-        t('bg_remove_no_image', 'Zaznacz obraz na canvas'),
+        t('bg_remove_no_image', 'Select an image on the canvas'),
         'warning'
       );
       return;
@@ -148,7 +148,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       await replaceImageOnCanvas(canvas.current, active, newSrc);
     } catch {
       toaster.show(
-        t('bg_remove_failed', 'Usuwanie tła nie powiodło się'),
+        t('bg_remove_failed', 'Background removal failed'),
         'warning'
       );
     } finally {
@@ -161,7 +161,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     if (!canvas.current) return;
     const cx = canvas.current.getWidth() / canvas.current.getZoom() / 2;
     const cy = canvas.current.getHeight() / canvas.current.getZoom() / 2;
-    const text = new fabric.Textbox(t('text_placeholder', 'Wpisz swój tekst'), {
+    const text = new fabric.Textbox(t('text_placeholder', 'Type your text'), {
       left: cx,
       top: cy,
       width: 300,
@@ -426,7 +426,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {activeTool === 'text' && (
           <div className="flex flex-col gap-2">
             <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
-              {t('font_label', 'Czcionka')}
+              {t('font_label', 'Font')}
             </span>
             <select
               value={findFontByFamily(defaultFontFamily).family}
@@ -447,12 +447,12 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
               onClick={addText}
               className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors"
             >
-              + {t('text_add', 'Dodaj tekst')}
+              + {t('text_add', 'Add text')}
             </button>
             <p className="text-[10px] text-textColor/40 leading-snug">
               {t(
                 'text_font_hint',
-                'Wybierz czcionkę dla nowego tekstu. Aby zmienić istniejący — zaznacz tekst i wybierz czcionkę.'
+                'Choose a font for new text. To change existing text — select it and pick a font.'
               )}
             </p>
           </div>
@@ -461,7 +461,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {activeTool === 'shapes' && (
           <div className="flex flex-col gap-2">
             <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
-              {t('add_shape', 'Dodaj kształt')}
+              {t('add_shape', 'Add shape')}
             </span>
             <div className="grid grid-cols-4 gap-1.5">
               {SHAPE_BUTTONS.map((shape) => (
@@ -511,20 +511,20 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
               className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors disabled:opacity-50 disabled:cursor-wait"
             >
               {removingBg
-                ? `${t('bg_remove_loading', 'Usuwanie…')} ${Math.round(bgProgress * 100)}%`
-                : `✂ ${t('bg_remove_button', 'Usuń tło')}`}
+                ? `${t('bg_remove_loading', 'Removing…')} ${Math.round(bgProgress * 100)}%`
+                : `✂ ${t('bg_remove_button', 'Remove background')}`}
             </button>
 
             <button
               onClick={cropSelectedImage}
               className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors"
             >
-              ✂ {t('crop_smart', 'Smart crop do platformy')}
+              ✂ {t('crop_smart', 'Smart crop to platform')}
             </button>
             <p className="text-[10px] text-textColor/40 leading-snug">
               {t(
                 'bg_remove_hint',
-                'Zaznacz obraz, kliknij. Pierwsze uruchomienie pobiera model AI (~30MB), kolejne są szybsze.'
+                'Select an image and click. The first run downloads the AI model (~30MB); later runs are faster.'
               )}
             </p>
           </div>
@@ -533,7 +533,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         {(activeTool === 'shapes' || activeTool === 'images') && (
           <div className="flex flex-col gap-2">
             <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
-              {t('background', 'Tło')}
+              {t('background', 'Background')}
             </span>
             <div className="grid grid-cols-6 gap-1.5">
               {BG_COLORS.map((color) => (
@@ -545,7 +545,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
                     bgColor === color ? 'border-white scale-110' : 'border-newBorder/40'
                   )}
                   style={{ backgroundColor: color }}
-                  aria-label={`${t('background', 'Tło')} ${color}`}
+                  aria-label={`${t('background', 'Background')} ${color}`}
                   title={color}
                 />
               ))}
@@ -555,7 +555,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
               value={bgColor}
               onChange={(e) => setBackground(e.target.value)}
               className="w-full h-7 rounded cursor-pointer border-0 bg-transparent"
-              aria-label={t('background_custom', 'Własny kolor tła')}
+              aria-label={t('background_custom', 'Custom background color')}
             />
           </div>
         )}

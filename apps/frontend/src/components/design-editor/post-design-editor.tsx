@@ -192,7 +192,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
         }
       } catch {
         toaster.show(
-          t('load_media_failed', 'Nie udało się załadować media do edycji.'),
+          t('load_media_failed', 'Failed to load media for editing.'),
           'warning'
         );
       }
@@ -376,13 +376,13 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       toaster.show(
         t(
           'saved_to_library',
-          'Zapisano w bibliotece mediów — użyjesz w dowolnym poście.'
+          'Saved to media library — you can use it in any post.'
         ),
         'success'
       );
     } catch {
       toaster.show(
-        t('save_library_failed', 'Nie udało się zapisać w bibliotece.'),
+        t('save_library_failed', 'Failed to save to library.'),
         'warning'
       );
     } finally {
@@ -395,7 +395,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     const active = fabricRef.current.getActiveObjects();
     if (!active.length) {
       toaster.show(
-        t('delete_no_selection', 'Najpierw zaznacz obiekt na canvas'),
+        t('delete_no_selection', 'Select an object on the canvas first'),
         'warning'
       );
       return;
@@ -434,7 +434,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                 onClick={handleUndo}
                 disabled={!canUndo}
                 className="h-8 px-3 text-sm rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
-                title={t('undo_tooltip', 'Cofnij (Ctrl+Z)')}
+                title={t('undo_tooltip', 'Undo (Ctrl+Z)')}
               >
                 ↶
               </button>
@@ -442,14 +442,14 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                 onClick={handleRedo}
                 disabled={!canRedo}
                 className="h-8 px-3 text-sm rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
-                title={t('redo_tooltip', 'Ponów (Ctrl+Shift+Z)')}
+                title={t('redo_tooltip', 'Redo (Ctrl+Shift+Z)')}
               >
                 ↷
               </button>
               <button
                 onClick={handleDelete}
                 className="h-8 px-3 text-sm rounded bg-newColColor text-textColor hover:bg-red-500 hover:text-white transition-colors"
-                title={t('delete_tooltip', 'Usuń zaznaczony obiekt (Delete)')}
+                title={t('delete_tooltip', 'Delete selected object (Delete)')}
               >
                 🗑
               </button>
@@ -459,23 +459,23 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                 onClick={handleSaveToLibrary}
                 disabled={savingToLibrary}
                 className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-50"
-                title={t('save_to_library_hint', 'Zapisz w bibliotece mediów — użyjesz w dowolnym poście')}
+                title={t('save_to_library_hint', 'Save to media library — use it in any post')}
               >
-                💾 {savingToLibrary ? t('saving', 'Zapisuję…') : t('save_to_library_btn', 'Zapisz w bibliotece')}
+                💾 {savingToLibrary ? t('saving', 'Saving…') : t('save_to_library_btn', 'Save to library')}
               </button>
               <button
                 onClick={handleDownload}
                 className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
-                title={t('download_png_hint', 'Pobierz grafikę jako plik PNG')}
+                title={t('download_png_hint', 'Download the graphic as a PNG file')}
               >
-                ⬇ {t('download_png', 'Pobierz PNG')}
+                ⬇ {t('download_png', 'Download PNG')}
               </button>
               <button
                 onClick={() => setMultiFormatOpen(true)}
                 className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
-                title={t('multi_format_hint', 'Wygeneruj 7 wariantów dla wszystkich platform')}
+                title={t('multi_format_hint', 'Generate 7 variants for all platforms')}
               >
-                📐 {t('multi_format_button', 'Wszystkie formaty')}
+                📐 {t('multi_format_button', 'All formats')}
               </button>
               {mode === 'composer' && (
                 <Button
@@ -484,11 +484,11 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                   className="!h-[32px] !text-xs"
                 >
                   {carouselSlideCount > 1
-                    ? t('use_carousel_in_post', 'Eksportuj {n} slajdów').replace(
+                    ? t('use_carousel_in_post', 'Export {n} slides').replace(
                         '{n}',
                         String(carouselSlideCount)
                       )
-                    : t('use_in_post', 'Użyj w poście')}
+                    : t('use_in_post', 'Use in post')}
                 </Button>
               )}
             </div>

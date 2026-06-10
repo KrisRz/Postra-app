@@ -104,7 +104,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         pushHistory(JSON.stringify(canvas.current.toJSON()));
       } catch {
         toaster.show(
-          t('template_apply_failed', 'Nie udało się zastosować szablonu'),
+          t('template_apply_failed', 'Failed to apply template'),
           'warning'
         );
       }
@@ -120,7 +120,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         onChange={(e) => setQuery(e.target.value)}
         placeholder={t(
           'template_search_placeholder',
-          '🔍 Szukaj szablonu (np. "promocja świąteczna")'
+          '🔍 Search templates (e.g. "holiday promo")'
         )}
         className="text-xs px-2 py-1.5 rounded bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 focus:outline-none focus:border-forth"
       />
@@ -145,14 +145,14 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
       )}
       {searching && (
         <div className="text-[10px] text-textColor/50">
-          {t('template_searching', 'Szukam…')}
+          {t('template_searching', 'Searching…')}
         </div>
       )}
 
       <div className="grid grid-cols-1 gap-2">
         {filtered.length === 0 && (
           <div className="text-center text-[11px] text-textColor/50 py-4">
-            {t('template_coming_soon', 'Wkrótce więcej szablonów w tej kategorii')}
+            {t('template_coming_soon', 'More templates coming soon in this category')}
           </div>
         )}
         {filtered.map((tpl) => (
@@ -172,7 +172,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
       <p className="text-[10px] text-textColor/40 leading-snug">
         {t(
           'template_hint',
-          'Szablon nadpisuje aktualny canvas. Możesz cofnąć przez Ctrl+Z.'
+          'A template overwrites the current canvas. You can undo with Ctrl+Z.'
         )}
       </p>
     </div>
