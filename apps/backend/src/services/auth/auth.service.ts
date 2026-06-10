@@ -14,6 +14,11 @@ import { NewsletterService } from '@gitroom/nestjs-libraries/newsletter/newslett
 import { normalizeEmail } from '@gitroom/helpers/utils/email.normalize';
 import disposableDomains from 'disposable-email-domains';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+import {
+  authEmails,
+  EmailLang,
+} from '@gitroom/backend/services/auth/auth.emails';
+import { randomBytes } from 'crypto';
 
 // Per-account login lockout (brute-force defense, independent of IP throttling).
 const MAX_LOGIN_FAILURES = 10;
@@ -44,7 +49,8 @@ export class AuthService {
     body: CreateOrgUserDto | LoginUserDto,
     ip: string,
     userAgent: string,
-    addToOrg?: boolean | { orgId: string; role: 'USER' | 'ADMIN'; id: string }
+    addToOrg?: boolean | { orgId: string; role: 'USER' | 'ADMIN'; id: string },
+    lang: EmailLang = 'en'
   ) {
     if (provider === Provider.LOCAL) {
       if (body instanceof CreateOrgUserDto) {
@@ -88,10 +94,13 @@ export class AuthService {
             : false;
 
         const obj = { addedOrg, jwt: await this.jwt(create.users[0].user) };
+        const activation = authEmails.activation[lang];
         await this._emailService.sendEmail(
           body.email,
-          'Aktywuj swoje konto',
-          `Aby aktywować konto, kliknij <a href="${process.env.FRONTEND_URL}/auth/activate/${obj.jwt}">tutaj</a>.<br />Link aktywacyjny otworzy stronę Postra i pozwoli dokończyć rejestrację.`,
+          activation.subject,
+          activation.html(
+            `${process.env.FRONTEND_URL}/auth/activate/${obj.jwt}`
+          ),
           'top'
         );
         return obj;
@@ -243,7 +252,7 @@ export class AuthService {
     }
   }
 
-  async forgot(email: string) {
+  async forgot(email: string, lang: EmailLang = 'en') {
     const user = await this._userService.getUserByEmail(email);
     if (!user || user.providerName !== Provider.LOCAL) {
       return false;
@@ -254,10 +263,11 @@ export class AuthService {
       expires: dayjs().add(20, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
     });
 
+    const reset = authEmails.resetPassword[lang];
     await this._notificationService.sendEmail(
       user.email,
-      'Zresetuj swoje hasło',
-      `Otrzymaliśmy prośbę o zresetowanie hasła do Twojego konta.<br />Kliknij <a href="${process.env.FRONTEND_URL}/auth/forgot/${resetValues}">tutaj</a>, aby ustawić nowe hasło.<br />Link wygaśnie za 20 minut.`
+      reset.subject,
+      reset.html(`${process.env.FRONTEND_URL}/auth/forgot/${resetValues}`)
     );
   }
 
@@ -294,7 +304,7 @@ export class AuthService {
     return false;
   }
 
-  async resendActivationEmail(email: string) {
+  async resendActivationEmail(email: string, lang: EmailLang = 'en') {
     const user = await this._userService.getUserByEmail(email);
 
     if (!user) {
@@ -307,22 +317,39 @@ export class AuthService {
 
     const jwt = await this.jwt(user);
 
+    const activation = authEmails.activation[lang];
     await this._emailService.sendEmail(
       user.email,
-      'Aktywuj swoje konto',
-      `Aby aktywować konto, kliknij <a href="${process.env.FRONTEND_URL}/auth/activate/${jwt}">tutaj</a>.<br />Link aktywacyjny otworzy stronę Postra i pozwoli dokończyć rejestrację.`,
+      activation.subject,
+      activation.html(`${process.env.FRONTEND_URL}/auth/activate/${jwt}`),
       'top'
     );
 
     return true;
   }
 
-  oauthLink(provider: string, query?: any) {
+  // CSRF state: random value stored in Redis at link time, consumed exactly
+  // once in checkExists. The `auth-` prefix is what the frontend social
+  // callback page uses to tell a login redirect from a channel-connect one.
+  async oauthLink(provider: string, query?: any) {
+    const state = `auth-${randomBytes(16).toString('hex')}`;
+    await ioRedis.set(`auth-state:${state}`, '1', 'EX', 600);
     const providerInstance = this._providerManager.getProvider(provider);
-    return providerInstance.generateLink(query);
+    return providerInstance.generateLink(query, state);
   }
 
-  async checkExists(provider: string, code: string, redirectUri?: string) {
+  async checkExists(
+    provider: string,
+    code: string,
+    redirectUri?: string,
+    state?: string
+  ) {
+    const stateKey = state ? `auth-state:${state}` : '';
+    if (!stateKey || !(await ioRedis.get(stateKey))) {
+      throw new Error('Invalid or expired state');
+    }
+    await ioRedis.del(stateKey);
+
     const providerInstance = this._providerManager.getProvider(provider);
     const token = await providerInstance.getToken(code, redirectUri);
     const user = await providerInstance.getUser(token);
