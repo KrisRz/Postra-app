@@ -24,6 +24,7 @@ import { RealIP } from 'nestjs-real-ip';
 import { UserAgent } from '@gitroom/nestjs-libraries/user/user.agent';
 import { Provider } from '@prisma/client';
 import * as Sentry from '@sentry/nestjs';
+import { pickEmailLang } from '@gitroom/backend/services/auth/auth.emails';
 
 @ApiTags('Auth')
 @Controller('/auth')
@@ -59,7 +60,8 @@ export class AuthController {
         body,
         ip,
         userAgent,
-        getOrgFromCookie
+        getOrgFromCookie,
+        pickEmailLang(req)
       );
 
       const activationRequired =
@@ -144,7 +146,8 @@ export class AuthController {
         body,
         ip,
         userAgent,
-        getOrgFromCookie
+        getOrgFromCookie,
+        pickEmailLang(req)
       );
 
       response.cookie('auth', jwt, {
@@ -202,9 +205,9 @@ export class AuthController {
 
   @Post('/forgot')
   @Throttle({ default: { ttl: 900000, limit: 3 } })
-  async forgot(@Body() body: ForgotPasswordDto) {
+  async forgot(@Req() req: Request, @Body() body: ForgotPasswordDto) {
     try {
-      await this._authService.forgot(body.email);
+      await this._authService.forgot(body.email, pickEmailLang(req));
       return {
         forgot: true,
       };
@@ -277,9 +280,15 @@ export class AuthController {
   }
 
   @Post('/resend-activation')
-  async resendActivation(@Body() body: ResendActivationDto) {
+  async resendActivation(
+    @Req() req: Request,
+    @Body() body: ResendActivationDto
+  ) {
     try {
-      await this._authService.resendActivationEmail(body.email);
+      await this._authService.resendActivationEmail(
+        body.email,
+        pickEmailLang(req)
+      );
       return {
         success: true,
       };
@@ -295,13 +304,15 @@ export class AuthController {
   async oauthExists(
     @Body('code') code: string,
     @Body('redirect_uri') redirect_uri: string,
+    @Body('state') state: string,
     @Param('provider') provider: string,
     @Res({ passthrough: false }) response: Response
   ) {
     const { jwt, token } = await this._authService.checkExists(
       provider,
       code,
-      redirect_uri
+      redirect_uri,
+      state
     );
 
     if (token) {
