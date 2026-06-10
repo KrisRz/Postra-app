@@ -52,14 +52,14 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     const f = e.target.files?.[0];
     if (!f) return;
     if (!f.type.startsWith('video/')) {
-      toaster.show(t('video_bad_type', 'Wybierz plik wideo (MP4, WebM, MOV).'), 'warning');
+      toaster.show(t('video_bad_type', 'Choose a video file (MP4, WebM, MOV).'), 'warning');
       return;
     }
     try {
       assertVideoSize(f);
     } catch {
       toaster.show(
-        t('video_disk_too_big', 'Plik za duży do edycji w przeglądarce (limit 200 MB).'),
+        t('video_disk_too_big', 'File is too large to edit in the browser (200 MB limit).'),
         'warning'
       );
       return;
@@ -87,9 +87,9 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
           e instanceof VideoTooLargeError
             ? t(
                 'video_library_too_big',
-                'Ten klip jest za duży do edycji w przeglądarce (limit 200 MB). Użyj krótszego.'
+                'This clip is too large to edit in the browser (200 MB limit). Use a shorter one.'
               )
-            : t('video_library_load_failed', 'Nie udało się wczytać wideo z biblioteki.'),
+            : t('video_library_load_failed', 'Failed to load the video from the library.'),
           'warning'
         );
       } finally {
@@ -143,7 +143,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     const m = await ensureUploaded();
     if (!m) {
       toaster.show(
-        t('video_upload_first', 'Najpierw wczytaj wideo (Z dysku / Z biblioteki).'),
+        t('video_upload_first', 'Load a video first (From disk / From library).'),
         'warning'
       );
       return;
@@ -163,7 +163,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
       setMedia([m]);
       closeModal();
     } else {
-      toaster.show(t('video_upload_failed', 'Upload nie powiódł się.'), 'warning');
+      toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
     }
   }, [uploadedMedia, trimmedBlob, ensureUploaded, setMedia, closeModal, toaster, t]);
 
@@ -180,7 +180,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
         setMedia(uploaded);
         closeModal();
       } else {
-        toaster.show(t('video_upload_failed', 'Upload nie powiódł się.'), 'warning');
+        toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
       }
     },
     [uploadBlob, setMedia, closeModal, toaster, t]
@@ -218,10 +218,10 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
           ⚠️{' '}
           {t(
             'video_unsupported_browser',
-            'Twoja przeglądarka nie wspiera edycji wideo (WebCodecs). Użyj Chrome, Edge lub Safari 16.4+.'
+            'Your browser does not support video editing (WebCodecs). Use Chrome, Edge or Safari 16.4+.'
           )}
         </div>
-        <Button onClick={closeModal}>{t('close', 'Zamknij')}</Button>
+        <Button onClick={closeModal}>{t('close', 'Close')}</Button>
       </div>
     );
   }
@@ -229,12 +229,12 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   // Formats/captions work on whatever clip is loaded — no forced trim first.
   const hasClip = !!(file || trimmedBlob);
   const tabs: { key: Tab; label: string; icon: string; needsClip: boolean; onClick?: () => void }[] = [
-    { key: 'trim', label: t('video_tab_trim', 'Wytnij'), icon: '✂', needsClip: false },
-    { key: 'formats', label: t('video_tab_formats', 'Formaty'), icon: '📐', needsClip: true },
-    { key: 'captions', label: t('video_tab_captions', 'Napisy AI'), icon: '💬', needsClip: true, onClick: handleSwitchToCaptions },
+    { key: 'trim', label: t('video_tab_trim', 'Trim'), icon: '✂', needsClip: false },
+    { key: 'formats', label: t('video_tab_formats', 'Formats'), icon: '📐', needsClip: true },
+    { key: 'captions', label: t('video_tab_captions', 'AI Captions'), icon: '💬', needsClip: true, onClick: handleSwitchToCaptions },
     { key: 'stock', label: t('video_tab_stock', 'Stock B-roll'), icon: '🎞', needsClip: false },
-    { key: 'text', label: t('video_tab_text', 'Tekst'), icon: '✍️', needsClip: false },
-    { key: 'slideshow', label: t('video_tab_slideshow', 'Zdjęcia→wideo'), icon: '🖼', needsClip: false },
+    { key: 'text', label: t('video_tab_text', 'Text'), icon: '✍️', needsClip: false },
+    { key: 'slideshow', label: t('video_tab_slideshow', 'Photos→video'), icon: '🖼', needsClip: false },
   ];
 
   return (
@@ -268,13 +268,13 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
             onClick={() => fileInputRef.current?.click()}
             className="text-xs px-3 py-1 rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
           >
-            📁 {t('video_source_disk', 'Z dysku')}
+            📁 {t('video_source_disk', 'From disk')}
           </button>
           <button
             onClick={() => setShowLibrary(true)}
             className="text-xs px-3 py-1 rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
           >
-            🗂 {t('video_source_library', 'Z biblioteki')}
+            🗂 {t('video_source_library', 'From library')}
           </button>
         </div>
       </div>
@@ -312,14 +312,14 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
       {trimmedBlob && tab === 'trim' && (
         <div className="px-4 py-2 border-t border-newBorder flex items-center justify-between">
           <div className="text-[11px] text-textColor/60">
-            {t('video_trim_done', 'Wycięto. Kliknij dalej, aby wybrać formaty lub użyć pojedynczego pliku.')}
+            {t('video_trim_done', 'Trimmed. Continue to pick formats or use the single file.')}
           </div>
           <Button
             loading={isUploading}
             onClick={handleUseInPost}
             className="!h-[28px] !text-xs"
           >
-            {t('video_use_in_post', 'Użyj w poście')}
+            {t('video_use_in_post', 'Use in post')}
           </Button>
         </div>
       )}

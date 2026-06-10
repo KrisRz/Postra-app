@@ -39,7 +39,7 @@ export const VideoMultiFormat: FC<VideoMultiFormatProps> = ({ source, onExported
     if (!source) return;
     if (selected.size === 0) {
       toaster.show(
-        t('video_format_select_one', 'Wybierz przynajmniej jeden format'),
+        t('video_format_select_one', 'Select at least one format'),
         'warning'
       );
       return;
@@ -74,7 +74,7 @@ export const VideoMultiFormat: FC<VideoMultiFormatProps> = ({ source, onExported
       toaster.show(
         t(
           'video_format_failed',
-          'Eksport wielu formatów nie powiódł się. Sprawdź czy przeglądarka wspiera WebCodecs.'
+          'Multi-format export failed. Check that your browser supports WebCodecs.'
         ),
         'warning'
       );
@@ -86,7 +86,7 @@ export const VideoMultiFormat: FC<VideoMultiFormatProps> = ({ source, onExported
   if (!source) {
     return (
       <div className="text-xs text-textColor/60 p-4 text-center">
-        {t('video_no_source', 'Najpierw wczytaj wideo (Z dysku / Z biblioteki), aby wybrać formaty.')}
+        {t('video_no_source', 'Load a video first (From disk / From library) to pick formats.')}
       </div>
     );
   }
@@ -96,7 +96,7 @@ export const VideoMultiFormat: FC<VideoMultiFormatProps> = ({ source, onExported
       <div className="text-xs text-textColor/80">
         {t(
           'video_format_explainer',
-          'Generuje osobny plik MP4 dla każdego wybranego formatu (smart center-crop).'
+          'Generates a separate MP4 file for each selected format (smart center-crop).'
         )}
       </div>
       <div className="flex flex-col gap-2">
@@ -140,11 +140,11 @@ export const VideoMultiFormat: FC<VideoMultiFormatProps> = ({ source, onExported
         className="px-3 py-2 text-sm rounded bg-newAccent text-white hover:bg-forth disabled:opacity-50 transition-colors"
       >
         {isExporting
-          ? t('video_format_exporting', 'Eksportuję {n} formatów...').replace(
+          ? t('video_format_exporting', 'Exporting {n} formats...').replace(
               '{n}',
               String(selected.size)
             )
-          : t('video_format_export', 'Eksportuj {n} formatów').replace(
+          : t('video_format_export', 'Export {n} formats').replace(
               '{n}',
               String(selected.size)
             )}

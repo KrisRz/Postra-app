@@ -1,6 +1,8 @@
 import type * as fabric from 'fabric';
 import type { PlatformSize } from '../editor.store';
 
+export type TemplateLang = 'pl' | 'en';
+
 export type TemplateCategory =
   | 'promo'
   | 'quote'
@@ -22,8 +24,15 @@ export interface DesignTemplate {
   key: string;
   category: TemplateCategory;
   label: string;
+  labelPl: string;
   description: string;
-  apply: (canvas: fabric.Canvas, platform: PlatformSize, brand: BrandStyle) => void;
+  descriptionPl: string;
+  apply: (
+    canvas: fabric.Canvas,
+    platform: PlatformSize,
+    brand: BrandStyle,
+    lang: TemplateLang
+  ) => void;
 }
 
 export const TEMPLATE_CATEGORIES: {
@@ -32,14 +41,14 @@ export const TEMPLATE_CATEGORIES: {
   fallback: string;
   emoji: string;
 }[] = [
-  { key: 'promo', labelKey: 'tpl_cat_promo', fallback: 'Promocja', emoji: '🛍️' },
-  { key: 'quote', labelKey: 'tpl_cat_quote', fallback: 'Cytat', emoji: '💬' },
-  { key: 'announcement', labelKey: 'tpl_cat_announcement', fallback: 'Ogłoszenie', emoji: '📢' },
-  { key: 'stats', labelKey: 'tpl_cat_stats', fallback: 'Statystyki', emoji: '📊' },
+  { key: 'promo', labelKey: 'tpl_cat_promo', fallback: 'Promo', emoji: '🛍️' },
+  { key: 'quote', labelKey: 'tpl_cat_quote', fallback: 'Quote', emoji: '💬' },
+  { key: 'announcement', labelKey: 'tpl_cat_announcement', fallback: 'Announcement', emoji: '📢' },
+  { key: 'stats', labelKey: 'tpl_cat_stats', fallback: 'Stats', emoji: '📊' },
   { key: 'tip', labelKey: 'tpl_cat_tip', fallback: 'Tip', emoji: '💡' },
-  { key: 'event', labelKey: 'tpl_cat_event', fallback: 'Wydarzenie', emoji: '🎉' },
-  { key: 'community', labelKey: 'tpl_cat_community', fallback: 'Społeczność', emoji: '🤝' },
-  { key: 'reel-cover', labelKey: 'tpl_cat_reel_cover', fallback: 'Cover Reels', emoji: '📱' },
+  { key: 'event', labelKey: 'tpl_cat_event', fallback: 'Event', emoji: '🎉' },
+  { key: 'community', labelKey: 'tpl_cat_community', fallback: 'Community', emoji: '🤝' },
+  { key: 'reel-cover', labelKey: 'tpl_cat_reel_cover', fallback: 'Reel cover', emoji: '📱' },
 ];
 
 export const DEFAULT_BRAND: BrandStyle = {

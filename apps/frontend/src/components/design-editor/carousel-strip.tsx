@@ -77,7 +77,7 @@ export const CarouselStrip: FC<CarouselStripProps> = ({ fabricRef }) => {
     return (
       <div className="border-t border-newBorder px-4 py-2 flex items-center justify-between bg-newBgColor">
         <div className="text-xs text-textColor opacity-70">
-          {t('carousel_hint', '🎴 Twórz wieloplanszowy post (Instagram / LinkedIn carousel — do 10 slajdów)')}
+          {t('carousel_hint', '🎴 Create a multi-slide post (Instagram / LinkedIn carousel — up to 10 slides)')}
         </div>
         <button
           onClick={() => {
@@ -85,9 +85,9 @@ export const CarouselStrip: FC<CarouselStripProps> = ({ fabricRef }) => {
             enterCarouselMode(json);
           }}
           className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
-          title={t('carousel_enter_hint', 'Włącz tryb carousel — obecny canvas stanie się Slajdem 1')}
+          title={t('carousel_enter_hint', 'Enable carousel mode — the current canvas becomes Slide 1')}
         >
-          🎴 {t('carousel_enter', 'Tryb carousel')}
+          🎴 {t('carousel_enter', 'Carousel mode')}
         </button>
       </div>
     );
@@ -113,7 +113,7 @@ export const CarouselStrip: FC<CarouselStripProps> = ({ fabricRef }) => {
         <div className="text-xs text-textColor">
           🎴 {t('carousel_label', 'Carousel')} —{' '}
           <span className="opacity-70">
-            {t('carousel_slide_count', 'Slajd {current} z {total}')
+            {t('carousel_slide_count', 'Slide {current} of {total}')
               .replace('{current}', String(currentSlideIndex + 1))
               .replace('{total}', String(slides.length))}
           </span>
@@ -123,9 +123,9 @@ export const CarouselStrip: FC<CarouselStripProps> = ({ fabricRef }) => {
             onClick={() => addSlide(null)}
             disabled={slides.length >= 10}
             className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
-            title={t('carousel_add_hint', 'Dodaj pusty slajd (max 10)')}
+            title={t('carousel_add_hint', 'Add an empty slide (max 10)')}
           >
-            + {t('carousel_add', 'Slajd')}
+            + {t('carousel_add', 'Slide')}
           </button>
           <button
             onClick={() =>
@@ -138,23 +138,23 @@ export const CarouselStrip: FC<CarouselStripProps> = ({ fabricRef }) => {
             }
             disabled={slides.length >= 10}
             className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30 transition-colors"
-            title={t('carousel_duplicate_hint', 'Skopiuj bieżący slajd')}
+            title={t('carousel_duplicate_hint', 'Copy the current slide')}
           >
-            ⎘ {t('carousel_duplicate', 'Duplikuj')}
+            ⎘ {t('carousel_duplicate', 'Duplicate')}
           </button>
           <button
             onClick={handleApplyLayoutToAll}
             className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
-            title={t('carousel_apply_all_hint', 'Skopiuj layout bieżącego slajdu na wszystkie (zachowuje brand consistency)')}
+            title={t('carousel_apply_all_hint', 'Copy the current slide layout to all slides (keeps brand consistency)')}
           >
-            ⎘⎘ {t('carousel_apply_all', 'Zastosuj layout')}
+            ⎘⎘ {t('carousel_apply_all', 'Apply layout')}
           </button>
           <button
             onClick={exitCarouselMode}
             className="px-2 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-red-500 hover:text-white transition-colors"
-            title={t('carousel_exit_hint', 'Wyjdź z trybu carousel (slajdy zostaną utracone)')}
+            title={t('carousel_exit_hint', 'Exit carousel mode (slides will be lost)')}
           >
-            ✕ {t('carousel_exit', 'Wyjdź')}
+            ✕ {t('carousel_exit', 'Exit')}
           </button>
         </div>
       </div>
@@ -174,7 +174,7 @@ export const CarouselStrip: FC<CarouselStripProps> = ({ fabricRef }) => {
                   ? 'ring-2 ring-newAccent shadow-lg'
                   : 'ring-1 ring-newBorder opacity-70 hover:opacity-100'
               }`}
-              title={t('carousel_switch_to', 'Przejdź do Slajdu {n}').replace('{n}', String(i + 1))}
+              title={t('carousel_switch_to', 'Go to Slide {n}').replace('{n}', String(i + 1))}
             >
               <SlideThumb
                 slide={slide}
@@ -191,7 +191,7 @@ export const CarouselStrip: FC<CarouselStripProps> = ({ fabricRef }) => {
                     deleteSlide(i);
                   }}
                   className="absolute top-0 right-0 bg-black/70 text-white text-[10px] w-4 h-4 rounded-bl hover:bg-red-500 flex items-center justify-center"
-                  title={t('carousel_delete_slide', 'Usuń ten slajd')}
+                  title={t('carousel_delete_slide', 'Delete this slide')}
                 >
                   ✕
                 </button>

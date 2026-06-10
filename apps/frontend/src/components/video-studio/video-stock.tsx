@@ -66,7 +66,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
       );
       if (!res.ok) {
         toaster.show(
-          t('video_stock_search_failed', 'Wyszukiwanie wideo nie powiodło się.'),
+          t('video_stock_search_failed', 'Video search failed.'),
           'warning'
         );
         return;
@@ -76,7 +76,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
       const data = await res.json().catch(() => null);
       if (!data) {
         toaster.show(
-          t('video_stock_search_failed', 'Wyszukiwanie wideo nie powiodło się.'),
+          t('video_stock_search_failed', 'Video search failed.'),
           'warning'
         );
         return;
@@ -97,7 +97,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
       const target = pickImport(v);
       if (!target?.url) {
         toaster.show(
-          t('video_stock_no_variant', 'Brak dostępnej wersji wideo do pobrania.'),
+          t('video_stock_no_variant', 'No downloadable video version available.'),
           'warning'
         );
         return;
@@ -110,7 +110,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
         });
         if (!res.ok) {
           toaster.show(
-            t('video_stock_import_failed', 'Import wideo nie powiódł się.'),
+            t('video_stock_import_failed', 'Video import failed.'),
             'warning'
           );
           return;
@@ -133,7 +133,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
           ⚠️{' '}
           {t(
             'video_stock_no_key',
-            'Pixabay nie jest skonfigurowane. Admin musi dodać PIXABAY_API_KEY do SSM (klucz darmowy z pixabay.com/api/docs).'
+            'Pixabay is not configured. An admin must add PIXABAY_API_KEY to SSM (free key from pixabay.com/api/docs).'
           )}
         </div>
       </div>
@@ -145,7 +145,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
       <div className="text-xs text-textColor/80">
         {t(
           'video_stock_explainer',
-          'Stock B-roll z Pixabay — kliknij Importuj aby pobrać wideo do swojej biblioteki mediów. Pixabay License pozwala na użycie komercyjne.'
+          'Stock B-roll from Pixabay — click Import to download a video into your media library. The Pixabay License allows commercial use.'
         )}{' '}
         <a
           href="https://pixabay.com/service/license-summary/"
@@ -162,7 +162,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          placeholder={t('video_stock_search_ph', 'np. nature timelapse, city street, ocean')}
+          placeholder={t('video_stock_search_ph', 'e.g. nature timelapse, city street, ocean')}
           className="flex-1 text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth"
         />
         <Button
@@ -170,13 +170,13 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
           onClick={handleSearch}
           className="!h-[28px] !text-xs"
         >
-          🔍 {t('video_stock_search', 'Szukaj')}
+          🔍 {t('video_stock_search', 'Search')}
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-2 max-h-[400px] overflow-y-auto">
         {hits.length === 0 && !isSearching && (
           <div className="col-span-2 text-xs text-textColor/40 text-center py-4">
-            {t('video_stock_no_results', 'Brak wyników. Wpisz frazę i naciśnij Szukaj.')}
+            {t('video_stock_no_results', 'No results. Type a phrase and press Search.')}
           </div>
         )}
         {hits.map((v) => {
@@ -191,7 +191,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
                 type="button"
                 onClick={() => setPreviewId(previewId === v.id ? null : v.id)}
                 className="relative w-full aspect-video bg-black rounded overflow-hidden"
-                title={t('video_stock_preview', 'Podejrzyj')}
+                title={t('video_stock_preview', 'Preview')}
               >
                 {previewId === v.id && preview?.url ? (
                   <video
@@ -211,7 +211,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-textColor/50 text-[10px]">
-                    {t('video_stock_no_preview', 'Brak podglądu')}
+                    {t('video_stock_no_preview', 'No preview')}
                   </div>
                 )}
                 <div className="absolute bottom-0 right-0 bg-black/70 text-white text-[9px] px-1 rounded-tl">
@@ -227,7 +227,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[10px] text-newAccent hover:underline truncate"
-                  title={t('video_stock_attrib_author', 'Autor na Pixabay')}
+                  title={t('video_stock_attrib_author', 'Author on Pixabay')}
                 >
                   📷 {v.user}
                 </a>
@@ -237,8 +237,8 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
                   className="!h-[24px] !text-[10px] !px-2"
                 >
                   {isImporting
-                    ? t('video_stock_importing', 'Pobieram...')
-                    : t('video_stock_import', 'Importuj')}
+                    ? t('video_stock_importing', 'Downloading...')
+                    : t('video_stock_import', 'Import')}
                 </Button>
               </div>
             </div>

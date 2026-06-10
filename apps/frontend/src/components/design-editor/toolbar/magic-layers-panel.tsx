@@ -40,7 +40,7 @@ export const MagicLayersPanel: FC<Props> = ({ canvas }) => {
       if (!canvas.current) return;
       if (file.size > MAX_IMAGE_BYTES) {
         toaster.show(
-          t('magic_too_big', 'Obraz jest za duży. Maks 4 MB.'),
+          t('magic_too_big', 'Image is too large. Max 4 MB.'),
           'warning'
         );
         return;
@@ -61,12 +61,12 @@ export const MagicLayersPanel: FC<Props> = ({ canvas }) => {
         if (!res.ok) {
           if (res.status === 402) {
             toaster.show(
-              t('ai_no_credits', 'Skończyły się kredyty AI.'),
+              t('ai_no_credits', 'You ran out of AI credits this month. Upgrade your plan or wait for the new cycle.'),
               'warning'
             );
           } else {
             toaster.show(
-              t('magic_failed', 'Nie udało się rozłożyć obrazu na warstwy.'),
+              t('magic_failed', 'Failed to split the image into layers.'),
               'warning'
             );
           }
@@ -77,12 +77,12 @@ export const MagicLayersPanel: FC<Props> = ({ canvas }) => {
         await renderSpecToCanvas(canvas.current, spec);
         pushHistory(JSON.stringify(canvas.current.toJSON()));
         toaster.show(
-          t('magic_done', 'Gotowe — edytuj poszczególne warstwy w panelu Warstwy.'),
+          t('magic_done', 'Done — edit individual layers in the Layers panel.'),
           'success'
         );
       } catch {
         toaster.show(
-          t('magic_failed', 'Nie udało się rozłożyć obrazu na warstwy.'),
+          t('magic_failed', 'Failed to split the image into layers.'),
           'warning'
         );
       } finally {
@@ -95,7 +95,7 @@ export const MagicLayersPanel: FC<Props> = ({ canvas }) => {
   if (!allowed) {
     return (
       <div className="text-[11px] text-textColor/60 leading-relaxed">
-        {t('ai_tier_required', 'AI dostępne w planie Pro i wyżej.')}
+        {t('ai_tier_required', 'AI is available on the Pro plan and above.')}
       </div>
     );
   }
@@ -109,7 +109,7 @@ export const MagicLayersPanel: FC<Props> = ({ canvas }) => {
         <p className="text-[11px] text-textColor/60 leading-snug">
           {t(
             'magic_intro',
-            'Wrzuć płaską grafikę. AI rozłoży ją na edytowalne warstwy tekstu, kształtów i tła.'
+            'Upload a flat graphic. AI will split it into editable text, shape and background layers.'
           )}
         </p>
       </div>
@@ -120,8 +120,8 @@ export const MagicLayersPanel: FC<Props> = ({ canvas }) => {
         className="!h-[32px] !text-xs"
       >
         {busy
-          ? t('magic_running', 'Analizuję obraz…')
-          : t('magic_upload', '🧩 Wybierz obraz')}
+          ? t('magic_running', 'Analyzing image…')
+          : t('magic_upload', '🧩 Choose image')}
       </Button>
 
       <input
@@ -139,7 +139,7 @@ export const MagicLayersPanel: FC<Props> = ({ canvas }) => {
       <p className="text-[10px] text-textColor/40 leading-snug">
         {t(
           'magic_hint',
-          'Działa najlepiej na grafikach z dużym tekstem (plakaty, cover-y, statystyki). Maks 4 MB.'
+          'Works best on graphics with large text (posters, covers, stats). Max 4 MB.'
         )}
       </p>
     </div>

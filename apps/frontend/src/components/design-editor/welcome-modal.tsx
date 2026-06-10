@@ -81,12 +81,12 @@ export const WelcomeModal: FC = () => {
             id="welcome-modal-title"
             className="text-xl font-semibold text-textColor mb-1"
           >
-            {t('welcome_title', 'Witaj w Studio')}
+            {t('welcome_title', 'Welcome to Studio')}
           </h2>
           <p className="text-sm text-textColor/60">
             {t(
               'welcome_subtitle',
-              'Twórz grafiki na social media w sekundy. Od czego chcesz zacząć?'
+              'Create social media graphics in seconds. Where would you like to start?'
             )}
           </p>
         </div>
@@ -99,12 +99,12 @@ export const WelcomeModal: FC = () => {
           >
             <div className="text-base font-semibold flex items-center gap-2">
               <span>📐</span>
-              <span>{t('welcome_cta_templates', 'Zacznij od szablonu')}</span>
+              <span>{t('welcome_cta_templates', 'Start from a template')}</span>
             </div>
             <div className="text-xs text-textColor/60 group-hover:text-white/70 mt-1">
               {t(
                 'welcome_desc_templates',
-                'Wybierz z gotowych projektów PL i dostosuj'
+                'Pick a ready-made design and customize it'
               )}
             </div>
           </button>
@@ -115,12 +115,12 @@ export const WelcomeModal: FC = () => {
           >
             <div className="text-base font-semibold flex items-center gap-2">
               <span>✨</span>
-              <span>{t('welcome_cta_ai', 'Wygeneruj AI')}</span>
+              <span>{t('welcome_cta_ai', 'Generate with AI')}</span>
             </div>
             <div className="text-xs text-textColor/60 group-hover:text-white/70 mt-1">
               {t(
                 'welcome_desc_ai',
-                'Opisz pomysł, AI stworzy projekt z tłem i tekstem'
+                'Describe your idea — AI will create a design with background and text'
               )}
             </div>
           </button>
@@ -131,10 +131,10 @@ export const WelcomeModal: FC = () => {
           >
             <div className="text-base font-semibold flex items-center gap-2">
               <span>◻</span>
-              <span>{t('welcome_cta_blank', 'Pusty canvas')}</span>
+              <span>{t('welcome_cta_blank', 'Blank canvas')}</span>
             </div>
             <div className="text-xs text-textColor/60 mt-1">
-              {t('welcome_desc_blank', 'Zacznij od zera, dodaj swoje elementy')}
+              {t('welcome_desc_blank', 'Start from scratch and add your own elements')}
             </div>
           </button>
         </div>
@@ -142,7 +142,7 @@ export const WelcomeModal: FC = () => {
         <button
           onClick={close}
           className="absolute top-3 right-3 text-textColor/40 hover:text-textColor text-xl leading-none"
-          aria-label={t('welcome_close', 'Zamknij')}
+          aria-label={t('welcome_close', 'Close')}
         >
           ×
         </button>

@@ -65,13 +65,13 @@ export const VideoLibraryPicker: FC<VideoLibraryPickerProps> = ({
     <div className="flex flex-col h-full bg-[rgba(10,14,26,0.97)] backdrop-blur-xl">
       <div className="flex items-center gap-2 px-4 py-2 border-b border-newBorder">
         <span className="text-sm text-textColor">
-          🗂 {t('video_library_title', 'Wideo z biblioteki')}
+          🗂 {t('video_library_title', 'Library videos')}
         </span>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('video_library_search', 'Szukaj…')}
+          placeholder={t('video_library_search', 'Search…')}
           disabled={busy}
           className="flex-1 text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 focus:outline-none focus:border-forth disabled:opacity-50"
         />
@@ -80,7 +80,7 @@ export const VideoLibraryPicker: FC<VideoLibraryPickerProps> = ({
           disabled={busy}
           className="text-xs px-3 py-1 rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-50"
         >
-          {t('close', 'Zamknij')}
+          {t('close', 'Close')}
         </button>
       </div>
 
@@ -99,7 +99,7 @@ export const VideoLibraryPicker: FC<VideoLibraryPickerProps> = ({
             <div className="text-sm text-textColor/70">
               {t(
                 'video_library_empty',
-                'Brak wideo w bibliotece. Wgraj klip z dysku albo zaimportuj darmowy B-roll z zakładki „Stock B-roll”.'
+                'No videos in your library. Upload a clip from disk or import free B-roll from the "Stock B-roll" tab.'
               )}
             </div>
           </div>
@@ -112,11 +112,11 @@ export const VideoLibraryPicker: FC<VideoLibraryPickerProps> = ({
                 disabled={busy}
                 onClick={() => onPick({ id: media.id, path: media.path })}
                 className="group relative aspect-video rounded overflow-hidden border border-newBorder hover:border-newAccent transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title={t('video_library_edit', 'Edytuj ten klip')}
+                title={t('video_library_edit', 'Edit this clip')}
               >
                 <VideoFrame url={mediaDirectory.set(media.path)} />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                  ✏ {t('video_library_edit_cta', 'Edytuj')}
+                  ✏ {t('video_library_edit_cta', 'Edit')}
                 </div>
               </button>
             ))}
@@ -131,7 +131,7 @@ export const VideoLibraryPicker: FC<VideoLibraryPickerProps> = ({
             disabled={busy || page === 0}
             className="text-xs px-3 py-1 rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-40"
           >
-            ‹ {t('previous', 'Poprzednia')}
+            ‹ {t('previous', 'Previous')}
           </button>
           <span className="text-[11px] text-textColor/60">
             {page + 1} / {pages}
@@ -141,14 +141,14 @@ export const VideoLibraryPicker: FC<VideoLibraryPickerProps> = ({
             disabled={busy || page >= pages - 1}
             className="text-xs px-3 py-1 rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-40"
           >
-            {t('next', 'Następna')} ›
+            {t('next', 'Next')} ›
           </button>
         </div>
       )}
 
       {busy && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-sm text-white">
-          {t('video_library_loading', 'Wczytuję klip…')}
+          {t('video_library_loading', 'Loading clip…')}
         </div>
       )}
     </div>

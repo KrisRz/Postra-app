@@ -64,7 +64,7 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
     if (!canvas.current || busy) return;
     const trimmed = prompt.trim();
     if (!trimmed) {
-      toaster.show(t('variants_prompt_required', 'Opisz pomysł na post'), 'warning');
+      toaster.show(t('variants_prompt_required', 'Describe your post idea'), 'warning');
       return;
     }
 
@@ -86,9 +86,9 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
 
       if (!res.ok) {
         if (res.status === 402) {
-          toaster.show(t('ai_no_credits', 'Skończyły się kredyty AI.'), 'warning');
+          toaster.show(t('ai_no_credits', 'You ran out of AI credits this month. Upgrade your plan or wait for the new cycle.'), 'warning');
         } else {
-          toaster.show(t('variants_failed', 'Nie udało się wygenerować wariantów.'), 'warning');
+          toaster.show(t('variants_failed', 'Failed to generate variants.'), 'warning');
         }
         return;
       }
@@ -101,7 +101,7 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
       setVariants(merged);
     } catch (err) {
       if ((err as { name?: string })?.name === 'AbortError') return;
-      toaster.show(t('variants_failed', 'Nie udało się wygenerować wariantów.'), 'warning');
+      toaster.show(t('variants_failed', 'Failed to generate variants.'), 'warning');
     } finally {
       if (abortRef.current === ctrl) abortRef.current = null;
       setBusy(false);
@@ -114,7 +114,7 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
       await renderSpecToCanvas(canvas.current, variant.spec);
       pushHistory(JSON.stringify(canvas.current.toJSON()));
       toaster.show(
-        `${t('variants_applied', 'Zastosowano wariant')}: ${variant.label}`,
+        `${t('variants_applied', 'Variant applied')}: ${variant.label}`,
         'success'
       );
     },
@@ -124,7 +124,7 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
   if (!allowed) {
     return (
       <div className="text-[11px] text-textColor/60 leading-relaxed">
-        {t('ai_tier_required', 'AI dostępne w planie Pro i wyżej.')}
+        {t('ai_tier_required', 'AI is available on the Pro plan and above.')}
       </div>
     );
   }
@@ -133,12 +133,12 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
     <div className="flex flex-col gap-2">
       <div>
         <div className="text-[10px] uppercase tracking-wide text-textColor/60 mb-1">
-          {t('variants_title', 'Warianty A/B')}
+          {t('variants_title', 'A/B Variants')}
         </div>
         <p className="text-[11px] text-textColor/60 leading-snug">
           {t(
             'variants_intro',
-            'AI wygeneruje 3 wersje tego samego pomysłu z różnymi nagłówkami i układem.'
+            'AI will generate 3 versions of the same idea with different headlines and layout.'
           )}
         </p>
       </div>
@@ -148,7 +148,7 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
         onChange={(e) => setPrompt(e.target.value)}
         placeholder={t(
           'variants_placeholder',
-          'np. "Letnia wyprzedaż -30%, wszystkie kategorie"'
+          'e.g. "Summer sale -30%, all categories"'
         )}
         rows={3}
         disabled={busy}
@@ -157,8 +157,8 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
 
       <Button loading={busy} onClick={generate} className="!h-[32px] !text-xs">
         {busy
-          ? t('variants_running', 'Generuję 3 warianty…')
-          : t('variants_run', '🎲 Wygeneruj 3 warianty')}
+          ? t('variants_running', 'Generating 3 variants…')
+          : t('variants_run', '🎲 Generate 3 variants')}
       </Button>
 
       {variants.length > 0 && (
@@ -186,7 +186,7 @@ export const AiVariantsPanel: FC<Props> = ({ canvas }) => {
       <p className="text-[10px] text-textColor/40 leading-snug">
         {t(
           'variants_hint',
-          'Tło DALL-E jest współdzielone między wariantami — różnią się nagłówkiem, layoutem, akcentami.'
+          'The DALL-E background is shared between variants — they differ in headline, layout and accents.'
         )}
       </p>
     </div>

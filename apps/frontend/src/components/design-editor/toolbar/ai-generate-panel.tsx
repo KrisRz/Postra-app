@@ -5,10 +5,7 @@ import * as fabric from 'fabric';
 import { useEditorStore } from '../editor.store';
 import { useCarouselStore, CarouselSlide } from '../carousel.store';
 import { renderDesignSpec, PostDesignSpec } from '../utils/canvas-renderer';
-import {
-  usePolishHolidays,
-  getUpcomingHolidays,
-} from '../utils/polish-holidays';
+import { useHolidays, getUpcomingHolidays } from '../utils/holidays';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -33,7 +30,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const t = useT();
   const user = useUser();
   const allowed = !!user?.tier?.image_generator;
-  const holidays = usePolishHolidays();
+  const holidays = useHolidays();
   const upcoming = getUpcomingHolidays(holidays, 4, 90);
   const abortRef = useRef<AbortController | null>(null);
   const [slidesCount, setSlidesCount] = useState(1);
@@ -43,7 +40,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const generate = useCallback(async () => {
     if (!canvas.current || isGenerating) return;
     if (!aiPrompt.trim()) {
-      toaster.show(t('ai_prompt_required', 'Opisz co chcesz wygenerować'), 'warning');
+      toaster.show(t('ai_prompt_required', 'Describe what you want to generate'), 'warning');
       return;
     }
 
@@ -80,23 +77,23 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
 
         if (res.status === 402) {
           toaster.show(
-            t('ai_no_credits', 'Skończyły się kredyty AI w tym miesiącu. Zwiększ plan lub poczekaj do nowego cyklu.'),
+            t('ai_no_credits', 'You ran out of AI credits this month. Upgrade your plan or wait for the new cycle.'),
             'warning'
           );
         } else if (res.status === 401 || res.status === 403) {
           toaster.show(
-            t('ai_forbidden', 'AI nie jest dostępne w Twoim planie. Sprawdź ustawienia subskrypcji.'),
+            t('ai_forbidden', 'AI is not available on your plan. Check your subscription settings.'),
             'warning'
           );
         } else if (res.status === 429) {
           toaster.show(
-            t('ai_rate_limited', 'Zbyt wiele żądań — poczekaj kilka sekund i spróbuj ponownie.'),
+            t('ai_rate_limited', 'Too many requests — wait a few seconds and try again.'),
             'warning'
           );
         } else {
           toaster.show(
             serverMessage ||
-              t('ai_generate_failed', 'Generowanie AI nie powiodło się. Spróbuj inny prompt lub sprawdź połączenie.'),
+              t('ai_generate_failed', 'AI generation failed. Try a different prompt or check your connection.'),
             'warning'
           );
         }
@@ -110,7 +107,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
         const slideSpecs = (data?.slides ?? []) as PostDesignSpec[];
         if (!slideSpecs.length) {
           toaster.show(
-            t('ai_generate_failed', 'Generowanie AI nie powiodło się. Spróbuj inny prompt lub sprawdź połączenie.'),
+            t('ai_generate_failed', 'AI generation failed. Try a different prompt or check your connection.'),
             'warning'
           );
           return;
@@ -138,7 +135,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
     } catch (err) {
       if ((err as { name?: string })?.name === 'AbortError') return;
       toaster.show(
-        t('ai_generate_failed', 'Generowanie AI nie powiodło się. Spróbuj inny prompt lub sprawdź połączenie.'),
+        t('ai_generate_failed', 'AI generation failed. Try a different prompt or check your connection.'),
         'warning'
       );
     } finally {
@@ -156,7 +153,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
         <p>
           {t(
             'ai_tier_required',
-            'AI image generation is available on the Team plan and above.'
+            'AI is available on the Pro plan and above.'
           )}
         </p>
       </div>
@@ -171,7 +168,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       {upcoming.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <span className="text-[10px] uppercase tracking-wide text-textColor/50">
-            🗓 {t('holiday_suggestions', 'Nadchodzące okazje')}
+            🗓 {t('holiday_suggestions', 'Upcoming occasions')}
           </span>
           <div className="flex flex-col gap-1">
             {upcoming.map((entry) => (
@@ -179,16 +176,16 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
                 key={entry.holiday.date}
                 onClick={() =>
                   setAiPrompt(
-                    `${t('holiday_post_prefix', 'Post na')} ${entry.holiday.localName}`
+                    `${t('holiday_post_prefix', 'Post for')} ${entry.holiday.localName}`
                   )
                 }
                 disabled={isGenerating}
                 className="text-left text-[11px] px-2 py-1.5 rounded bg-newColColor/60 hover:bg-newColColor border border-newBorder/50 text-textColor/80 hover:text-textColor transition-colors disabled:opacity-50"
               >
-                {t('holiday_upcoming', 'Za')} {entry.days}{' '}
+                {t('holiday_upcoming', 'In')} {entry.days}{' '}
                 {entry.days === 1
-                  ? t('holiday_day', 'dzień')
-                  : t('holiday_days', 'dni')}
+                  ? t('holiday_day', 'day')
+                  : t('holiday_days', 'days')}
                 : <strong>{entry.holiday.localName}</strong>
               </button>
             ))}
@@ -196,7 +193,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
           <p className="text-[10px] text-textColor/40 leading-snug">
             {t(
               'holiday_or_custom',
-              'Lub wpisz własny pomysł niżej — to tylko sugestie.'
+              'Or type your own idea below — these are just suggestions.'
             )}
           </p>
         </div>
@@ -206,7 +203,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
         onChange={(e) => setAiPrompt(e.target.value)}
         placeholder={t(
           'ai_prompt_placeholder',
-          'e.g. Letnia wyprzedaż -50% w sklepie odzieżowym'
+          'e.g. Summer sale -50% at a clothing store'
         )}
         rows={4}
         disabled={isGenerating}
@@ -214,20 +211,20 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       />
       <div className="flex items-center gap-2">
         <label className="text-[10px] uppercase tracking-wide text-textColor/60">
-          {t('ai_slides_count', 'Slajdy')}
+          {t('ai_slides_count', 'Slides')}
         </label>
         <select
           value={slidesCount}
           onChange={(e) => setSlidesCount(Number(e.target.value))}
           disabled={isGenerating}
           className="text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth disabled:opacity-50"
-          title={t('ai_slides_hint', 'Wybierz liczbę slajdów dla carousel (1 = pojedynczy post, 2-10 = carousel)')}
+          title={t('ai_slides_hint', 'Choose the number of slides for a carousel (1 = single post, 2-10 = carousel)')}
         >
-          <option value={1}>1 ({t('ai_single_post', 'pojedynczy')})</option>
+          <option value={1}>1 ({t('ai_single_post', 'single')})</option>
           <option value={2}>2</option>
           <option value={3}>3</option>
           <option value={4}>4</option>
-          <option value={5}>5 ({t('ai_recommended', 'polecane')})</option>
+          <option value={5}>5 ({t('ai_recommended', 'recommended')})</option>
           <option value={6}>6</option>
           <option value={7}>7</option>
           <option value={8}>8</option>
@@ -243,20 +240,20 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
         {isGenerating
           ? t('ai_generating', 'Generating…')
           : slidesCount > 1
-            ? t('ai_generate_carousel_button', '🎴 Wygeneruj carousel ({n})').replace('{n}', String(slidesCount))
+            ? t('ai_generate_carousel_button', '🎴 Generate carousel ({n})').replace('{n}', String(slidesCount))
             : t('ai_generate_button', '✨ Generate Design')}
       </Button>
       <div className="rounded-md bg-yellow-500/10 border border-yellow-500/30 px-2 py-1.5 text-[10px] leading-snug text-textColor/80">
         ⚠️{' '}
         {t(
           'ai_generate_warning',
-          'AI tworzy nowy projekt i zastępuje obecny canvas. Aby zachować szablon, generuj na pustym canvas albo edytuj ręcznie po wygenerowaniu.'
+          'AI creates a new design and replaces the current canvas. To keep your template, generate on an empty canvas or edit manually after generating.'
         )}
       </div>
       <p className="text-[10px] text-textColor/40 leading-snug">
         {t(
           'ai_generate_hint',
-          'AI generuje tło + tekst w jednym kroku. Trwa około 5-10 sekund.'
+          'AI generates the background + text in one step. Takes about 5-10 seconds.'
         )}
       </p>
     </div>

@@ -1,6 +1,9 @@
 import * as fabric from 'fabric';
-import type { DesignTemplate, BrandStyle } from './template-types';
+import type { DesignTemplate, BrandStyle, TemplateLang } from './template-types';
 import type { PlatformSize } from '../editor.store';
+
+const pick = (lang: TemplateLang) => (pl: string, en: string) =>
+  lang === 'pl' ? pl : en;
 
 const clearCanvas = (canvas: fabric.Canvas, bg: string) => {
   canvas.getObjects().forEach((obj) => canvas.remove(obj));
@@ -44,9 +47,12 @@ const addCircle = (
 const promoModern: DesignTemplate = {
   key: 'promo-modern',
   category: 'promo',
-  label: 'Promocja Modern',
-  description: 'Nagłówek z procentem zniżki i CTA',
-  apply: (canvas, p, brand) => {
+  label: 'Modern Promo',
+  labelPl: 'Promocja Modern',
+  description: 'Headline with discount percent and CTA',
+  descriptionPl: 'Nagłówek z procentem zniżki i CTA',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -59,7 +65,7 @@ const promoModern: DesignTemplate = {
       selectable: false,
     });
 
-    addTextbox(canvas, 'PROMOCJA', {
+    addTextbox(canvas, tx('PROMOCJA', 'SALE'), {
       left: cx,
       top: p.height * 0.045,
       width: p.width * 0.9,
@@ -83,7 +89,7 @@ const promoModern: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Na wszystkie produkty', {
+    addTextbox(canvas, tx('Na wszystkie produkty', 'On all products'), {
       left: cx,
       top: p.height * 0.68,
       width: p.width * 0.85,
@@ -104,7 +110,7 @@ const promoModern: DesignTemplate = {
       originX: 'center',
     });
 
-    addTextbox(canvas, 'Kup teraz', {
+    addTextbox(canvas, tx('Kup teraz', 'Shop now'), {
       left: cx,
       top: p.height * 0.84,
       width: p.width * 0.4,
@@ -120,9 +126,12 @@ const promoModern: DesignTemplate = {
 const quoteClassic: DesignTemplate = {
   key: 'quote-classic',
   category: 'quote',
-  label: 'Cytat Klasyczny',
-  description: 'Cytat z autorem na ciemnym tle',
-  apply: (canvas, p, brand) => {
+  label: 'Classic Quote',
+  labelPl: 'Cytat Klasyczny',
+  description: 'Quote with author on a dark background',
+  descriptionPl: 'Cytat z autorem na ciemnym tle',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -136,7 +145,7 @@ const quoteClassic: DesignTemplate = {
       fontFamily: '"Playfair Display", Georgia, serif',
     });
 
-    addTextbox(canvas, 'Sukces to suma\nmałych wysiłków\npowtarzanych\ncodziennie.', {
+    addTextbox(canvas, tx('Sukces to suma\nmałych wysiłków\npowtarzanych\ncodziennie.', 'Success is the sum\nof small efforts\nrepeated day in\nand day out.'), {
       left: cx,
       top: p.height * 0.38,
       width: p.width * 0.85,
@@ -172,9 +181,12 @@ const quoteClassic: DesignTemplate = {
 const announcementBold: DesignTemplate = {
   key: 'announcement-bold',
   category: 'announcement',
-  label: 'Ogłoszenie Bold',
-  description: 'Duży nagłówek z dwuwierszowym podtytułem',
-  apply: (canvas, p, brand) => {
+  label: 'Bold Announcement',
+  labelPl: 'Ogłoszenie Bold',
+  description: 'Big headline with a two-line subtitle',
+  descriptionPl: 'Duży nagłówek z dwuwierszowym podtytułem',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -185,7 +197,7 @@ const announcementBold: DesignTemplate = {
       fill: brand.primary,
     });
 
-    addTextbox(canvas, 'NOWOŚĆ', {
+    addTextbox(canvas, tx('NOWOŚĆ', 'NEW'), {
       left: p.width * 0.18,
       top: p.height * 0.1,
       width: p.width * 0.5,
@@ -197,7 +209,7 @@ const announcementBold: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Nowy\nprodukt\njuż dostępny', {
+    addTextbox(canvas, tx('Nowy\nprodukt\njuż dostępny', 'New\nproduct\nout now'), {
       left: cx,
       top: p.height * 0.28,
       width: p.width * 0.9,
@@ -209,7 +221,7 @@ const announcementBold: DesignTemplate = {
       fontFamily: '"Bebas Neue", Impact, sans-serif',
     });
 
-    addTextbox(canvas, 'Sprawdź szczegóły na naszej stronie i zamów przed innymi.', {
+    addTextbox(canvas, tx('Sprawdź szczegóły na naszej stronie i zamów przed innymi.', 'Check our website for details and order before everyone else.'), {
       left: cx,
       top: p.height * 0.78,
       width: p.width * 0.8,
@@ -225,9 +237,12 @@ const announcementBold: DesignTemplate = {
 const statsHighlight: DesignTemplate = {
   key: 'stats-highlight',
   category: 'stats',
-  label: 'Statystyki Highlight',
-  description: 'Duża liczba z opisem',
-  apply: (canvas, p, brand) => {
+  label: 'Stats Highlight',
+  labelPl: 'Statystyki Highlight',
+  description: 'Big number with a caption',
+  descriptionPl: 'Duża liczba z opisem',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -251,7 +266,7 @@ const statsHighlight: DesignTemplate = {
       originX: 'center',
     });
 
-    addTextbox(canvas, 'Zadowolonych klientów', {
+    addTextbox(canvas, tx('Zadowolonych klientów', 'Happy customers'), {
       left: cx,
       top: p.height * 0.66,
       width: p.width * 0.8,
@@ -262,7 +277,7 @@ const statsHighlight: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Dziękujemy za zaufanie w 2026 roku', {
+    addTextbox(canvas, tx('Dziękujemy za zaufanie w 2026 roku', 'Thank you for trusting us in 2026'), {
       left: cx,
       top: p.height * 0.8,
       width: p.width * 0.8,
@@ -278,12 +293,15 @@ const statsHighlight: DesignTemplate = {
 const tipNumbered: DesignTemplate = {
   key: 'tip-numbered',
   category: 'tip',
-  label: 'Tip Numbered',
-  description: 'Lista 3 wskazówek z numerami',
-  apply: (canvas, p, brand) => {
+  label: 'Numbered Tips',
+  labelPl: 'Tip Numbered',
+  description: 'A list of 3 numbered tips',
+  descriptionPl: 'Lista 3 wskazówek z numerami',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
 
-    addTextbox(canvas, '3 wskazówki', {
+    addTextbox(canvas, tx('3 wskazówki', '3 tips'), {
       left: p.width * 0.08,
       top: p.height * 0.08,
       width: p.width * 0.85,
@@ -302,9 +320,9 @@ const tipNumbered: DesignTemplate = {
     });
 
     const tips = [
-      'Publikuj regularnie',
-      'Słuchaj odbiorców',
-      'Mierz wyniki',
+      tx('Publikuj regularnie', 'Post consistently'),
+      tx('Słuchaj odbiorców', 'Listen to your audience'),
+      tx('Mierz wyniki', 'Measure your results'),
     ];
 
     tips.forEach((tip, i) => {
@@ -340,9 +358,12 @@ const tipNumbered: DesignTemplate = {
 const eventDate: DesignTemplate = {
   key: 'event-date',
   category: 'event',
-  label: 'Wydarzenie z datą',
-  description: 'Data + tytuł + lokalizacja',
-  apply: (canvas, p, brand) => {
+  label: 'Event with Date',
+  labelPl: 'Wydarzenie z datą',
+  description: 'Date + title + location',
+  descriptionPl: 'Data + tytuł + lokalizacja',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -368,7 +389,7 @@ const eventDate: DesignTemplate = {
       fontFamily: '"Bebas Neue", Impact, sans-serif',
     });
 
-    addTextbox(canvas, 'GRUDNIA · 2026', {
+    addTextbox(canvas, tx('GRUDNIA · 2026', 'DECEMBER · 2026'), {
       left: cx,
       top: p.height * 0.3,
       width: p.width * 0.6,
@@ -392,7 +413,7 @@ const eventDate: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, '📍 Online · 19:00', {
+    addTextbox(canvas, tx('📍 Online · 19:00', '📍 Online · 7 PM'), {
       left: cx,
       top: p.height * 0.72,
       width: p.width * 0.8,
@@ -402,7 +423,7 @@ const eventDate: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Zarezerwuj miejsce: postra.pl/event', {
+    addTextbox(canvas, tx('Zarezerwuj miejsce: postra.pl/event', 'Save your spot: postra.co.uk/event'), {
       left: cx,
       top: p.height * 0.82,
       width: p.width * 0.8,
@@ -418,9 +439,12 @@ const eventDate: DesignTemplate = {
 const communityWelcome: DesignTemplate = {
   key: 'community-welcome',
   category: 'community',
-  label: 'Powitanie społeczności',
-  description: 'Powitanie nowych obserwujących',
-  apply: (canvas, p, brand) => {
+  label: 'Community Welcome',
+  labelPl: 'Powitanie społeczności',
+  description: 'Welcome new followers',
+  descriptionPl: 'Powitanie nowych obserwujących',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -432,7 +456,7 @@ const communityWelcome: DesignTemplate = {
       originX: 'center',
     });
 
-    addTextbox(canvas, 'Witamy!', {
+    addTextbox(canvas, tx('Witamy!', 'Welcome!'), {
       left: cx,
       top: p.height * 0.36,
       width: p.width * 0.9,
@@ -443,7 +467,7 @@ const communityWelcome: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Cieszymy się że jesteście\nz nami. Społeczność\nliczy już 1000 osób.', {
+    addTextbox(canvas, tx('Cieszymy się że jesteście\nz nami. Społeczność\nliczy już 1000 osób.', 'So glad to have you\nhere. Our community\nis now 1000 strong.'), {
       left: cx,
       top: p.height * 0.55,
       width: p.width * 0.85,
@@ -454,7 +478,7 @@ const communityWelcome: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, '#dziękujemy #społeczność', {
+    addTextbox(canvas, tx('#dziękujemy #społeczność', '#thankyou #community'), {
       left: cx,
       top: p.height * 0.83,
       width: p.width * 0.8,
@@ -469,9 +493,12 @@ const communityWelcome: DesignTemplate = {
 const promoBadge: DesignTemplate = {
   key: 'promo-badge',
   category: 'promo',
-  label: 'Promocja z odznaką',
-  description: 'Okrągła odznaka procentowa i tekst opisu',
-  apply: (canvas, p, brand) => {
+  label: 'Promo Badge',
+  labelPl: 'Promocja z odznaką',
+  description: 'Round discount badge with a caption',
+  descriptionPl: 'Okrągła odznaka procentowa i tekst opisu',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -496,7 +523,7 @@ const promoBadge: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Tylko w ten weekend', {
+    addTextbox(canvas, tx('Tylko w ten weekend', 'This weekend only'), {
       left: cx,
       top: p.height * 0.62,
       width: p.width * 0.85,
@@ -507,7 +534,7 @@ const promoBadge: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Kod: WEEKEND30', {
+    addTextbox(canvas, tx('Kod: WEEKEND30', 'Code: WEEKEND30'), {
       left: cx,
       top: p.height * 0.74,
       width: p.width * 0.85,
@@ -523,13 +550,16 @@ const promoBadge: DesignTemplate = {
 const quoteMinimal: DesignTemplate = {
   key: 'quote-minimal',
   category: 'quote',
-  label: 'Cytat Minimalny',
-  description: 'Krótki cytat z dużą typografią',
-  apply: (canvas, p, brand) => {
+  label: 'Minimal Quote',
+  labelPl: 'Cytat Minimalny',
+  description: 'Short quote in large type',
+  descriptionPl: 'Krótki cytat z dużą typografią',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
-    addTextbox(canvas, 'Mniej.\nAle lepiej.', {
+    addTextbox(canvas, tx('Mniej.\nAle lepiej.', 'Less,\nbut better.'), {
       left: cx,
       top: p.height * 0.35,
       width: p.width * 0.9,
@@ -566,9 +596,12 @@ const quoteMinimal: DesignTemplate = {
 const announcementBanner: DesignTemplate = {
   key: 'announcement-banner',
   category: 'announcement',
-  label: 'Ogłoszenie Banner',
-  description: 'Pasek odznaki + duży tytuł',
-  apply: (canvas, p, brand) => {
+  label: 'Announcement Banner',
+  labelPl: 'Ogłoszenie Banner',
+  description: 'Badge strip + big title',
+  descriptionPl: 'Pasek odznaki + duży tytuł',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -583,7 +616,7 @@ const announcementBanner: DesignTemplate = {
       originX: 'center',
     });
 
-    addTextbox(canvas, 'WAŻNE', {
+    addTextbox(canvas, tx('WAŻNE', 'BIG NEWS'), {
       left: cx,
       top: p.height * 0.13,
       width: p.width * 0.35,
@@ -596,7 +629,7 @@ const announcementBanner: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Mamy świetne\nwiadomości', {
+    addTextbox(canvas, tx('Mamy świetne\nwiadomości', 'We have some\ngreat news'), {
       left: cx,
       top: p.height * 0.32,
       width: p.width * 0.9,
@@ -608,7 +641,7 @@ const announcementBanner: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Sprawdź szczegóły w komentarzu poniżej.', {
+    addTextbox(canvas, tx('Sprawdź szczegóły w komentarzu poniżej.', 'Check the comments below for details.'), {
       left: cx,
       top: p.height * 0.7,
       width: p.width * 0.85,
@@ -624,12 +657,15 @@ const announcementBanner: DesignTemplate = {
 const statsComparison: DesignTemplate = {
   key: 'stats-comparison',
   category: 'stats',
-  label: 'Statystyki Porównanie',
-  description: 'Dwie liczby vs siebie',
-  apply: (canvas, p, brand) => {
+  label: 'Stats Comparison',
+  labelPl: 'Statystyki Porównanie',
+  description: 'Two numbers side by side',
+  descriptionPl: 'Dwie liczby vs siebie',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
 
-    addTextbox(canvas, 'PRZED', {
+    addTextbox(canvas, tx('PRZED', 'BEFORE'), {
       left: p.width * 0.25,
       top: p.height * 0.2,
       width: p.width * 0.4,
@@ -652,7 +688,7 @@ const statsComparison: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'PO', {
+    addTextbox(canvas, tx('PO', 'AFTER'), {
       left: p.width * 0.75,
       top: p.height * 0.2,
       width: p.width * 0.4,
@@ -674,7 +710,7 @@ const statsComparison: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Skuteczność po wdrożeniu', {
+    addTextbox(canvas, tx('Skuteczność po wdrożeniu', 'Results after the change'), {
       left: p.width / 2,
       top: p.height * 0.72,
       width: p.width * 0.85,
@@ -685,7 +721,7 @@ const statsComparison: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Case study klienta — sprawdź w komentarzu', {
+    addTextbox(canvas, tx('Case study klienta — sprawdź w komentarzu', 'Client case study — see the comments'), {
       left: p.width / 2,
       top: p.height * 0.82,
       width: p.width * 0.85,
@@ -701,9 +737,12 @@ const statsComparison: DesignTemplate = {
 const tipDidYouKnow: DesignTemplate = {
   key: 'tip-didyouknow',
   category: 'tip',
-  label: 'Tip — Czy wiesz',
-  description: 'Pojedynczy fakt / wskazówka',
-  apply: (canvas, p, brand) => {
+  label: 'Tip — Did You Know',
+  labelPl: 'Tip — Czy wiesz',
+  description: 'A single fact or tip',
+  descriptionPl: 'Pojedynczy fakt / wskazówka',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -715,7 +754,7 @@ const tipDidYouKnow: DesignTemplate = {
       originX: 'center',
     });
 
-    addTextbox(canvas, 'Czy wiesz, że...', {
+    addTextbox(canvas, tx('Czy wiesz, że...', 'Did you know...'), {
       left: cx,
       top: p.height * 0.34,
       width: p.width * 0.85,
@@ -726,7 +765,7 @@ const tipDidYouKnow: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Posty z grafiką mają\n2.3× większy zasięg\nniż same teksty?', {
+    addTextbox(canvas, tx('Posty z grafiką mają\n2.3× większy zasięg\nniż same teksty?', 'Posts with images get\n2.3× more reach\nthan text alone?'), {
       left: cx,
       top: p.height * 0.45,
       width: p.width * 0.85,
@@ -738,7 +777,7 @@ const tipDidYouKnow: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Źródło: HubSpot 2026', {
+    addTextbox(canvas, tx('Źródło: HubSpot 2026', 'Source: HubSpot 2026'), {
       left: cx,
       top: p.height * 0.84,
       width: p.width * 0.8,
@@ -755,8 +794,11 @@ const eventSaveDate: DesignTemplate = {
   key: 'event-save-date',
   category: 'event',
   label: 'Save the Date',
-  description: 'Minimalistyczne zapisz datę',
-  apply: (canvas, p, brand) => {
+  labelPl: 'Save the Date',
+  description: 'Minimal save-the-date',
+  descriptionPl: 'Minimalistyczne zapisz datę',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -792,7 +834,7 @@ const eventSaveDate: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Konferencja Marketing PL · Warszawa', {
+    addTextbox(canvas, tx('Konferencja Marketing PL · Warszawa', 'Marketing Conference UK · London'), {
       left: cx,
       top: p.height * 0.82,
       width: p.width * 0.85,
@@ -808,13 +850,16 @@ const eventSaveDate: DesignTemplate = {
 const communityThanks: DesignTemplate = {
   key: 'community-thanks',
   category: 'community',
-  label: 'Podziękowanie',
-  description: 'Duże dziękujemy z liczbą obserwujących',
-  apply: (canvas, p, brand) => {
+  label: 'Thank You',
+  labelPl: 'Podziękowanie',
+  description: 'Big thank-you with follower count',
+  descriptionPl: 'Duże dziękujemy z liczbą obserwujących',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
-    addTextbox(canvas, '5 000', {
+    addTextbox(canvas, tx('5 000', '5,000'), {
       left: cx,
       top: p.height * 0.22,
       width: p.width * 0.9,
@@ -825,7 +870,7 @@ const communityThanks: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'obserwujących', {
+    addTextbox(canvas, tx('obserwujących', 'followers'), {
       left: cx,
       top: p.height * 0.52,
       width: p.width * 0.9,
@@ -845,7 +890,7 @@ const communityThanks: DesignTemplate = {
       originX: 'center',
     });
 
-    addTextbox(canvas, 'Dziękujemy ❤️', {
+    addTextbox(canvas, tx('Dziękujemy ❤️', 'Thank you ❤️'), {
       left: cx,
       top: p.height * 0.68,
       width: p.width * 0.85,
@@ -856,7 +901,7 @@ const communityThanks: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Idziemy po więcej razem 🚀', {
+    addTextbox(canvas, tx('Idziemy po więcej razem 🚀', 'On to the next milestone 🚀'), {
       left: cx,
       top: p.height * 0.84,
       width: p.width * 0.85,
@@ -872,9 +917,12 @@ const communityThanks: DesignTemplate = {
 const reelCoverHook: DesignTemplate = {
   key: 'reel-cover-hook',
   category: 'reel-cover',
-  label: 'Cover: Hak (How-to)',
-  description: 'Duży nagłówek z liczbą sekund — najlepszy do tutoriali',
-  apply: (canvas, p, brand) => {
+  label: 'Cover: How-to Hook',
+  labelPl: 'Cover: Hak (How-to)',
+  description: 'Big headline with a seconds count — best for tutorials',
+  descriptionPl: 'Duży nagłówek z liczbą sekund — najlepszy do tutoriali',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -895,7 +943,7 @@ const reelCoverHook: DesignTemplate = {
       evented: false,
     });
 
-    addTextbox(canvas, 'JAK ZROBIĆ', {
+    addTextbox(canvas, tx('JAK ZROBIĆ', 'HOW TO DO'), {
       left: cx,
       top: p.height * 0.18,
       width: p.width * 0.8,
@@ -908,7 +956,7 @@ const reelCoverHook: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'X w 60s', {
+    addTextbox(canvas, tx('X w 60s', 'X in 60s'), {
       left: cx,
       top: p.height * 0.32,
       width: p.width * 0.95,
@@ -934,9 +982,12 @@ const reelCoverHook: DesignTemplate = {
 const reelCoverReveal: DesignTemplate = {
   key: 'reel-cover-reveal',
   category: 'reel-cover',
-  label: 'Cover: Zaskoczyło mnie',
-  description: 'Bold tekst z emoji — high-CTR pattern',
-  apply: (canvas, p, brand) => {
+  label: "Cover: You Won't Believe",
+  labelPl: 'Cover: Zaskoczyło mnie',
+  description: 'Bold text with emoji — high-CTR pattern',
+  descriptionPl: 'Bold tekst z emoji — high-CTR pattern',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -950,7 +1001,7 @@ const reelCoverReveal: DesignTemplate = {
       rx: p.height * 0.03,
       ry: p.height * 0.03,
     });
-    addTextbox(canvas, 'NIE UWIERZYSZ', {
+    addTextbox(canvas, tx('NIE UWIERZYSZ', "YOU WON'T BELIEVE"), {
       left: cx,
       top: p.height * 0.06,
       width: p.width * 0.7,
@@ -963,7 +1014,7 @@ const reelCoverReveal: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'Co się\nstało gdy\nspróbowałem\ntego?', {
+    addTextbox(canvas, tx('Co się\nstało gdy\nspróbowałem\ntego?', 'What\nhappened\nwhen I tried\nthis?'), {
       left: cx,
       top: p.height * 0.25,
       width: p.width * 0.92,
@@ -990,9 +1041,12 @@ const reelCoverReveal: DesignTemplate = {
 const reelCoverList: DesignTemplate = {
   key: 'reel-cover-list',
   category: 'reel-cover',
-  label: 'Cover: Lista (5 tipów)',
-  description: 'Numer + temat — szybko czytelne w feedzie',
-  apply: (canvas, p, brand) => {
+  label: 'Cover: List (5 Tips)',
+  labelPl: 'Cover: Lista (5 tipów)',
+  description: 'Number + topic — easy to scan in the feed',
+  descriptionPl: 'Numer + temat — szybko czytelne w feedzie',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
     clearCanvas(canvas, brand.background);
     const cx = p.width / 2;
 
@@ -1016,7 +1070,7 @@ const reelCoverList: DesignTemplate = {
       fontFamily: brand.fontFamily,
     });
 
-    addTextbox(canvas, 'TIPÓW', {
+    addTextbox(canvas, tx('TIPÓW', 'TIPS'), {
       left: cx,
       top: p.height * 0.38,
       width: p.width * 0.8,
@@ -1030,7 +1084,7 @@ const reelCoverList: DesignTemplate = {
       opacity: 0.8,
     });
 
-    addTextbox(canvas, 'Na produktywność\npracy zdalnej', {
+    addTextbox(canvas, tx('Na produktywność\npracy zdalnej', 'For remote work\nproductivity'), {
       left: cx,
       top: p.height * 0.5,
       width: p.width * 0.92,
@@ -1053,7 +1107,7 @@ const reelCoverList: DesignTemplate = {
       ry: p.height * 0.03,
       originX: 'center',
     });
-    addTextbox(canvas, 'PRZESUŃ →', {
+    addTextbox(canvas, tx('PRZESUŃ →', 'SWIPE →'), {
       left: cx,
       top: p.height * 0.835,
       width: p.width * 0.55,
@@ -1092,8 +1146,9 @@ export const applyTemplate = (
   template: DesignTemplate,
   canvas: fabric.Canvas,
   platform: PlatformSize,
-  brand: BrandStyle
+  brand: BrandStyle,
+  lang: TemplateLang
 ): void => {
-  template.apply(canvas, platform, brand);
+  template.apply(canvas, platform, brand, lang);
   canvas.renderAll();
 };

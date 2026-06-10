@@ -98,7 +98,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
     if (!file) return;
     if (trimEnd <= trimStart) {
       toaster.show(
-        t('video_trim_invalid', 'Punkt końcowy musi być po początkowym'),
+        t('video_trim_invalid', 'End point must be after the start point'),
         'warning'
       );
       return;
@@ -129,7 +129,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
       toaster.show(
         t(
           'video_trim_failed',
-          'Cięcie wideo nie powiodło się. Sprawdź czy przeglądarka wspiera WebCodecs (Chrome / Edge).'
+          'Video trimming failed. Check that your browser supports WebCodecs (Chrome / Edge).'
         ),
         'warning'
       );
@@ -141,7 +141,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
   if (!file) {
     return (
       <div className="text-xs text-textColor/60 p-4 text-center">
-        {t('video_select_file', 'Wybierz plik wideo aby zacząć.')}
+        {t('video_select_file', 'Choose a video file to get started.')}
       </div>
     );
   }
@@ -161,7 +161,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
       <div className="grid grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-[10px] uppercase tracking-wide text-textColor/60">
-            {t('video_trim_start', 'Początek')}: {trimStart.toFixed(2)}s
+            {t('video_trim_start', 'Start')}: {trimStart.toFixed(2)}s
           </label>
           <input
             type="range"
@@ -178,7 +178,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-[10px] uppercase tracking-wide text-textColor/60">
-            {t('video_trim_end', 'Koniec')}: {trimEnd.toFixed(2)}s
+            {t('video_trim_end', 'End')}: {trimEnd.toFixed(2)}s
           </label>
           <input
             type="range"
@@ -195,7 +195,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
         </div>
       </div>
       <div className="text-[11px] text-textColor/70">
-        {t('video_trim_summary', 'Wyciętych: {sec}s z {total}s')
+        {t('video_trim_summary', 'Trimmed: {sec}s of {total}s')
           .replace('{sec}', (trimEnd - trimStart).toFixed(2))
           .replace('{total}', duration.toFixed(2))}
       </div>
@@ -205,8 +205,8 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
         className="px-3 py-2 text-sm rounded bg-newAccent text-white hover:bg-forth disabled:opacity-50 transition-colors"
       >
         {isExporting
-          ? `${t('video_exporting', 'Eksportuję')} ${progress}%`
-          : `✂ ${t('video_export_trimmed', 'Eksportuj wycięty fragment')}`}
+          ? `${t('video_exporting', 'Exporting')} ${progress}%`
+          : `✂ ${t('video_export_trimmed', 'Export trimmed clip')}`}
       </button>
     </div>
   );

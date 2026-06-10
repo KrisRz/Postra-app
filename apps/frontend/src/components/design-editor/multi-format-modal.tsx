@@ -111,7 +111,7 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
       URL.revokeObjectURL(url);
     } catch {
       toaster.show(
-        t('multi_format_error', 'Renderowanie nie powiodło się. Spróbuj ponownie.'),
+        t('multi_format_error', 'Rendering failed. Please try again.'),
         'warning'
       );
     }
@@ -150,7 +150,7 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
       closeParent();
     } catch {
       toaster.show(
-        t('multi_format_error', 'Renderowanie nie powiodło się. Spróbuj ponownie.'),
+        t('multi_format_error', 'Rendering failed. Please try again.'),
         'warning'
       );
       setUploading(false);
@@ -192,14 +192,14 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
             id="multi-format-modal-title"
             className="text-lg font-semibold text-textColor"
           >
-            📐 {t('multi_format_title', 'Eksportuj do wszystkich platform')}
+            📐 {t('multi_format_title', 'Export to all platforms')}
           </h2>
           <button
             ref={closeButtonRef}
             onClick={() => !uploading && onClose()}
             disabled={uploading}
             className="text-textColor/60 hover:text-textColor text-2xl leading-none disabled:opacity-30"
-            aria-label={t('multi_format_cancel', 'Anuluj')}
+            aria-label={t('multi_format_cancel', 'Cancel')}
           >
             ×
           </button>
@@ -210,7 +210,7 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <div className="w-12 h-12 border-4 border-newBorder border-t-textColor rounded-full animate-spin" />
               <div className="text-textColor">
-                {t('multi_format_rendering', 'Renderowanie')} {renderProgress.done}/{renderProgress.total}…
+                {t('multi_format_rendering', 'Rendering')} {renderProgress.done}/{renderProgress.total}…
               </div>
             </div>
           )}
@@ -218,7 +218,7 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
           {renderError && (
             <div className="flex flex-col items-center justify-center py-20 gap-2">
               <div className="text-red-400">
-                {t('multi_format_error', 'Renderowanie nie powiodło się. Spróbuj ponownie.')}
+                {t('multi_format_error', 'Rendering failed. Please try again.')}
               </div>
             </div>
           )}
@@ -246,7 +246,7 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
                       disabled={uploading}
                       className="text-xs px-2 py-1 rounded bg-forth text-textColor hover:bg-newColColor disabled:opacity-30 whitespace-nowrap"
                     >
-                      ⬇ {t('multi_format_download_one', 'Pobierz')}
+                      ⬇ {t('multi_format_download_one', 'Download')}
                     </button>
                   </div>
                 </div>
@@ -262,12 +262,12 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
               disabled={uploading}
               className="text-sm px-4 py-2 rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30"
             >
-              {t('multi_format_cancel', 'Anuluj')}
+              {t('multi_format_cancel', 'Cancel')}
             </button>
             <div className="flex items-center gap-3">
               {uploading && (
                 <div className="text-xs text-textColor/70">
-                  {t('multi_format_uploading', 'Przesyłanie')} {uploadProgress.done}/{uploadProgress.total}…
+                  {t('multi_format_uploading', 'Uploading')} {uploadProgress.done}/{uploadProgress.total}…
                 </div>
               )}
               <button
@@ -275,7 +275,7 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
                 disabled={uploading}
                 className="text-sm px-4 py-2 rounded bg-newColColor text-textColor hover:bg-forth disabled:opacity-30"
               >
-                ⬇ {t('multi_format_download_zip', 'Pobierz wszystkie (ZIP)')}
+                ⬇ {t('multi_format_download_zip', 'Download all (ZIP)')}
               </button>
               {mode === 'composer' && (
                 <Button
@@ -283,7 +283,7 @@ export const MultiFormatModal: FC<MultiFormatModalProps> = ({
                   onClick={handleAddAllToPost}
                   className="!h-[36px] !text-sm"
                 >
-                  {t('multi_format_add_to_post', 'Dodaj wszystkie do posta')}
+                  {t('multi_format_add_to_post', 'Add all to post')}
                 </Button>
               )}
             </div>

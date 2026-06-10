@@ -38,7 +38,7 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
       toaster.show(
         t(
           'video_captions_no_media',
-          'Najpierw wczytaj wideo (Wytnij / Z biblioteki), żeby je przepisać.'
+          'Load a video first (Trim / From library) to transcribe it.'
         ),
         'warning'
       );
@@ -52,7 +52,7 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
       });
       if (!res.ok) {
         toaster.show(
-          t('video_captions_failed', 'Generowanie napisów nie powiodło się.'),
+          t('video_captions_failed', 'Caption generation failed.'),
           'warning'
         );
         return;
@@ -81,7 +81,7 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
     const segments = parseSrt(srt);
     if (!segments.length) {
       toaster.show(
-        t('video_captions_no_segments', 'Nie rozpoznałem segmentów napisów (sprawdź format SRT).'),
+        t('video_captions_no_segments', 'Could not parse any caption segments (check the SRT format).'),
         'warning'
       );
       return;
@@ -120,14 +120,14 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
           body: JSON.stringify({ srt }),
         });
         if (!res.ok) {
-          toaster.show(t('video_burn_failed', 'Wpalenie napisów nie powiodło się.'), 'warning');
+          toaster.show(t('video_burn_failed', 'Burning captions failed.'), 'warning');
           return;
         }
         const data = await res.json();
         if (data?.id && data?.path) onCaptioned({ id: data.id, path: data.path });
       } else {
         toaster.show(
-          t('video_captions_no_media', 'Najpierw wczytaj wideo (Wytnij / Z biblioteki), żeby je przepisać.'),
+          t('video_captions_no_media', 'Load a video first (Trim / From library) to transcribe it.'),
           'warning'
         );
       }
@@ -136,8 +136,8 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
       console.error('[Postra:captions] burn failed:', err);
       toaster.show(
         err instanceof ClipTooLongError
-          ? t('clip_too_long', 'Klip za długi do edycji w przeglądarce (limit 5 min). Użyj krótszego.')
-          : t('video_burn_failed', 'Wpalenie napisów nie powiodło się.'),
+          ? t('clip_too_long', 'Clip is too long to edit in the browser (5 min limit). Use a shorter one.')
+          : t('video_burn_failed', 'Burning captions failed.'),
         'warning'
       );
     } finally {
@@ -150,12 +150,12 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
       <div className="text-xs text-textColor/80">
         {t(
           'video_captions_explainer',
-          'Whisper AI przepisuje mowę z wideo na napisy. Edytuj je, a potem wypalimy je w klip w Twoim brandzie.'
+          'Whisper AI transcribes the speech in your video into captions. Edit them, then we burn them into the clip in your brand.'
         )}
       </div>
       <div className="flex items-center gap-2">
         <label className="text-[10px] uppercase tracking-wide text-textColor/60">
-          {t('video_captions_language', 'Język')}
+          {t('video_captions_language', 'Language')}
         </label>
         <select
           value={language}
@@ -176,7 +176,7 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
           disabled={!mediaId}
           className="!h-[28px] !text-xs"
         >
-          ✨ {t('video_captions_generate', 'Generuj napisy')}
+          ✨ {t('video_captions_generate', 'Generate captions')}
         </Button>
       </div>
       <textarea
@@ -184,7 +184,7 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
         onChange={(e) => setSrt(e.target.value)}
         placeholder={t(
           'video_captions_placeholder',
-          'Po wygenerowaniu pojawią się tutaj napisy w formacie SRT. Edytuj je przed wpaleniem.'
+          'Generated captions will appear here in SRT format. Edit them before burning in.'
         )}
         rows={12}
         disabled={isGenerating || isBurning}
@@ -193,8 +193,8 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
       <div className="flex justify-between items-center">
         <div className="text-[10px] text-textColor/50">
           {srt.trim().length > 0
-            ? t('video_captions_lines', '{n} znaków SRT').replace('{n}', String(srt.length))
-            : t('video_captions_empty', 'Brak napisów')}
+            ? t('video_captions_lines', '{n} SRT characters').replace('{n}', String(srt.length))
+            : t('video_captions_empty', 'No captions')}
         </div>
         <Button
           loading={isBurning}
@@ -203,19 +203,19 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
           className="!h-[28px] !text-xs"
         >
           🎨 {isBurning && source
-            ? `${t('video_captions_burning', 'Wpalam…')} ${burnProgress}%`
-            : t('video_captions_burn', 'Wpal w wideo')}
+            ? `${t('video_captions_burning', 'Burning…')} ${burnProgress}%`
+            : t('video_captions_burn', 'Burn into video')}
         </Button>
       </div>
       <div className="text-[10px] text-textColor/40 leading-snug">
         {source
           ? t(
               'video_captions_cost_browser',
-              'Transkrypcja: ~$0.006/min (OpenAI credits). Napisy wypalane w przeglądarce, w kolorze/foncie Brand Kitu.'
+              'Transcription: ~$0.006/min (OpenAI credits). Captions are burned in the browser, in your Brand Kit colour/font.'
             )
           : t(
               'video_captions_cost',
-              'Koszt: ~$0.006/min wideo (płatne z OpenAI credits). Wpalenie zwraca nowy plik MP4.'
+              'Cost: ~$0.006/min of video (paid from OpenAI credits). Burning in returns a new MP4 file.'
             )}
       </div>
     </div>

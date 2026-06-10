@@ -28,10 +28,10 @@ interface ChatMessage {
 }
 
 const QUICK_INSTRUCTIONS = [
-  { key: 'refine_quick_shorter', fallback: 'Krótszy nagłówek' },
-  { key: 'refine_quick_warmer', fallback: 'Cieplejsze kolory' },
-  { key: 'refine_quick_bolder', fallback: 'Mocniejszy CTA' },
-  { key: 'refine_quick_minimal', fallback: 'Bardziej minimalistycznie' },
+  { key: 'refine_quick_shorter', fallback: 'Shorter headline' },
+  { key: 'refine_quick_warmer', fallback: 'Warmer colors' },
+  { key: 'refine_quick_bolder', fallback: 'Stronger CTA' },
+  { key: 'refine_quick_minimal', fallback: 'More minimal' },
 ];
 
 export const AiRefinePanel: FC<Props> = ({ canvas }) => {
@@ -56,7 +56,7 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
       const c = canvas.current;
       if (!c.getObjects().length) {
         toaster.show(
-          t('refine_empty_canvas', 'Najpierw dodaj coś na canvas — szablon lub AI Generuj.'),
+          t('refine_empty_canvas', 'Add something to the canvas first — a template or AI Generate.'),
           'warning'
         );
         return;
@@ -89,16 +89,16 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
 
           if (status === 402) {
             toaster.show(
-              t('ai_no_credits', 'Skończyły się kredyty AI w tym miesiącu.'),
+              t('ai_no_credits', 'You ran out of AI credits this month. Upgrade your plan or wait for the new cycle.'),
               'warning'
             );
           } else if (status === 429) {
             toaster.show(
-              t('ai_rate_limited', 'Zbyt wiele żądań — poczekaj kilka sekund.'),
+              t('ai_rate_limited', 'Too many requests — wait a few seconds and try again.'),
               'warning'
             );
           } else {
-            toaster.show(message || t('refine_failed', 'AI nie poprawił projektu — spróbuj inną instrukcję.'), 'warning');
+            toaster.show(message || t('refine_failed', 'AI could not refine the design — try a different instruction.'), 'warning');
           }
           return;
         }
@@ -114,7 +114,7 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
       } catch (err) {
         if ((err as { name?: string })?.name === 'AbortError') return;
         toaster.show(
-          t('refine_failed', 'AI nie poprawił projektu — spróbuj inną instrukcję.'),
+          t('refine_failed', 'AI could not refine the design — try a different instruction.'),
           'warning'
         );
       } finally {
@@ -130,7 +130,7 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
       <div className="text-[11px] text-textColor/60 leading-relaxed">
         {t(
           'ai_tier_required',
-          'AI dostępne w planie Pro i wyżej.'
+          'AI is available on the Pro plan and above.'
         )}
       </div>
     );
@@ -140,12 +140,12 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
     <div className="flex flex-col gap-2">
       <div>
         <div className="text-[10px] uppercase tracking-wide text-textColor/60 mb-1">
-          {t('refine_title', 'AI Popraw')}
+          {t('refine_title', 'AI Refine')}
         </div>
         <p className="text-[11px] text-textColor/60 leading-snug">
           {t(
             'refine_intro',
-            'Napisz co zmienić w aktualnym projekcie. AI zedytuje wybrane elementy zamiast zaczynać od zera.'
+            'Describe what to change in the current design. AI will edit the relevant elements instead of starting from scratch.'
           )}
         </p>
       </div>
@@ -168,7 +168,7 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
         onChange={(e) => setInstruction(e.target.value)}
         placeholder={t(
           'refine_placeholder',
-          'np. "skróć nagłówek", "zmień akcent na ciepły pomarańcz", "przesuń logo w prawy dolny róg"'
+          'e.g. "shorten the headline", "change the accent to warm orange", "move the logo to the bottom-right corner"'
         )}
         rows={3}
         disabled={busy}
@@ -181,8 +181,8 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
         className="!h-[32px] !text-xs"
       >
         {busy
-          ? t('refine_running', 'Poprawiam…')
-          : t('refine_apply', '✨ Popraw projekt')}
+          ? t('refine_running', 'Refining…')
+          : t('refine_apply', '✨ Refine design')}
       </Button>
 
       {history.length > 0 && (
@@ -208,7 +208,7 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
       <p className="text-[10px] text-textColor/40 leading-snug">
         {t(
           'refine_undo_hint',
-          'Każda iteracja jest zapisana w historii — cofnij przez Ctrl+Z.'
+          'Each iteration is saved in history — undo with Ctrl+Z.'
         )}
       </p>
     </div>
