@@ -3,6 +3,7 @@ import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import dayjs from 'dayjs';
 import { useCalendar } from '@gitroom/frontend/components/launches/calendar.context';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { SetSelectionModal } from '@gitroom/frontend/components/launches/calendar';
 import { AddEditModal } from '@gitroom/frontend/components/new-launch/add.edit.modal';
@@ -63,7 +64,7 @@ export const NewPost = () => {
           allIntegrations={integrations.map((p) => ({
             ...p,
           }))}
-          {...(set?.content ? { set: JSON.parse(set.content) } : {})}
+          {...(set?.content ? { set: safeJsonParse<any>(set.content, undefined) } : {})}
           reopenModal={createAPost}
           mutate={reloadCalendarView}
           integrations={integrations}

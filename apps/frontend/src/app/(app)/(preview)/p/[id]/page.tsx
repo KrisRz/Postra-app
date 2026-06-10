@@ -1,5 +1,6 @@
 import { internalFetch } from '@gitroom/helpers/utils/internal.fetch';
 import { sanitizePostContent } from '@gitroom/helpers/utils/sanitize.post.content';
+import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
 export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import { isGeneralServerSide } from '@gitroom/helpers/utils/is.general.server.side';
@@ -146,7 +147,7 @@ export default async function Auth(
                         }}
                       />
                       <div className="flex w-full gap-[10px]">
-                        {JSON.parse(p?.image || '[]').map((p: any) => (
+                        {safeJsonParse<any[]>(p?.image, []).map((p: any) => (
                           <div
                             key={p.name}
                             className="flex-1 rounded-[10px] max-h-[500px] overflow-hidden"

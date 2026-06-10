@@ -26,6 +26,7 @@ import { Slider } from '@gitroom/react/form/slider';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { ModalWrapperComponent } from '@gitroom/frontend/components/new-launch/modal.wrapper.component';
+import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
 export function convertBackRegex(s: string) {
   const matches = s.match(/\/(.*)\/([a-z]*)/);
   const pattern = matches?.[1] || '';
@@ -84,17 +85,21 @@ export const PlugPop: FC<{
   const { closeAll } = useModals();
   const fetch = useFetch();
   const toaster = useToaster();
+  const t = useT();
   const values = useMemo(() => {
     if (!data?.data) {
       return {};
     }
-    return JSON.parse(data.data).reduce((acc: any, current: any) => {
-      return {
-        ...acc,
-        [current.name]: current.value,
-      };
-    }, {} as any);
-  }, []);
+    return safeJsonParse<any[]>(data.data, []).reduce(
+      (acc: any, current: any) => {
+        return {
+          ...acc,
+          [current.name]: current.value,
+        };
+      },
+      {} as any
+    );
+  }, [data?.data]);
   const yupSchema = useMemo(() => {
     return object(
       plug.fields.reduce((acc, field) => {
@@ -125,11 +130,9 @@ export const PlugPop: FC<{
         })),
       }),
     });
-    toaster.show('Wtyczka zaktualizowana', 'success');
+    toaster.show(t('plugin_updated', 'Plugin updated'), 'success');
     closeAll();
-  }, []);
-
-  const t = useT();
+  }, [t]);
 
   return (
     <FormProvider {...form}>

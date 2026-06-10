@@ -3,6 +3,7 @@ import 'reflect-metadata';
 
 import React, { FC, Fragment, useCallback, useMemo, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
 import useSWR from 'swr';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { Button } from '@gitroom/frontend/components/ui/button';
@@ -109,7 +110,7 @@ export const Sets: FC = () => {
             allIntegrations={integrations.map((p: any) => ({
               ...p,
             }))}
-            {...(params?.id ? { set: JSON.parse(params.content) } : {})}
+            {...(params?.id ? { set: safeJsonParse<any>(params.content, undefined) } : {})}
             addEditSets={(data) => {
               modal.openModal({
                 title: t('save_as_set', 'Zapisz jako zestaw'),

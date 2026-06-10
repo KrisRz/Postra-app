@@ -17,6 +17,7 @@ import { GeneralPreviewComponent } from '@gitroom/frontend/components/launches/g
 import { IntegrationContext } from '@gitroom/frontend/components/launches/helpers/use.integration';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
 import useSWR from 'swr';
 import { InternalChannels } from '@gitroom/frontend/components/launches/internal.channels';
 import { createPortal } from 'react-dom';
@@ -114,8 +115,8 @@ export const withProvider = function <T extends object>(params: {
         typeof maximumCharacters === 'number'
           ? maximumCharacters
           : maximumCharacters(
-              JSON.parse(
-                selectedIntegration.integration.additionalSettings || '[]'
+              safeJsonParse(
+                selectedIntegration.integration.additionalSettings, []
               )
             )
       );
@@ -137,8 +138,8 @@ export const withProvider = function <T extends object>(params: {
           typeof maximumCharacters === 'number'
             ? maximumCharacters
             : maximumCharacters(
-                JSON.parse(
-                  selectedIntegration.integration.additionalSettings || '[]'
+                safeJsonParse(
+                  selectedIntegration.integration.additionalSettings, []
                 )
               )
         );
@@ -195,8 +196,8 @@ export const withProvider = function <T extends object>(params: {
               typeof maximumCharacters === 'number'
                 ? maximumCharacters
                 : maximumCharacters(
-                    JSON.parse(
-                      selectedIntegration.integration.additionalSettings || '[]'
+                    safeJsonParse(
+                      selectedIntegration.integration.additionalSettings, []
                     )
                   ),
             fix: () => {
@@ -265,9 +266,9 @@ export const withProvider = function <T extends object>(params: {
                     typeof maximumCharacters === 'number'
                       ? maximumCharacters
                       : maximumCharacters(
-                          JSON.parse(
+                          safeJsonParse(
                             selectedIntegration.integration
-                              .additionalSettings || '[]'
+                              .additionalSettings, []
                           )
                         )
                   }
@@ -278,9 +279,9 @@ export const withProvider = function <T extends object>(params: {
                     typeof maximumCharacters === 'number'
                       ? maximumCharacters
                       : maximumCharacters(
-                          JSON.parse(
+                          safeJsonParse(
                             selectedIntegration.integration
-                              .additionalSettings || '[]'
+                              .additionalSettings, []
                           )
                         )
                   }

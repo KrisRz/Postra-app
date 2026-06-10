@@ -34,6 +34,7 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import clsx from 'clsx';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
 import { ExistingDataContextProvider } from '@gitroom/frontend/components/launches/helpers/use.existing.data';
 import { useDrag, useDrop } from 'react-dnd';
 import { Integration, Post, State, Tags } from '@prisma/client';
@@ -833,7 +834,7 @@ export const CalendarColumn: FC<{
               ? newDayjs().add(10, 'minute')
               : getDate
           }
-          {...(set?.content ? { set: JSON.parse(set.content) } : {})}
+          {...(set?.content ? { set: safeJsonParse<any>(set.content, undefined) } : {})}
           reopenModal={() => ({})}
         />
       ),

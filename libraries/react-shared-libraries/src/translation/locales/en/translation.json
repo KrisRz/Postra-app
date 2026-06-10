@@ -907,5 +907,19 @@
   "code": "Code",
   "enter_your_code": "Enter your code",
   "code_claimed": "Code claimed successfully",
-  "code_invalid": "Code already used or invalid"
+  "code_invalid": "Code already used or invalid",
+  "oauth_app_name_redirect_required": "Name and Redirect URL are required",
+  "oauth_app_created_copy_secret": "App created! Copy the client secret now — it is shown only once.",
+  "oauth_app_create_failed": "Failed to create the app",
+  "oauth_app_updated": "App updated",
+  "oauth_app_update_failed": "Failed to update the app",
+  "oauth_rotate_secret_title": "Generate a new client secret?",
+  "oauth_rotate_secret_description": "This generates a new client secret and invalidates the current one. Integrations using the old secret will stop working.",
+  "oauth_secret_rotated_copy": "Secret generated! Copy the new client secret now.",
+  "oauth_rotate_secret_failed": "Failed to generate the secret",
+  "oauth_delete_app_title": "Delete the OAuth app?",
+  "oauth_delete_app_description": "This will delete the OAuth application and revoke all user authorizations. This action cannot be undone.",
+  "oauth_app_deleted": "OAuth app deleted",
+  "oauth_app_delete_failed": "Failed to delete the app",
+  "plugin_updated": "Plugin updated"
 }
