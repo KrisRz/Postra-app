@@ -105,6 +105,20 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
       };
     }
 
+    // Identity verification required — token stays valid, publishing resumes
+    // automatically once the user verifies identity in the Facebook app.
+    // Do NOT return 'refresh-token' here; reconnecting is not needed.
+    if (
+      body.indexOf('Confirm your identity') > -1 ||
+      body.indexOf('confirm your identity') > -1
+    ) {
+      return {
+        type: 'bad-body' as const,
+        value:
+          'Facebook requires identity verification before publishing to this Page. Open the Facebook app on your phone, complete the verification, and posts will resume automatically — no reconnection needed.',
+      };
+    }
+
     if (body.indexOf('1404006') > -1) {
       return {
         type: 'bad-body' as const,
