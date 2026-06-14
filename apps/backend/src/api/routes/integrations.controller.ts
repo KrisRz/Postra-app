@@ -88,6 +88,10 @@ export class IntegrationsController {
 
   @Get('/list')
   async getIntegrationList(@GetOrgFromRequest() org: Organization) {
+    // Fire-and-forget: lazily verify tokens are still valid so a channel the
+    // user revoked on the platform gets the "needs reconnect" flag on the next
+    // load. Never blocks the response.
+    this._integrationService.checkIntegrationsHealth(org.id).catch(() => {});
     return {
       integrations: await Promise.all(
         (

@@ -25,6 +25,7 @@ import utc from 'dayjs/plugin/utc';
 import { AutopostRepository } from '@gitroom/nestjs-libraries/database/prisma/autopost/autopost.repository';
 import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integrations/refresh.integration.service';
 import { TemporalService } from 'nestjs-temporal-core';
+import { AuthService } from '@gitroom/helpers/auth/auth.service';
 
 dayjs.extend(utc);
 
@@ -234,6 +235,45 @@ export class IntegrationService {
 
   async refreshNeeded(org: string, id: string) {
     return this._integrationRepository.refreshNeeded(org, id);
+  }
+
+  // Lazily verify that connected channels are still authorized. When a user
+  // revokes the app on the platform side, the stored token dies but nothing
+  // detects it until the next publish — so the channel still looks healthy.
+  // This flags such channels (refreshNeeded -> red "!" badge) on the next
+  // channel-list load. Runs fire-and-forget, is Redis-cached so it checks each
+  // channel at most ~twice/hour, and only touches providers that implement
+  // checkToken (others are skipped, never false-flagged).
+  async checkIntegrationsHealth(org: string) {
+    const list = await this._integrationRepository.getIntegrationsList(org);
+    for (const integration of list) {
+      if (integration.disabled || integration.refreshNeeded) {
+        continue;
+      }
+      const provider = this._integrationManager.getSocialIntegration(
+        integration.providerIdentifier
+      );
+      const checkToken = provider?.checkToken?.bind(provider);
+      if (!checkToken) {
+        continue;
+      }
+      const cacheKey = `health-check:${integration.id}`;
+      if (await ioRedis.get(cacheKey)) {
+        continue;
+      }
+      await ioRedis.set(cacheKey, '1', 'EX', 1800);
+      try {
+        const alive = await checkToken(
+          AuthService.decryptIntegrationToken(integration.token),
+          integration.internalId
+        );
+        if (!alive) {
+          await this._integrationRepository.refreshNeeded(org, integration.id);
+        }
+      } catch {
+        // Never flag a channel on an unexpected error.
+      }
+    }
   }
 
   async setBetweenRefreshSteps(id: string) {

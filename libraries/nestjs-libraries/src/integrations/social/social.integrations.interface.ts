@@ -185,4 +185,8 @@ export interface SocialProvider
     accessToken: string,
     data: any
   ): Promise<FetchPageInformationResult>;
+  // Lightweight liveness check for a connected channel's token. Returns false
+  // ONLY when the platform clearly reports the token as revoked/invalid;
+  // transient errors must return true so a working channel is never flagged.
+  checkToken?(token: string, internalId: string): Promise<boolean>;
 }
