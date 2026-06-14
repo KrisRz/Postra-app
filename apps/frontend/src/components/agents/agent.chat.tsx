@@ -94,7 +94,7 @@ export const AgentChat: FC = () => {
               title: t('your_assistant', 'Twój Asystent'),
               initial: t(
                 'agent_welcome_message',
-                `Cześć! Jestem Twoim agentem Postra 🙌🏻 Napisz, co chcesz opublikować — zaplanuję posty na wielu kanałach i wygeneruję zdjęcia oraz filmy.`
+                `Hi! I'm your Postra agent 🙌🏻 Tell me what you want to publish — I'll schedule posts across multiple channels and generate images and videos.`
               ),
             }}
             UserMessage={Message}

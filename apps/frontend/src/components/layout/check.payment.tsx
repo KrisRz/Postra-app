@@ -49,11 +49,11 @@ export const CheckPaymentInner: FC<{
     }
     if (status === 1) {
       modal.open({
-        title: 'Nieprawidłowa płatność',
+        title: 'Invalid payment',
         onlyApprove: true,
         approveLabel: 'OK',
         description:
-          'Nie udało się zweryfikować Twojej metody płatności, spróbuj ponownie',
+          'We could not verify your payment method, please try again',
       });
       setShowLoader(false);
     }

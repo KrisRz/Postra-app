@@ -267,7 +267,7 @@ export const Subscription = () => {
       const value = e.target.value;
       if (
         await deleteDialog(
-          'Czy na pewno chcesz dodać subskrypcję użytkownika?',
+          'Are you sure you want to add a subscription for this user?',
           'Add'
         )
       ) {
