@@ -46,7 +46,7 @@ export function Forgot() {
             <p className="mb-6 text-[15px] text-textColor/58">
               {t(
                 'forgot_password_subtitle',
-                'Wyślemy Ci bezpieczny link do zresetowania hasła.'
+                'We will send you a secure link to reset your password.'
               )}
             </p>
           </div>
@@ -82,7 +82,7 @@ export function Forgot() {
               <div className="mt-6 rounded-[16px] border border-white/8 bg-white/[0.03] p-[16px] text-start text-textColor/78">
                 {t(
                   'we_have_send_you_an_email_with_a_link_to_reset_your_password',
-                  'Wysłaliśmy Ci e-mail z linkiem do zresetowania hasła.'
+                  'We have sent you an email with a link to reset your password.'
                 )}
               </div>
               <p className="mt-4 text-sm text-textColor/66">

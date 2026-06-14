@@ -71,7 +71,7 @@ export function Login() {
             <p className="mt-[8px] text-[15px] text-textColor/58">
               {t(
                 'auth_login_subtitle',
-                'Uzyskaj dostęp do swojego workspace, kalendarza i podłączonych kanałów.'
+                'Access your workspace, calendar and connected channels.'
               )}
             </p>
           </div>
@@ -123,7 +123,7 @@ export function Login() {
                   <p className="mb-2 text-sm text-amber-300">
                     {t(
                       'account_not_activated',
-                      'Twoje konto nie jest jeszcze aktywne. Sprawdź e-mail z linkiem aktywacyjnym.'
+                      'Your account is not active yet. Check your email for the activation link.'
                     )}
                   </p>
                   <Link

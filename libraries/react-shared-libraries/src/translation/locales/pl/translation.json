@@ -1082,5 +1082,10 @@
   "carousel_delete_slide": "Usuń ten slajd",
   "tpl_cat_reel_cover": "Cover Reels",
   "studio_tab_graphic": "🎨 Grafika",
-  "studio_tab_video": "🎬 Wideo"
+  "studio_tab_video": "🎬 Wideo",
+  "auth_login_subtitle": "Uzyskaj dostęp do swojego workspace, kalendarza i podłączonych kanałów.",
+  "auth_register_subtitle": "Załóż swój workspace Postra i planuj treści szybciej.",
+  "forgot_password_subtitle": "Wyślemy Ci bezpieczny link do zresetowania hasła.",
+  "account_not_activated": "Twoje konto nie jest jeszcze aktywne. Sprawdź e-mail z linkiem aktywacyjnym.",
+  "resend_activation_email": "Wyślij ponownie e-mail aktywacyjny"
 }

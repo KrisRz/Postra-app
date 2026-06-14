@@ -34,15 +34,15 @@ export const ComingSoon: FC = () => {
           setStatus('duplicate');
         } else {
           setStatus('error');
-          setErrorMsg(data?.error || 'Nieprawidłowy adres email');
+          setErrorMsg(data?.error || 'Invalid email address');
         }
       } else {
         setStatus('error');
-        setErrorMsg('Coś poszło nie tak. Spróbuj ponownie.');
+        setErrorMsg('Something went wrong. Please try again.');
       }
     } catch {
       setStatus('error');
-      setErrorMsg('Brak połączenia. Spróbuj ponownie.');
+      setErrorMsg('No connection. Please try again.');
     }
   };
 
@@ -58,19 +58,19 @@ export const ComingSoon: FC = () => {
             <span className="text-[#a78bfa]">a</span>
           </h1>
           <p className="text-[18px] sm:text-[20px] text-textColor/80 font-[500]">
-            Wszystkie social media w jednym miejscu
+            All your social media in one place
           </p>
         </div>
 
         <div className="flex items-center gap-3 text-[12px] uppercase tracking-[0.2em] text-textColor/50">
           <div className="h-px w-12 bg-textColor/20" />
-          Już wkrótce
+          Coming soon
           <div className="h-px w-12 bg-textColor/20" />
         </div>
 
         <p className="text-[15px] text-textColor/65 leading-relaxed max-w-[480px]">
-          Aplikacja w fazie końcowych testów. Jedno narzędzie do
-          planowania postów, generowania treści z AI i analityki —
+          The app is in final testing. One tool for scheduling posts,
+          generating content with AI and analytics —
           Facebook, Instagram, LinkedIn, TikTok, YouTube, X.
         </p>
 
@@ -83,7 +83,7 @@ export const ComingSoon: FC = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="twoj@email.pl"
+              placeholder="you@email.com"
               required
               disabled={status === 'loading' || status === 'success'}
               className="flex-1 px-4 py-3 rounded-lg bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 focus:outline-none focus:border-[#38bdf8] disabled:opacity-50 text-[14px]"
@@ -93,17 +93,17 @@ export const ComingSoon: FC = () => {
               disabled={status === 'loading' || status === 'success'}
               className="px-5 py-3 rounded-lg bg-[#38bdf8] hover:bg-[#0ea5e9] text-[#0a0e1a] font-[600] text-[14px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
-              {status === 'loading' ? 'Zapisywanie…' : 'Powiadom mnie'}
+              {status === 'loading' ? 'Saving…' : 'Notify me'}
             </button>
           </div>
           {status === 'success' && (
             <p className="text-[13px] text-[#34d399]">
-              ✓ Dziękujemy! Damy znać gdy ruszamy.
+              ✓ Thank you! We will let you know when we launch.
             </p>
           )}
           {status === 'duplicate' && (
             <p className="text-[13px] text-textColor/60">
-              Ten email już jest na liście. Damy znać gdy ruszamy.
+              This email is already on the list. We will let you know when we launch.
             </p>
           )}
           {status === 'error' && (
@@ -112,10 +112,10 @@ export const ComingSoon: FC = () => {
         </form>
 
         <a
-          href="mailto:kontakt@postra.pl"
+          href="mailto:hello@postra.co.uk"
           className="text-[13px] text-white/50 hover:text-white/80 transition-colors"
         >
-          Kontakt: kontakt@postra.pl
+          Contact: hello@postra.co.uk
         </a>
         </div>
       </div>
