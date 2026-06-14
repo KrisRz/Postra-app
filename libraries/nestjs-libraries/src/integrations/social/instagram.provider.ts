@@ -867,6 +867,21 @@ export class InstagramProvider
     return '';
   }
 
+  async checkToken(token: string, internalId: string): Promise<boolean> {
+    try {
+      const [accessToken] = token.split('___');
+      const { error } = await (
+        await fetch(
+          `https://graph.facebook.com/v21.0/${internalId}?fields=id&access_token=${accessToken}`
+        )
+      ).json();
+      // 190 = token revoked/expired; transient errors keep the channel alive.
+      return error?.code !== 190;
+    } catch {
+      return true;
+    }
+  }
+
   async analytics(
     id: string,
     token: string,

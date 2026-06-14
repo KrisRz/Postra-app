@@ -700,6 +700,21 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
     ];
   }
 
+  async checkToken(accessToken: string, internalId: string): Promise<boolean> {
+    try {
+      const { error } = await (
+        await fetch(
+          `https://graph.facebook.com/v20.0/${internalId}?fields=id&access_token=${accessToken}`
+        )
+      ).json();
+      // 190 = access token expired/revoked (e.g. user removed the app). Any
+      // other error (rate limit, network) is transient — keep the channel.
+      return error?.code !== 190;
+    } catch {
+      return true;
+    }
+  }
+
   async analytics(
     id: string,
     accessToken: string,
