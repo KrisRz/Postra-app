@@ -303,7 +303,7 @@
   "forgot_password_1": "Forgot Password",
   "send_password_reset_email": "Send Password Reset Email",
   "go_back_to_login": "Go back to login",
-  "we_have_send_you_an_email_with_a_link_to_reset_your_password": "We have send you an email with a link to reset your password.",
+  "we_have_send_you_an_email_with_a_link_to_reset_your_password": "We have sent you an email with a link to reset your password.",
   "change_password": "Change Password",
   "we_successfully_reset_your_password_you_can_now_login_with_your": "We successfully reset your password. You can now login with your",
   "click_here_to_go_back_to_login": "Click here to go back to login",
@@ -1082,5 +1082,10 @@
   "carousel_delete_slide": "Delete this slide",
   "tpl_cat_reel_cover": "Reel cover",
   "studio_tab_graphic": "🎨 Graphics",
-  "studio_tab_video": "🎬 Video"
+  "studio_tab_video": "🎬 Video",
+  "auth_login_subtitle": "Access your workspace, calendar and connected channels.",
+  "auth_register_subtitle": "Create your Postra workspace and plan content faster.",
+  "forgot_password_subtitle": "We will send you a secure link to reset your password.",
+  "account_not_activated": "Your account is not active yet. Check your email for the activation link.",
+  "resend_activation_email": "Resend Activation Email"
 }

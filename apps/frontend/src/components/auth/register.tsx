@@ -176,7 +176,7 @@ export function RegisterAfter({
             <p className="mt-[8px] text-[15px] text-textColor/58">
               {t(
                 'auth_register_subtitle',
-                'Załóż swój workspace Postra i planuj treści szybciej.'
+                'Create your Postra workspace and plan content faster.'
               )}
             </p>
           </div>
@@ -243,11 +243,11 @@ export function RegisterAfter({
               <div className={clsx('rounded-[14px] border border-white/8 bg-white/[0.025] px-[14px] py-[12px] text-[12px] text-textColor/68')}>
                 {t(
                   'by_registering_you_agree_to_our',
-                  'Rejestrując się akceptujesz nasze'
+                  'By registering you agree to our'
                 )}
                 &nbsp;
                 <a
-                  href={`https://postra.pl/terms`}
+                  href={`https://postra.co.uk/terms`}
                   className="underline underline-offset-4 hover:text-[#38bdf8]"
                   rel="nofollow"
                 >
@@ -256,7 +256,7 @@ export function RegisterAfter({
                 &nbsp;
                 {t('and', 'and')}&nbsp;
                 <a
-                  href={`https://postra.pl/privacy`}
+                  href={`https://postra.co.uk/privacy`}
                   rel="nofollow"
                   className="underline underline-offset-4 hover:text-[#38bdf8]"
                 >

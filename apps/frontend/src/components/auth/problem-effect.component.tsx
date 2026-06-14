@@ -2,43 +2,43 @@ import { ProblemEffectCard } from '@gitroom/frontend/components/auth/problem-eff
 
 const scenarios1 = [
   {
-    title: 'Chaos w publikacji',
-    description: 'Planowanie treści',
+    title: 'Publishing chaos',
+    description: 'Content planning',
     content:
-      'Posty powstają na ostatnią chwilę, a terminy stale się rozjeżdżają.\n\nPostra porządkuje kalendarz publikacji, dzięki czemu od razu widzisz co, gdzie i kiedy ma się pojawić.',
+      'Posts get made at the last minute and deadlines keep slipping.\n\nPostra brings order to your publishing calendar, so you instantly see what goes out, where and when.',
   },
   {
-    title: 'Brak pomysłów',
-    description: 'AI do treści',
+    title: 'Out of ideas',
+    description: 'AI for content',
     content:
-      'Zamiast zaczynać każdy post od zera, możesz szybciej ruszyć z gotowym kierunkiem.\n\nPostra pomaga generować tematy, hooki i szkice treści, które potem dopracowujesz pod swój styl.',
+      'Instead of starting every post from scratch, you can move faster with a ready direction.\n\nPostra helps you generate topics, hooks and content drafts that you then refine to match your style.',
   },
   {
-    title: 'Kilka kanałów naraz',
-    description: 'Jedno miejsce pracy',
+    title: 'Several channels at once',
+    description: 'One workspace',
     content:
-      'Facebook, Instagram, TikTok i LinkedIn często żyją osobno, a publikacja robi się ręczna i niespójna.\n\nPostra zbiera planowanie i publikację w jednym miejscu, więc łatwiej utrzymać porządek między kanałami.',
+      'Facebook, Instagram, TikTok and LinkedIn often live apart, and publishing becomes manual and inconsistent.\n\nPostra brings planning and publishing into one place, so it is easier to stay organized across channels.',
   },
 ];
 
 const scenarios2 = [
   {
-    title: 'Nieregularna komunikacja',
-    description: 'Stały rytm publikacji',
+    title: 'Irregular communication',
+    description: 'A steady publishing rhythm',
     content:
-      'Treści pojawiają się zrywami, a potem zapada cisza.\n\nPostra pomaga budować zapas materiałów i utrzymać regularność bez codziennego gaszenia pożarów.',
+      'Content shows up in bursts, then goes quiet.\n\nPostra helps you build up a backlog of material and stay consistent without firefighting every day.',
   },
   {
-    title: 'Praca z klientem lub zespołem',
-    description: 'Lepszy workflow',
+    title: 'Working with a client or team',
+    description: 'A better workflow',
     content:
-      'Akceptacje, poprawki i komentarze są porozrzucane po wiadomościach i dokumentach.\n\nPostra porządkuje proces, żeby szybciej zobaczyć, co jest gotowe, co czeka i co wymaga poprawy.',
+      'Approvals, edits and comments are scattered across messages and documents.\n\nPostra brings order to the process, so you can see faster what is ready, what is waiting and what needs work.',
   },
   {
-    title: 'Nie wiesz, co działa',
-    description: 'Lepsze decyzje',
+    title: 'Not sure what works',
+    description: 'Better decisions',
     content:
-      'Publikujesz treści, ale trudno ocenić, które formaty i kanały naprawdę dają efekt.\n\nPostra daje analitykę, która pomaga szybciej wyłapać, co warto powtarzać, a co odpuścić.',
+      'You publish content, but it is hard to tell which formats and channels actually deliver.\n\nPostra gives you analytics that help you spot faster what is worth repeating and what to drop.',
   },
 ];
 

@@ -27,29 +27,29 @@ export default async function AuthLayout({
         <div className="pointer-events-none absolute left-[12%] top-[12%] h-[180px] w-[180px] rounded-full bg-[#38bdf8]/10 blur-[100px]" />
         <div className="pointer-events-none absolute bottom-[10%] right-[16%] h-[220px] w-[220px] rounded-full bg-[#a78bfa]/12 blur-[120px]" />
         <div className="relative mb-[16px] rounded-full border border-white/10 bg-white/[0.04] px-[14px] py-[6px] text-[11px] font-[700] uppercase tracking-[0.16em] text-white/58">
-          Dla nowoczesnych zespołów social media
+          For modern social media teams
         </div>
         <div className="relative max-w-[620px] text-center text-[36px] font-[500] leading-[1.05] tracking-[-0.04em] text-white/92">
-          Planuj szybciej, publikuj sprawniej i utrzymuj wszystkie kanały w
+          Plan faster, publish smoother and keep every channel in
           <br />
           <span className="bg-[linear-gradient(135deg,#38bdf8,#a78bfa)] bg-clip-text text-transparent">
-            jednym dopracowanym workspace Postra
+            one polished Postra workspace
           </span>
         </div>
         <p className="relative mt-[18px] max-w-[560px] text-center text-[15px] leading-[1.7] text-slate-300/78">
-          Postra porządkuje planowanie, tworzenie i publikację treści, żeby
-          szybciej przejść od chaosu do regularnego działania na wszystkich
-          ważnych kanałach.
+          Postra brings order to planning, creating and publishing your
+          content, so you move from chaos to a steady rhythm across every
+          channel that matters.
         </p>
         <div className="relative mt-[26px] flex w-full max-w-[780px] flex-1 items-center justify-center px-[8px] pb-[8px] lg:mt-[34px] lg:px-[24px] lg:pb-[16px]">
           <div className="w-full max-w-[640px] rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(30,41,59,0.52),rgba(15,23,42,0.82))] p-[28px] text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
             <div className="text-[24px] font-[600] tracking-[-0.03em] text-white/92">
-              Zobacz, co Postra porządkuje w codziennej pracy
+              See what Postra brings order to in your daily work
             </div>
             <p className="mx-auto mt-[12px] max-w-[460px] text-[14px] leading-[1.7] text-slate-300/72">
-              Zamiast kolejnego narzędzia do wrzucania postów, dostajesz
-              workflow, ktory pomaga planowac, tworzyc i publikowac tresci bez
-              chaosu.
+              Instead of just another tool for pushing out posts, you get a
+              workflow that helps you plan, create and publish content without
+              the chaos.
             </p>
             <ProblemEffectComponent />
           </div>
