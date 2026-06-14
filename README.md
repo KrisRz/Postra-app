@@ -1,35 +1,33 @@
 <h1 align="center">Postra</h1>
 
 <p align="center">
-  <strong>Zarządzaj social mediami po polsku.</strong><br/>
-  Polish-first social media management — schedule, design, and publish across channels.
+  <strong>All your social media in one place.</strong><br/>
+  Schedule, design, and publish across every channel — built for modern teams and creators.
 </p>
 
 <p align="center">
   <a href="https://opensource.org/license/agpl-v3">
     <img src="https://img.shields.io/badge/License-AGPL%203.0-blue.svg" alt="License: AGPL-3.0">
   </a>
-  <a href="https://postra.pl">
-    <img src="https://img.shields.io/badge/web-postra.pl-38bdf8.svg" alt="postra.pl">
+  <a href="https://postra.co.uk">
+    <img src="https://img.shields.io/badge/web-postra.co.uk-38bdf8.svg" alt="postra.co.uk">
   </a>
 </p>
 
 ---
 
-## Czym jest Postra
+## What is Postra
 
-Postra to narzędzie do zarządzania social mediami skrojone pod **polski rynek**: polski interfejs, ceny w PLN, zgodność z RODO. Planuj i publikuj posty na wielu platformach, twórz grafiki i karuzele w wbudowanym **Studio** (edytor + AI), i analizuj wyniki — wszystko z jednego miejsca.
+Postra is a social media management tool for the UK market. Plan and publish posts across multiple platforms, create graphics and carousels in the built-in **Studio** (canvas editor + AI), and track your analytics — all from one place.
 
-- 🌐 Strona: **[postra.pl](https://postra.pl)**
-- 🚀 Aplikacja: **[app.postra.pl](https://app.postra.pl)**
+- 🌐 Website: **[postra.co.uk](https://postra.co.uk)**
+- 🚀 App: **[app.postra.pl](https://app.postra.pl)**
 
-> Postra is a Polish-market social media management tool — Polish UI, PLN pricing, GDPR-aware. Schedule posts across channels, create graphics and carousels in the built-in **Studio** (canvas editor + AI), and track analytics in one place.
+Connect Facebook, Instagram, TikTok, LinkedIn and YouTube, schedule your content, and let Postra publish it on time — with English UI and UK-aware data protection.
 
-## Zbudowane na Postiz / Built on Postiz
+## Built on Postiz
 
-Postra jest pochodną open-source projektu **[Postiz](https://github.com/gitroomhq/postiz-app)** (`gitroomhq/postiz-app`), na licencji **AGPL-3.0**. Zgodnie z AGPL-3.0 kod źródłowy Postry — wraz z naszymi modyfikacjami — jest publiczny w tym repozytorium. Ogromne podziękowania dla zespołu Postiz za fundament.
-
-> Postra is a derivative of the open-source **[Postiz](https://github.com/gitroomhq/postiz-app)** project, under **AGPL-3.0**. Per the license, Postra's source — including our modifications — is public in this repository. Huge thanks to the Postiz team for the foundation.
+Postra is a derivative of the open-source **[Postiz](https://github.com/gitroomhq/postiz-app)** project (`gitroomhq/postiz-app`), licensed under **AGPL-3.0**. In line with the AGPL-3.0, Postra's source — including our modifications — is public in this repository. Huge thanks to the Postiz team for the foundation.
 
 ## Stack
 

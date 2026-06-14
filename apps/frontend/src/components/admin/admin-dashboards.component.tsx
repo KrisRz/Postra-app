@@ -8,12 +8,12 @@ const CW = `https://${REGION}.console.aws.amazon.com/cloudwatch/home?region=${RE
 
 const links: { name: string; desc: string; href: string }[] = [
   { name: 'CloudWatch', desc: 'RAM, dysk, CPU, RDS, ALB · dashboard postra-dev', href: `${CW}#dashboards/dashboard/postra-dev` },
-  { name: 'Alarmy', desc: '7 alarmów → mail (5xx, RAM, dysk, RDS, recovery)', href: `${CW}#alarmsV2:` },
+  { name: 'Alarms', desc: '7 alarms → email (5xx, RAM, disk, RDS, recovery)', href: `${CW}#alarmsV2:` },
   { name: 'Status page', desc: 'status.postra.pl · uptime + response time', href: 'https://status.postra.pl' },
-  { name: 'Sentry', desc: 'błędy + traces (FE + BE)', href: 'https://sentry.io' },
+  { name: 'Sentry', desc: 'errors + traces (FE + BE)', href: 'https://sentry.io' },
 ];
 
-const teaser: string[] = ['Request rate', 'Latency p95', 'Publish success (Temporal)', 'AI koszt / dzień'];
+const teaser: string[] = ['Request rate', 'Latency p95', 'Publish success (Temporal)', 'AI cost / day'];
 
 const Section: FC<{ title: string; hint?: string }> = ({ title, hint }) => (
   <div className="flex items-baseline gap-[9px] mt-[26px] mb-[2px]">

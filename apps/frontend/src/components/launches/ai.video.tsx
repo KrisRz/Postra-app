@@ -45,7 +45,7 @@ export const Modal: FC<{
 
     const customParams = form.getValues();
     if (!(await form.trigger())) {
-      toaster.show('Wypełnij wszystkie wymagane pola', 'warning');
+      toaster.show('Fill in all required fields', 'warning');
       return;
     }
     try {

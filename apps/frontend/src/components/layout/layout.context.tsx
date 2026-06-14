@@ -91,9 +91,9 @@ function LayoutContextInner(params: { children: ReactNode }) {
       if (response.status === 406) {
         if (
           await deleteDialog(
-            'Korzystasz teraz z okresu próbnego. Aby użyć tej funkcji, musisz go zakończyć.',
-            'Zakończ okres próbny i nalicz opłatę teraz',
-            'Okres próbny',
+            'You are currently on a trial. To use this feature, you need to end it.',
+            'End the trial and charge now',
+            'Trial',
 
           )
         ) {
@@ -109,8 +109,8 @@ function LayoutContextInner(params: { children: ReactNode }) {
             (
               await response.json()
             ).message,
-            'Przejdź do rozliczeń',
-            'Wymagana płatność'
+            'Go to billing',
+            'Payment required'
           )
         ) {
           window.open('/billing', '_blank');

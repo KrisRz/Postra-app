@@ -10,7 +10,7 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 // RODO right to erasure + Meta data-deletion. Calls POST /user/delete which
 // permanently removes the account and solely-owned organizations (incl. OAuth
 // tokens) and clears the session. Requires typing a confirmation word.
-const CONFIRM_WORD = 'USUŃ';
+const CONFIRM_WORD = 'DELETE';
 
 const DeleteAccountComponent = () => {
   const t = useT();

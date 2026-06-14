@@ -213,7 +213,7 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
       ) {
         const whatToDo = await new Promise((resolve) => {
           modal.openModal({
-            title: 'Co chcesz zrobić?',
+            title: 'What do you want to do?',
             children: (
               <div className="flex flex-col">
                 <div className="text-[20px] mb-[20px]">

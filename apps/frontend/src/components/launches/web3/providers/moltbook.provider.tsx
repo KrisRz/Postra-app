@@ -25,7 +25,7 @@ export const MoltbookProvider: FC<Web3ProviderInterface> = (props) => {
 
   const register = async () => {
     if (!agentName.trim()) {
-      toaster.show('Podaj nazwę agenta', 'warning');
+      toaster.show('Enter the agent name', 'warning');
       return;
     }
 
