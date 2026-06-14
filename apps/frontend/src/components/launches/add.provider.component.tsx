@@ -27,7 +27,7 @@ export const useAddProvider = (update?: () => void, invite?: boolean) => {
   return useCallback(async () => {
     const data = await (await fetch('/integrations')).json();
     modal.openModal({
-      title: 'Dodaj kanał',
+      title: 'Add channel',
       withCloseButton: true,
       classNames: {
         modal: 'launches-modal-surface text-textColor',
@@ -188,7 +188,7 @@ export const CustomVariables: FC<{
         return {
           ...aIcc,
           [item.key]: string()
-            .matches(regex, `Pole „${item.label}” jest nieprawidłowe`)
+            .matches(regex, `The "${item.label}" field is invalid`)
             .required(),
         };
       }, {}),
@@ -325,10 +325,10 @@ const ChromeExtensionWarning: FC<{
           )}
         </li>
         <li>
-          Będziemy bezpiecznie przechowywać Twoje pliki cookie, aby umożliwić to połączenie.
+          We will securely store your cookies to enable this connection.
         </li>
         <li>
-          Postra nie ponosi odpowiedzialności za problemy ani zamknięcie konta wynikające z użycia tej metody.
+          Postra is not responsible for any issues or account closures resulting from using this method.
         </li>
       </ul>
       <div className="flex gap-[10px] mt-[8px]">
@@ -476,7 +476,7 @@ export const AddProviderComponent: FC<{
 
           if (invite) {
             toaster.show(
-              'Link zaproszenia skopiowano do schowka. Będzie aktywny przez 1 godzinę.',
+              'Invite link copied to clipboard. It will be valid for 1 hour.',
               'success'
             );
             modal.closeAll();

@@ -78,7 +78,7 @@ export const SelectCurrent: FC = () => {
       e.stopPropagation();
       e.preventDefault();
       const open = await modals.open({
-        title: 'Usuń konto social',
+        title: 'Remove social account',
         description:
           'Are you sure you want to remove this social from scheduling?',
       });

@@ -9,18 +9,18 @@ export const PreConditionComponentModal: FC = () => {
   return (
     <div className="flex flex-col gap-[16px]">
       <div className="whitespace-pre-line">
-        Ten kanał social był wcześniej połączony z innym kontem Postra.
+        This social channel was previously connected to another Postra account.
         {'\n'}
-        Aby kontynuować, przyśpiesz okres próbny z natychmiastową płatnością.{'\n'}
+        To continue, fast-forward your trial with an immediate payment.{'\n'}
         {'\n'}
         ** Uwaga: konto nie będzie kwalifikować się do zwrotu,
-        a opłata jest ostateczna.
+        and the charge is final.
       </div>
       <div className="flex gap-[2px] justify-center">
         <Button
           onClick={() => (window.location.href = '/billing?finishTrial=true')}
         >
-          Przyśpiesz — obciąż mnie teraz
+          Fast-forward — charge me now
         </Button>
         <Button onClick={modal.closeCurrent} secondary={true}>Anuluj</Button>
       </div>
@@ -33,7 +33,7 @@ export const PreConditionComponent: FC = () => {
   useEffect(() => {
     if (query.get('precondition')) {
       modal.openModal({
-        title: 'Wykryto podejrzaną aktywność',
+        title: 'Suspicious activity detected',
         withCloseButton: true,
         classNames: {
           modal: 'text-textColor',

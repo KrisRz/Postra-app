@@ -15,7 +15,7 @@ export const Skeleton: FC<{ className?: string }> = ({ className }) => (
 export const CalendarSkeleton: FC = () => (
   <div
     className="flex flex-col flex-1 gap-[12px] p-[20px] rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(15,23,42,0.78),rgba(10,14,26,0.92))] backdrop-blur-xl"
-    aria-label="Ładowanie kalendarza"
+    aria-label="Loading calendar"
     role="status"
   >
     <div className="flex items-center justify-between">
@@ -43,7 +43,7 @@ export const CalendarSkeleton: FC = () => (
 export const AnalyticsSkeleton: FC = () => (
   <div
     className="flex flex-col flex-1 gap-[20px] p-[20px] bg-white/[0.03]"
-    aria-label="Ładowanie analityki"
+    aria-label="Loading analytics"
     role="status"
   >
     <div className="flex gap-[12px] flex-wrap">
