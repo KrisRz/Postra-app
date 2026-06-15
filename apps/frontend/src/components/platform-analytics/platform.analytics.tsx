@@ -29,6 +29,33 @@ const allowedIntegrations = [
   'threads',
   'x',
 ];
+// Brand colour + label per platform — drives the selected-channel glow and the
+// subtitle in the Analytics sidebar, so it's obvious which network's metrics are
+// on screen (and which channel got selected when you click between them).
+const platformAccent: Record<string, string> = {
+  facebook: '#1877F2',
+  instagram: '#E1306C',
+  'instagram-standalone': '#E1306C',
+  'linkedin-page': '#0A66C2',
+  tiktok: '#25F4EE',
+  youtube: '#FF0000',
+  gmb: '#4285F4',
+  pinterest: '#E60023',
+  threads: '#A1A1AA',
+  x: '#1DA1F2',
+};
+const platformLabel: Record<string, string> = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  'instagram-standalone': 'Instagram',
+  'linkedin-page': 'LinkedIn Page',
+  tiktok: 'TikTok',
+  youtube: 'YouTube',
+  gmb: 'Google Business',
+  pinterest: 'Pinterest',
+  threads: 'Threads',
+  x: 'X',
+};
 export const PlatformAnalytics = () => {
   const fetch = useFetch();
   const t = useT();
@@ -200,7 +227,11 @@ export const PlatformAnalytics = () => {
               </svg>
             </div>
           </div>
-          {sortedIntegrations.map((integration, index) => (
+          {sortedIntegrations.map((integration, index) => {
+            const accent =
+              platformAccent[integration.identifier] || '#38bdf8';
+            const selected = currentIntegration.id === integration.id;
+            return (
             <div
               key={integration.id}
               onClick={() => {
@@ -219,8 +250,9 @@ export const PlatformAnalytics = () => {
               }}
               className={clsx(
                 'flex gap-[12px] items-center group/profile justify-center hover:bg-white/[0.05] rounded-e-[8px]',
-                currentIntegration.id !== integration.id &&
-                  'opacity-20 hover:opacity-100 cursor-pointer'
+                selected
+                  ? 'bg-white/[0.05]'
+                  : 'opacity-20 hover:opacity-100 cursor-pointer'
               )}
             >
               <div
@@ -240,14 +272,25 @@ export const PlatformAnalytics = () => {
                 <div className="h-full w-[4px] -ms-[12px] rounded-s-[3px] opacity-0 group-hover/profile:opacity-100 transition-opacity">
                   <SVGLine />
                 </div>
-                <ImageWithFallback
-                  fallbackSrc={`/icons/platforms/${integration.identifier}.png`}
-                  src={integration.picture}
-                  className="rounded-[8px]"
-                  alt={integration.identifier}
-                  width={36}
-                  height={36}
-                />
+                <span
+                  className="inline-flex rounded-[8px] transition-shadow"
+                  style={
+                    selected
+                      ? {
+                          boxShadow: `0 0 0 2px ${accent}, 0 0 16px 2px ${accent}b3`,
+                        }
+                      : undefined
+                  }
+                >
+                  <ImageWithFallback
+                    fallbackSrc={`/icons/platforms/${integration.identifier}.png`}
+                    src={integration.picture}
+                    className="rounded-[8px]"
+                    alt={integration.identifier}
+                    width={36}
+                    height={36}
+                  />
+                </span>
                 <SafeImage
                   src={`/icons/platforms/${integration.identifier}.png`}
                   className="rounded-[8px] absolute z-10 bottom-[5px] -end-[5px] border border-white/10"
@@ -258,14 +301,24 @@ export const PlatformAnalytics = () => {
               </div>
               <div
                 className={clsx(
-                  'flex-1 whitespace-nowrap text-ellipsis overflow-hidden group-[.sidebar]:hidden',
+                  'flex-1 min-w-0 group-[.sidebar]:hidden',
                   integration.disabled && 'opacity-50'
                 )}
               >
-                {integration.name}
+                <div className="whitespace-nowrap text-ellipsis overflow-hidden">
+                  {integration.name}
+                </div>
+                <div
+                  className="text-[12px] font-[500] capitalize"
+                  style={{ color: accent }}
+                >
+                  {platformLabel[integration.identifier] ||
+                    integration.identifier}
+                </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
       <div className="bg-white/[0.03] flex-1 flex-col flex p-[20px] gap-[12px]">
