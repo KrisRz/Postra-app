@@ -36,8 +36,11 @@ const platformAccent: Record<string, string> = {
   facebook: '#1877F2',
   instagram: '#E1306C',
   'instagram-standalone': '#E1306C',
+  linkedin: '#0A66C2',
   'linkedin-page': '#0A66C2',
-  tiktok: '#25F4EE',
+  // TikTok's mark is white-on-black; a true-black glow is invisible on the dark
+  // UI, so use its light wordmark colour to stay visible and on-brand.
+  tiktok: '#F1F1F2',
   youtube: '#FF0000',
   gmb: '#4285F4',
   pinterest: '#E60023',
@@ -48,6 +51,7 @@ const platformLabel: Record<string, string> = {
   facebook: 'Facebook',
   instagram: 'Instagram',
   'instagram-standalone': 'Instagram',
+  linkedin: 'LinkedIn',
   'linkedin-page': 'LinkedIn Page',
   tiktok: 'TikTok',
   youtube: 'YouTube',
