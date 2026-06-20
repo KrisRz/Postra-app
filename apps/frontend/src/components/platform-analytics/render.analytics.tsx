@@ -13,6 +13,18 @@ interface AnalyticsDataItem {
   percentageChange?: number;
 }
 
+// When a channel returns no analytics (no data yet, token still warming up, or
+// a platform we can't pull stats from) we show the dashboard with these metric
+// cards at zero — consistent with the channels that do load — instead of a
+// dead-end "needs to be refreshed" screen.
+const ZERO_METRICS: Record<string, string[]> = {
+  facebook: ['Page Impressions', 'Posts Engagement', 'Page followers'],
+  instagram: ['Reach', 'Likes', 'Comments'],
+  tiktok: ['Followers', 'Total Likes', 'Views'],
+  youtube: ['Views', 'Estimated Minutes Watched', 'Subscribers Gained'],
+};
+const FALLBACK_ZERO_METRICS = ['Impressions', 'Engagement', 'Followers'];
+
 const TrendIndicator: FC<{ value: number; average?: boolean }> = ({
   value,
   average,
@@ -247,19 +259,41 @@ export const RenderAnalytics: FC<{
     );
   }
 
+  const isEmpty = !data?.length;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px]">
-      {data?.length === 0 && (
-        <EmptyState onRefresh={refreshChannel(integration as any)} />
+      {isEmpty
+        ? (
+            ZERO_METRICS[(integration?.providerIdentifier as string) || ''] ||
+            FALLBACK_ZERO_METRICS
+          ).map((label, index) => (
+            <AnalyticsCard
+              key={`zero-${index}`}
+              item={{ label, data: [], percentageChange: 0 }}
+              total={'0'}
+              index={index}
+            />
+          ))
+        : data?.map((item: AnalyticsDataItem, index: number) => (
+            <AnalyticsCard
+              key={`analytics-${index}`}
+              item={item}
+              total={totals[index]}
+              index={index}
+            />
+          ))}
+      {isEmpty && (
+        <button
+          onClick={refreshChannel(integration as any)}
+          className="col-span-full text-[13px] text-newTableText/60 hover:text-[#38bdf8] transition-colors py-[8px]"
+        >
+          {t(
+            'analytics_no_data_refresh',
+            'No analytics data yet — tap to refresh the channel'
+          )}
+        </button>
       )}
-      {data?.map((item: AnalyticsDataItem, index: number) => (
-        <AnalyticsCard
-          key={`analytics-${index}`}
-          item={item}
-          total={totals[index]}
-          index={index}
-        />
-      ))}
     </div>
   );
 };
