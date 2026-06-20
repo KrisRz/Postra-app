@@ -6,6 +6,7 @@ import { textSlicer } from '@gitroom/helpers/utils/count.length';
 import { FC, ReactNode } from 'react';
 import { SliderComponent } from '@gitroom/frontend/components/third-parties/slider.component';
 import { VideoOrImage } from '@gitroom/react/helpers/video.or.image';
+import { hasExtension } from '@gitroom/helpers/utils/has.extension';
 
 const TikTokItem: FC<{ icon: ReactNode; num: string }> = ({ icon, num }) => {
   return (
@@ -62,16 +63,26 @@ export const TiktokPreview: FC<{
     <div className="p-[15px] absolute left-0 top-0 w-full h-full flex justify-center bg-white/[0.03]">
       <div className="relative">
         <SliderComponent
-          list={renderContent?.[0]?.images.map((image, index) => (
-            <a
-              key={`image_${index}`}
-              className="flex-1"
-              href={mediaDir.set(image.path)}
-              target="_blank"
-            >
-              <VideoOrImage autoplay={true} src={mediaDir.set(image.path)} />
-            </a>
-          ))}
+          list={renderContent?.[0]?.images.map((image, index) => {
+            const src = mediaDir.set(image.path);
+            // Videos get a real player (seek bar / time / play-pause) and are
+            // NOT wrapped in the navigating <a> — otherwise clicking the player
+            // would open the raw file. Images keep the click-to-open link.
+            return hasExtension(src, 'mp4') ? (
+              <div key={`image_${index}`} className="flex-1">
+                <VideoOrImage autoplay={true} controls={true} src={src} />
+              </div>
+            ) : (
+              <a
+                key={`image_${index}`}
+                className="flex-1"
+                href={src}
+                target="_blank"
+              >
+                <VideoOrImage autoplay={true} src={src} />
+              </a>
+            );
+          })}
           className="h-full bg-black aspect-[calc(9/16)] rounded-[3px] overflow-hidden"
         />
         <div className="absolute pointer-events-none w-full h-full start-0 top-0 px-[12px] py-[25px] justify-end items-start text-white flex flex-col">
