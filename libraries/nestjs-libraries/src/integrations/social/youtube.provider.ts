@@ -550,8 +550,21 @@ export class YoutubeProvider extends SocialAbstract implements SocialProvider {
         })),
       });
 
+      if (!mappedData?.length) {
+        console.error(
+          '[analytics:youtube] no rows for',
+          id,
+          '— channel likely has no analytics data yet (new channel / YouTube has a 24-48h processing delay).'
+        );
+      }
       return acc;
-    } catch (err) {
+    } catch (err: any) {
+      console.error(
+        '[analytics:youtube] reports.query failed for',
+        id,
+        '-',
+        err?.errors?.[0]?.message || err?.message || err
+      );
       return [];
     }
   }

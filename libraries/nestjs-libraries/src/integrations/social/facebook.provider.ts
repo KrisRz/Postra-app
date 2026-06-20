@@ -751,10 +751,22 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
 
     let data = await fetchInsights(allMetrics);
     if (data === null) {
+      console.error(
+        '[analytics:facebook] batch insights rejected for',
+        id,
+        '— a metric was likely deprecated by Meta; retrying each metric individually.'
+      );
       const perMetric = await Promise.all(
         allMetrics.map((m) => fetchInsights([m]))
       );
       data = perMetric.filter((d) => Array.isArray(d)).flat();
+    }
+    if (!data?.length) {
+      console.error(
+        '[analytics:facebook] no insights for',
+        id,
+        '— token may lack read_insights/pages_read_engagement, or every metric is unavailable for this Page.'
+      );
     }
 
     return (

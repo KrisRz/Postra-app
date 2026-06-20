@@ -773,9 +773,18 @@ export class TiktokProvider extends SocialAbstract implements SocialProvider {
         }
       }
 
+      if (!result.length) {
+        console.error(
+          '[analytics:tiktok] no metrics for',
+          id,
+          '— user/info said:',
+          JSON.stringify(userStatsData?.error || userStatsData),
+          '(TikTok analytics needs the user.info.stats + video.list scopes, which were cut for App Review in #35 — expected to be empty).'
+        );
+      }
       return result;
     } catch (err) {
-      console.error('Error fetching TikTok analytics:', err);
+      console.error('[analytics:tiktok] failed for', id, '-', err);
       return [];
     }
   }
