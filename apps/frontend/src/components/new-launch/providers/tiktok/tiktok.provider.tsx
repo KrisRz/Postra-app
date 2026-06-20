@@ -22,6 +22,14 @@ import { Input } from '@gitroom/react/form/input';
 import { TiktokPreview } from '@gitroom/frontend/components/new-launch/providers/tiktok/tiktok.preview';
 import { useMediaDirectory } from '@gitroom/react/helpers/use.media.directory';
 
+// Render a duration in seconds as M:SS for the TikTok length indicator.
+const formatSeconds = (seconds: number) => {
+  const total = Math.max(0, Math.round(seconds));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+};
+
 const TikTokSettings: FC<{
   values?: any;
 }> = (props) => {
@@ -242,12 +250,32 @@ const TikTokSettings: FC<{
           </option>
         ))}
       </Select>
-      {durationExceeded && (
-        <div className="mt-[10px] text-[13px] text-red-600 text-balance">
-          {t(
-            'tiktok_video_too_long',
-            'This video is longer than the maximum length allowed for this TikTok account ({{max}}s). Shorten the video or use "Upload without posting".'
-          ).replace('{{max}}', String(maxDurationSeconds))}
+      {/* Always surface the attached video's length next to the creator's
+          TikTok-enforced max (from creator_info, never hardcoded) — green when
+          within the limit, red + actionable when it exceeds it. Previously this
+          only rendered when exceeded, so a within-limit video showed nothing
+          and the user couldn't see the length or the account's limit at all. */}
+      {isVideo && !isUploadMode && videoDuration !== null && (
+        <div
+          className={clsx(
+            'mt-[10px] text-[13px] text-balance',
+            durationExceeded ? 'text-red-600' : 'opacity-70'
+          )}
+        >
+          {t('tiktok_video_length', 'Video length')}:{' '}
+          {formatSeconds(videoDuration)}
+          {typeof maxDurationSeconds === 'number' &&
+            (durationExceeded
+              ? ' — ' +
+                t(
+                  'tiktok_video_over_limit',
+                  'longer than your TikTok limit ({{max}}). Shorten the video or use "Upload without posting".'
+                ).replace('{{max}}', formatSeconds(maxDurationSeconds))
+              : ' — ' +
+                t(
+                  'tiktok_video_within_limit',
+                  'within your TikTok limit ({{max}}).'
+                ).replace('{{max}}', formatSeconds(maxDurationSeconds)))}
         </div>
       )}
       <div className="text-[14px] mt-[10px] mb-[18px] text-balance">
