@@ -539,9 +539,13 @@ export const LaunchesComponent = () => {
               <AddProviderButton update={() => update(true)} />
               <div className="flex gap-[8px] group-[.sidebar]:flex-col">
                 {sortedIntegrations?.length > 0 && <NewPost />}
+                {/* Show the AI post generator whenever the tier allows AI —
+                    not only when Stripe billing is wired up. Pre-launch (billing
+                    off) the tier defaults to PRO, so the feature is available
+                    instead of hidden behind an unset STRIPE_PUBLISHABLE_KEY.
+                    Once billing is live this is equivalent (paid tiers have ai). */}
                 {sortedIntegrations?.length > 0 &&
-                  user?.tier?.ai &&
-                  billingEnabled && <GeneratorComponent />}
+                  user?.tier?.ai && <GeneratorComponent />}
               </div>
             </div>
             <div className="gap-[32px] flex flex-col select-none flex-1">
