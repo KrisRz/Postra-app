@@ -18,9 +18,11 @@ export const Toaster = () => {
         setToasterText(text);
         setToasterType(type || 'success');
         setShowToaster(true);
+        // Warnings/errors are usually longer (and matter more) — give them more
+        // time to be read than success confirmations.
         setTimeout(() => {
           setShowToaster(false);
-        }, 4200);
+        }, type === 'warning' ? 8000 : 4200);
       }
     );
     return () => {
@@ -33,7 +35,7 @@ export const Toaster = () => {
   return (
     <div
       className={clsx(
-        'animate-fadeDown rounded-[8px] gap-[18px] flex items-center overflow-hidden bg-customColor8 p-[16px] min-w-[319px] fixed start-[50%] text-white z-[900] top-[32px] -translate-x-[50%] h-[56px]',
+        'animate-fadeDown rounded-[8px] gap-[18px] flex items-start overflow-hidden bg-customColor8 p-[16px] min-w-[319px] max-w-[520px] phone:max-w-[calc(100vw-24px)] fixed start-[50%] text-white z-[900] top-[32px] -translate-x-[50%] min-h-[56px]',
         toasterType === 'success' ? 'shadow-greenToast' : 'shadow-yellowToast'
       )}
     >
@@ -66,7 +68,7 @@ export const Toaster = () => {
           </svg>
         )}
       </div>
-      <div className="flex-1 text-textColor">{toasterText}</div>
+      <div className="flex-1 text-textColor break-words">{toasterText}</div>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="60"
