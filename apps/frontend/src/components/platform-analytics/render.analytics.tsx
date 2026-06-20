@@ -177,11 +177,20 @@ export const RenderAnalytics: FC<{
 
   const load = useCallback(async () => {
     setLoading(true);
-    const load = (
+    const result = await (
       await fetch(`/analytics/${integration.id}?date=${date}`)
     ).json();
     setLoading(false);
-    return load;
+    // Debug: per-channel, what did analytics return? An empty array ([]) is
+    // exactly what triggers the "needs to be refreshed" empty-state — the
+    // backend logs ([analytics:<platform>] …) explain WHY it came back empty.
+    // eslint-disable-next-line no-console
+    console.log(
+      `[analytics] ${integration?.identifier} ${integration?.id}:`,
+      Array.isArray(result) ? `${result.length} panel(s)` : result,
+      result
+    );
+    return result;
   }, [integration, date]);
 
   const { data } = useSWR(`/analytics-${integration?.id}-${date}`, load, {

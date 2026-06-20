@@ -903,6 +903,21 @@ export class InstagramProvider
         `https://${type}/v21.0/${id}/insights?metric_type=total_value&metric=likes,views,comments,shares,saves,replies&access_token=${accessToken}&period=day&since=${since}&until=${until}`
       )
     ).json();
+
+    // If either insights call errored, log it (and don't let an undefined
+    // payload throw on .map below — a single failed call should degrade to a
+    // partial panel, not wipe the whole channel's analytics).
+    if (!data || !data2) {
+      console.error(
+        '[analytics:instagram] partial/empty for',
+        id,
+        '— reach/follower error:',
+        JSON.stringify((all as any)?.error),
+        '| engagement error:',
+        JSON.stringify((all2 as any)?.error)
+      );
+    }
+
     const analytics = [];
 
     analytics.push(
@@ -917,7 +932,7 @@ export class InstagramProvider
     );
 
     analytics.push(
-      ...data2.map((d: any) => ({
+      ...((data2 || []).map((d: any) => ({
         label: this.setTitle(d.name),
         percentageChange: 5,
         data: [
@@ -926,7 +941,7 @@ export class InstagramProvider
             date: dayjs().format('YYYY-MM-DD'),
           },
         ],
-      }))
+      })))
     );
 
     return analytics;
