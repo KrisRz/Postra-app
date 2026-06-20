@@ -186,7 +186,7 @@ export const RenderAnalytics: FC<{
     // backend logs ([analytics:<platform>] …) explain WHY it came back empty.
     // eslint-disable-next-line no-console
     console.log(
-      `[analytics] ${integration?.identifier} ${integration?.id}:`,
+      `[analytics] ${integration?.providerIdentifier} ${integration?.id}:`,
       Array.isArray(result) ? `${result.length} panel(s)` : result,
       result
     );
