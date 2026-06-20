@@ -539,14 +539,14 @@ export const MediaBox: FC<{
               .map((media: any) => (
                 <div
                   className={clsx(
-                    'group px-[3px] py-[3px] float-left rounded-[6px] w8-max aspect-square',
+                    'group px-[3px] py-[3px] float-left rounded-[6px] w8-max',
                     !standalone && 'cursor-pointer'
                   )}
                   key={media.id}
                 >
                   <div
                     className={clsx(
-                      'w-full h-full rounded-[6px] border-[4px] relative',
+                      'w-full aspect-square rounded-[6px] border-[4px] relative',
                       !!selected.find((p) => p.id === media.id)
                         ? 'border-[#38bdf8]'
                         : 'border-transparent'
@@ -563,7 +563,6 @@ export const MediaBox: FC<{
                         onClick={deleteImage(media)}
                       />
                     )}
-                    <div className="absolute bottom-[10px] end-[10px] z-[100] phone:hidden">{media.originalName}</div>
                     <div className="w-full h-full rounded-[6px] overflow-hidden relative">
                       <div className="absolute z-[20] left-[50%] top-[50%] -translate-x-[50%] -translate-y-[50%]">
                         <div
@@ -596,6 +595,14 @@ export const MediaBox: FC<{
                         />
                       )}
                     </div>
+                  </div>
+                  {/* Filename as a clean caption under the tile (was white text
+                      overlaid on the media — unreadable on light frames). */}
+                  <div
+                    className="mt-[5px] px-[2px] text-[11px] leading-tight text-white/60 truncate phone:hidden"
+                    title={media.originalName}
+                  >
+                    {media.originalName}
                   </div>
                 </div>
               ))}
