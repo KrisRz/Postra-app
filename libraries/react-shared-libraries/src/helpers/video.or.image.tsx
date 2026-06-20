@@ -7,16 +7,23 @@ export const VideoOrImage: FC<{
   isContain?: boolean;
   imageClassName?: string;
   videoClassName?: string;
+  // Native player chrome (seek bar, time/duration, play-pause, volume,
+  // fullscreen). Off by default so social previews stay clean autoplay loops.
+  controls?: boolean;
 }> = (props) => {
-  const { src, autoplay, isContain, imageClassName, videoClassName } = props;
+  const { src, autoplay, isContain, imageClassName, videoClassName, controls } =
+    props;
   if (hasExtension(src, 'mp4')) {
     return (
       <video
         src={src}
         autoPlay={autoplay}
+        controls={!!controls}
         className={clsx('w-full h-full', videoClassName)}
         muted={true}
-        loop={true}
+        // With controls visible let the clip play through (so the seek bar
+        // spans the full duration) instead of silently looping.
+        loop={!controls}
       />
     );
   }

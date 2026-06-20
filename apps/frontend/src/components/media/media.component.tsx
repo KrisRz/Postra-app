@@ -359,6 +359,7 @@ export const MediaBox: FC<{
             {media.path.indexOf('mp4') > -1 ? (
               <VideoFrame
                 autoplay={true}
+                controls={true}
                 url={mediaDirectory.set(media.path)}
               />
             ) : (
