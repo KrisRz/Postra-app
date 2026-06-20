@@ -723,17 +723,20 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
     const until = dayjs().endOf('day').unix();
     const since = dayjs().subtract(date, 'day').unix();
 
-    // page_video_views is periodically deprecated/renamed by Meta and is not
-    // available on every Page. A single unsupported metric makes the whole
-    // insights call fail, so request it alongside the core metrics first and,
-    // if the call errors, retry without it so the core analytics still load.
-    const coreMetrics = [
+    // Meta deprecates Page Insights metrics on a rolling schedule, and a SINGLE
+    // unsupported metric makes the WHOLE /insights call fail (returns []). The
+    // old code only dropped page_video_views on retry, so once any *core*
+    // metric got deprecated the entire analytics panel went empty. Instead:
+    // try them all in one request (fast path) and, if Meta rejects the batch,
+    // fall back to querying each metric on its own and keep whatever still
+    // works — one dead metric no longer wipes out the rest.
+    const allMetrics = [
       'page_impressions_unique',
       'page_posts_impressions_unique',
       'page_post_engagements',
       'page_daily_follows',
+      'page_video_views',
     ];
-    const optionalMetrics = ['page_video_views'];
 
     const fetchInsights = async (metrics: string[]) => {
       const { data, error } = await (
@@ -746,9 +749,12 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
       return error ? null : data ?? [];
     };
 
-    let data = await fetchInsights([...coreMetrics, ...optionalMetrics]);
+    let data = await fetchInsights(allMetrics);
     if (data === null) {
-      data = (await fetchInsights(coreMetrics)) ?? [];
+      const perMetric = await Promise.all(
+        allMetrics.map((m) => fetchInsights([m]))
+      );
+      data = perMetric.filter((d) => Array.isArray(d)).flat();
     }
 
     return (
