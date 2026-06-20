@@ -22,6 +22,7 @@ import { Organization } from '@prisma/client';
 import { MediaService } from '@gitroom/nestjs-libraries/database/prisma/media/media.service';
 import { ApiTags } from '@nestjs/swagger';
 import handleR2Upload from '@gitroom/nestjs-libraries/upload/r2.uploader';
+import handleS3Upload from '@gitroom/nestjs-libraries/upload/s3.uploader';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CustomFileValidationPipe } from '@gitroom/nestjs-libraries/upload/custom.upload.validation';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
@@ -347,9 +348,18 @@ export class MediaController {
     @Res() res: Response,
     @Param('endpoint') endpoint: string
   ) {
-    const upload = await handleR2Upload(endpoint, req, res);
+    const upload =
+      process.env.STORAGE_PROVIDER === 's3'
+        ? await handleS3Upload(endpoint, req, res)
+        : await handleR2Upload(endpoint, req, res);
     if (endpoint !== 'complete-multipart-upload') {
       return upload;
+    }
+
+    // complete-multipart-upload already wrote a response (e.g. a 400 when the
+    // uploaded bytes failed the magic-byte check) — nothing left to save.
+    if (res.headersSent) {
+      return;
     }
 
     // @ts-ignore
