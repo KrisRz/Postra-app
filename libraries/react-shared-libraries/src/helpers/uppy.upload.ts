@@ -41,6 +41,10 @@ export const getUppyUploadPlugin = (
         },
       };
     case 'cloudflare':
+    // s3 shares the same chunked, direct-to-bucket multipart path (presigned
+    // part URLs) — see s3.uploader.ts on the backend. This bypasses nginx's
+    // body-size cap and avoids buffering the whole file in backend memory.
+    case 's3':
       return {
         plugin: AwsS3Multipart,
         options: {
@@ -93,7 +97,6 @@ export const getUppyUploadPlugin = (
         },
       };
     case 'local':
-    case 's3':
       return {
         plugin: XHRUpload,
         options: {
