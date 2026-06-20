@@ -473,6 +473,27 @@ export class YoutubeProvider extends SocialAbstract implements SocialProvider {
     accessToken: string,
     date: number
   ): Promise<AnalyticsData[]> {
+    // Always surface the same six panels. With no rows yet (brand-new channel /
+    // YouTube's 24-48h analytics processing delay) they render as zeros — like
+    // the other networks — instead of the misleading "needs to be refreshed"
+    // empty-state. `data` is always an array so the frontend's .reduce can't
+    // throw on an undefined value.
+    const panels: { label: string; key: string; average?: boolean }[] = [
+      { label: 'Estimated Minutes Watched', key: 'estimatedMinutesWatched' },
+      { label: 'Average View Duration', key: 'averageViewDuration', average: true },
+      { label: 'Average View Percentage', key: 'averageViewPercentage', average: true },
+      { label: 'Subscribers Gained', key: 'subscribersGained' },
+      { label: 'Subscribers Lost', key: 'subscribersLost' },
+      { label: 'Likes', key: 'likes' },
+    ];
+    const build = (rows: any[]): AnalyticsData[] =>
+      panels.map(({ label, key, average }) => ({
+        label,
+        percentageChange: 0,
+        ...(average ? { average: true } : {}),
+        data: rows.map((p: any) => ({ total: p[key], date: p.day })),
+      }));
+
     try {
       const endDate = dayjs().format('YYYY-MM-DD');
       const startDate = dayjs().subtract(date, 'day').format('YYYY-MM-DD');
@@ -491,73 +512,23 @@ export class YoutubeProvider extends SocialAbstract implements SocialProvider {
         sort: 'day',
       });
 
-      const columns = data?.columnHeaders?.map((p) => p.name)!;
-      const mappedData = data?.rows?.map((p) => {
-        return columns.reduce((acc, curr, index) => {
-          acc[curr!] = p[index];
-          return acc;
-        }, {} as any);
-      });
+      const columns = data?.columnHeaders?.map((p) => p.name) ?? [];
+      const rows =
+        data?.rows?.map((p) =>
+          columns.reduce((acc, curr, index) => {
+            acc[curr!] = p[index];
+            return acc;
+          }, {} as any)
+        ) ?? [];
 
-      const acc = [] as any[];
-      acc.push({
-        label: 'Estimated Minutes Watched',
-        data: mappedData?.map((p: any) => ({
-          total: p.estimatedMinutesWatched,
-          date: p.day,
-        })),
-      });
-
-      acc.push({
-        label: 'Average View Duration',
-        average: true,
-        data: mappedData?.map((p: any) => ({
-          total: p.averageViewDuration,
-          date: p.day,
-        })),
-      });
-
-      acc.push({
-        label: 'Average View Percentage',
-        average: true,
-        data: mappedData?.map((p: any) => ({
-          total: p.averageViewPercentage,
-          date: p.day,
-        })),
-      });
-
-      acc.push({
-        label: 'Subscribers Gained',
-        data: mappedData?.map((p: any) => ({
-          total: p.subscribersGained,
-          date: p.day,
-        })),
-      });
-
-      acc.push({
-        label: 'Subscribers Lost',
-        data: mappedData?.map((p: any) => ({
-          total: p.subscribersLost,
-          date: p.day,
-        })),
-      });
-
-      acc.push({
-        label: 'Likes',
-        data: mappedData?.map((p: any) => ({
-          total: p.likes,
-          date: p.day,
-        })),
-      });
-
-      if (!mappedData?.length) {
+      if (!rows.length) {
         console.error(
           '[analytics:youtube] no rows for',
           id,
-          '— channel likely has no analytics data yet (new channel / YouTube has a 24-48h processing delay).'
+          '— new channel / YouTube has a 24-48h analytics processing delay; showing zeros.'
         );
       }
-      return acc;
+      return build(rows);
     } catch (err: any) {
       console.error(
         '[analytics:youtube] reports.query failed for',
@@ -565,7 +536,8 @@ export class YoutubeProvider extends SocialAbstract implements SocialProvider {
         '-',
         err?.errors?.[0]?.message || err?.message || err
       );
-      return [];
+      // Show the panels with no data instead of blanking the whole tab.
+      return build([]);
     }
   }
 
