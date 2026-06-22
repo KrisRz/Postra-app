@@ -25,9 +25,12 @@ export class LinkedinPageProvider
   override isBetweenSteps = true;
   override refreshWait = true;
   override maxConcurrentJob = 2; // LinkedIn Page has professional posting limits
+  // Community Management API app (separate LinkedIn app, CM API as the only
+  // product). It does NOT expose the Sign In with LinkedIn (OIDC) scopes
+  // openid/profile, so member identity is read via r_basicprofile + /v2/me
+  // instead of the OIDC /v2/userinfo endpoint.
   override scopes = [
-    'openid',
-    'profile',
+    'r_basicprofile',
     'w_member_social',
     'rw_organization_admin',
     'w_organization_social',
@@ -52,31 +55,15 @@ export class LinkedinPageProvider
         body: new URLSearchParams({
           grant_type: 'refresh_token',
           refresh_token,
-          client_id: process.env.LINKEDIN_CLIENT_ID!,
-          client_secret: process.env.LINKEDIN_CLIENT_SECRET!,
+          client_id: process.env.LINKEDIN_PAGE_CLIENT_ID!,
+          client_secret: process.env.LINKEDIN_PAGE_CLIENT_SECRET!,
         }),
       })
     ).json();
 
-    const { vanityName } = await (
-      await fetch('https://api.linkedin.com/v2/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-    ).json();
-
-    const {
-      name,
-      sub: id,
-      picture,
-    } = await (
-      await fetch('https://api.linkedin.com/v2/userinfo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-    ).json();
+    const { id, name, picture, username } = await this.fetchMemberIdentity(
+      accessToken
+    );
 
     return {
       id,
@@ -85,7 +72,41 @@ export class LinkedinPageProvider
       expiresIn: expires_in,
       name,
       picture,
-      username: vanityName,
+      username,
+    };
+  }
+
+  // Reads the authenticated member's identity from /v2/me using r_basicprofile.
+  // The CM API app has no OIDC product, so /v2/userinfo (openid/profile) is
+  // unavailable; /v2/me returns id, name, vanity URL and profile picture.
+  private async fetchMemberIdentity(accessToken: string): Promise<{
+    id: string;
+    name: string;
+    picture: string;
+    username: string;
+  }> {
+    const me = await (
+      await fetch(
+        'https://api.linkedin.com/v2/me?projection=(id,localizedFirstName,localizedLastName,vanityName,profilePicture(displayImage~:playableStreams))',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      )
+    ).json();
+
+    const name = [me.localizedFirstName, me.localizedLastName]
+      .filter(Boolean)
+      .join(' ');
+
+    return {
+      id: me.id,
+      name,
+      picture:
+        me?.profilePicture?.['displayImage~']?.elements?.[0]?.identifiers?.[0]
+          ?.identifier || '',
+      username: me.vanityName,
     };
   }
 
@@ -123,7 +144,7 @@ export class LinkedinPageProvider
     const state = makeId(6);
     const codeVerifier = makeId(30);
     const url = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${
-      process.env.LINKEDIN_CLIENT_ID
+      process.env.LINKEDIN_PAGE_CLIENT_ID
     }&redirect_uri=${encodeURIComponent(
       `${process.env.FRONTEND_URL}/integrations/social/linkedin-page`
     )}&state=${state}&scope=${encodeURIComponent(this.scopes.join(' '))}`;
@@ -212,8 +233,8 @@ export class LinkedinPageProvider
       'redirect_uri',
       `${process.env.FRONTEND_URL}/integrations/social/linkedin-page`
     );
-    body.append('client_id', process.env.LINKEDIN_CLIENT_ID!);
-    body.append('client_secret', process.env.LINKEDIN_CLIENT_SECRET!);
+    body.append('client_id', process.env.LINKEDIN_PAGE_CLIENT_ID!);
+    body.append('client_secret', process.env.LINKEDIN_PAGE_CLIENT_SECRET!);
 
     const {
       access_token: accessToken,
@@ -232,34 +253,18 @@ export class LinkedinPageProvider
 
     this.checkScopes(this.scopes, scope);
 
-    const {
-      name,
-      sub: id,
-      picture,
-    } = await (
-      await fetch('https://api.linkedin.com/v2/userinfo', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-    ).json();
-
-    const { vanityName } = await (
-      await fetch('https://api.linkedin.com/v2/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-    ).json();
+    const { id, name, picture, username } = await this.fetchMemberIdentity(
+      accessToken
+    );
 
     return {
-      id: id,
+      id,
       accessToken,
       refreshToken,
       expiresIn,
       name,
       picture,
-      username: vanityName,
+      username,
     };
   }
 
