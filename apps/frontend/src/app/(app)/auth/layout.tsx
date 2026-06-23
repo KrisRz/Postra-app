@@ -20,6 +20,25 @@ export default async function AuthLayout({
           <div className="rounded-[24px] border border-white/10 bg-[linear-gradient(180deg,rgba(30,41,59,0.44),rgba(15,23,42,0.78))] p-[24px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-xl">
             <div className="flex">{children}</div>
           </div>
+          <div className="mt-[16px] flex items-center justify-center gap-[16px] text-[12px] text-slate-400/70">
+            <a
+              href="https://postra.co.uk/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white/80"
+            >
+              Privacy Policy
+            </a>
+            <span className="text-slate-600">|</span>
+            <a
+              href="https://postra.co.uk/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-white/80"
+            >
+              Terms of Service
+            </a>
+          </div>
         </div>
       </div>
       <div className="relative hidden min-h-[720px] flex-1 flex-col items-center overflow-hidden rounded-[28px] border border-white/8 bg-[linear-gradient(180deg,rgba(15,23,42,0.42),rgba(10,14,26,0.18))] px-[20px] pb-[20px] pt-[48px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] md:flex lg:px-[28px] lg:pb-[28px] lg:pt-[72px]">
