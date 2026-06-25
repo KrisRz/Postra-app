@@ -15,21 +15,21 @@ import {
   useCalendar,
 } from '@gitroom/frontend/components/launches/calendar.context';
 import dayjs from 'dayjs';
-import 'dayjs/locale/en';
-import 'dayjs/locale/pl';
-import 'dayjs/locale/he';
-import 'dayjs/locale/ru';
-import 'dayjs/locale/zh';
-import 'dayjs/locale/fr';
-import 'dayjs/locale/es';
-import 'dayjs/locale/pt';
-import 'dayjs/locale/de';
-import 'dayjs/locale/it';
-import 'dayjs/locale/ja';
-import 'dayjs/locale/ko';
-import 'dayjs/locale/ar';
-import 'dayjs/locale/tr';
-import 'dayjs/locale/vi';
+import localeEn from 'dayjs/locale/en';
+import localePl from 'dayjs/locale/pl';
+import localeHe from 'dayjs/locale/he';
+import localeRu from 'dayjs/locale/ru';
+import localeZh from 'dayjs/locale/zh';
+import localeFr from 'dayjs/locale/fr';
+import localeEs from 'dayjs/locale/es';
+import localePt from 'dayjs/locale/pt';
+import localeDe from 'dayjs/locale/de';
+import localeIt from 'dayjs/locale/it';
+import localeJa from 'dayjs/locale/ja';
+import localeKo from 'dayjs/locale/ko';
+import localeAr from 'dayjs/locale/ar';
+import localeTr from 'dayjs/locale/tr';
+import localeVi from 'dayjs/locale/vi';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import clsx from 'clsx';
@@ -65,6 +65,18 @@ import { Button } from '@gitroom/frontend/components/ui/button';
 extend(isSameOrAfter);
 extend(isSameOrBefore);
 extend(localizedFormat);
+
+// Register every supported UI locale's data. Bare `import 'dayjs/locale/x'`
+// side-effect imports were dropped from the production bundle, so
+// dayjs.locale('pl') (and the others) silently no-op'd and the calendar's
+// weekday names fell back to English. Referencing the imported locale objects
+// keeps their data in the bundle and registers them without changing the
+// currently active locale.
+[
+  localeEn, localePl, localeHe, localeRu, localeZh, localeFr, localeEs,
+  localePt, localeDe, localeIt, localeJa, localeKo, localeAr, localeTr,
+  localeVi,
+].forEach((locale) => dayjs.locale(locale.name, locale, true));
 
 // Initialize language
 const updateDayjsLocale = () => {
