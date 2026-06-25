@@ -1063,6 +1063,7 @@ const CalendarItem: FC<{
     showTime,
     missingRelease,
   } = props;
+  const hasTags = !!post?.tags?.length;
   const { disableXAnalytics } = useVariables();
   const user = useUser();
   const showCreationMethodBadge =
@@ -1118,7 +1119,13 @@ const CalendarItem: FC<{
       )}
       <div
         className={clsx(
-          'text-white text-[11px] max-h-[24px] h-[24px] min-h-[24px] w-full rounded-tr-[10px] rounded-tl-[10px] flex items-center justify-center gap-[10px] px-[5px] bg-btnPrimary'
+          'text-white text-[11px] w-full rounded-tr-[10px] rounded-tl-[10px] flex items-center justify-center gap-[10px] px-[5px] bg-btnPrimary overflow-hidden transition-all duration-150',
+          // Without tags this used to be a fat empty colour block. Render it as
+          // a thin platform-coloured accent instead, and expand it on hover so
+          // the post's action icons still appear.
+          hasTags
+            ? 'h-[24px] min-h-[24px] max-h-[24px]'
+            : 'h-[6px] min-h-[6px] max-h-[6px] group-hover:h-[24px] group-hover:min-h-[24px] group-hover:max-h-[24px]'
         )}
         style={{
           background:
