@@ -1000,6 +1000,34 @@ export const CalendarColumn: FC<{
     </div>
   );
 });
+
+// Brand colour for a post's top bar, keyed by platform. Unknown platforms fall
+// back to the default accent (bg-btnPrimary); a user-defined tag colour always
+// takes priority over this.
+const PLATFORM_BAR_BG: Record<string, string> = {
+  facebook: '#1877F2',
+  instagram: 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF)',
+  'instagram-standalone': 'linear-gradient(135deg, #F58529, #DD2A7B, #8134AF)',
+  linkedin: '#0A66C2',
+  'linkedin-page': '#0A66C2',
+  tiktok: '#FE2C55',
+  youtube: '#FF0000',
+  x: '#1D9BF0',
+  threads: '#7C3AED',
+  pinterest: '#E60023',
+  bluesky: '#0085FF',
+  mastodon: '#6364FF',
+  reddit: '#FF4500',
+  telegram: '#26A5E4',
+  discord: '#5865F2',
+  slack: '#611F69',
+  nostr: '#8E44EC',
+  warpcast: '#855DCD',
+  vk: '#0077FF',
+};
+const platformBarBg = (identifier?: string) =>
+  (identifier && PLATFORM_BAR_BG[identifier]) || undefined;
+
 const CalendarItem: FC<{
   date: dayjs.Dayjs;
   isBeforeNow: boolean;
@@ -1093,7 +1121,9 @@ const CalendarItem: FC<{
           'text-white text-[11px] max-h-[24px] h-[24px] min-h-[24px] w-full rounded-tr-[10px] rounded-tl-[10px] flex items-center justify-center gap-[10px] px-[5px] bg-btnPrimary'
         )}
         style={{
-          backgroundColor: post?.tags?.[0]?.tag?.color,
+          background:
+            post?.tags?.[0]?.tag?.color ||
+            platformBarBg(post?.integration?.providerIdentifier),
         }}
       >
         <div
