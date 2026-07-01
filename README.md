@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/KrisRz/Postra-app/actions/workflows/build.yml">
-    <img src="https://github.com/KrisRz/Postra-app/actions/workflows/build.yml/badge.svg" alt="Build">
+  <a href="https://github.com/Postra-app/Postra-app/actions/workflows/build.yml">
+    <img src="https://github.com/Postra-app/Postra-app/actions/workflows/build.yml/badge.svg" alt="Build">
   </a>
   <a href="https://opensource.org/license/agpl-v3">
     <img src="https://img.shields.io/badge/License-AGPL%203.0-blue.svg" alt="License: AGPL-3.0">
