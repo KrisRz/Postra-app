@@ -1,42 +1,72 @@
+<p align="center">
+  <a href="https://postra.co.uk"><img src="https://postra.co.uk/logon3obackground.webp" alt="Postra" width="140"></a>
+</p>
+
 <h1 align="center">Postra</h1>
 
 <p align="center">
-  <strong>All your social media in one place.</strong><br/>
-  Schedule, design, and publish across every channel — built for modern teams and creators.
+  <strong>Create a month of social media content in one afternoon.</strong><br/>
+  AI writes posts, images and video for you — Postra plans, publishes and analyses across every platform.
 </p>
 
 <p align="center">
+  <a href="https://github.com/KrisRz/Postra-app/actions/workflows/build.yml">
+    <img src="https://github.com/KrisRz/Postra-app/actions/workflows/build.yml/badge.svg" alt="Build">
+  </a>
   <a href="https://opensource.org/license/agpl-v3">
     <img src="https://img.shields.io/badge/License-AGPL%203.0-blue.svg" alt="License: AGPL-3.0">
   </a>
   <a href="https://postra.co.uk">
     <img src="https://img.shields.io/badge/web-postra.co.uk-38bdf8.svg" alt="postra.co.uk">
   </a>
+  <a href="https://postra.pl">
+    <img src="https://img.shields.io/badge/web-postra.pl-a78bfa.svg" alt="postra.pl">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://postra.co.uk"><img src="https://postra.co.uk/screens/kalendarz.png" alt="Postra calendar — a month of posts scheduled across every platform" width="720"></a>
 </p>
 
 ---
 
 ## What is Postra
 
-Postra is a social media management tool for the UK market. Plan and publish posts across multiple platforms, create graphics and carousels in the built-in **Studio** (canvas editor + AI), and track your analytics — all from one place.
+Postra is a social media management platform with AI built in — made for small businesses, creators and agencies that don't have all day for social media. Plan content on a drag-and-drop calendar, generate posts, graphics and video in the built-in **Studio**, publish everywhere at once and track the results.
 
-- 🌐 Website: **[postra.co.uk](https://postra.co.uk)**
-- 🚀 App: **[app.postra.pl](https://app.postra.pl)**
+- 🌐 Website: **[postra.co.uk](https://postra.co.uk)** (UK) · **[postra.pl](https://postra.pl)** (Poland)
+- 🚀 App: **[app.postra.pl](https://app.postra.pl)** — free 7-day trial, no card required
 
-Connect Facebook, Instagram, TikTok, LinkedIn and YouTube, schedule your content, and let Postra publish it on time — with English UI and UK-aware data protection.
+## Features
+
+- 📅 **Smart calendar** — plan weeks ahead with drag & drop; day, week and month views
+- 📣 **Publish everywhere** — one post, every connected platform at once, delivered on time by a Temporal-backed scheduler
+- ✨ **AI content** — paste a topic or a link and get platform-tailored posts, images and carousels, matched to your Brand Kit
+- 🎬 **Studio** — canvas design editor with AI refine, templates, multi-format export, video trimming and auto-captions (Whisper)
+- 📰 **RSS Auto Post** — connect your blog feed; every new article becomes ready-made, AI-rewritten posts for each platform
+- 📊 **Analytics** — reach, engagement and growth per channel and per post
+- 👥 **Teams** — organisations, roles and shared calendars for agencies and marketing teams
+- 🔌 **Public API & webhooks** — automate posting and react to events from your own tools
+- 🌍 **English + Polish UI**, GDPR-aware, hosted in the UK/EU
+
+## Platforms
+
+Facebook · Instagram · TikTok · LinkedIn · YouTube — with X (Twitter) and more on the way.
 
 ## Built on Postiz
 
 Postra is a derivative of the open-source **[Postiz](https://github.com/gitroomhq/postiz-app)** project (`gitroomhq/postiz-app`), licensed under **AGPL-3.0**. In line with the AGPL-3.0, Postra's source — including our modifications — is public in this repository. Huge thanks to the Postiz team for the foundation.
 
-## Stack
+## Tech stack
 
-- **Frontend:** Next.js + React
-- **Backend:** NestJS
-- **Scheduler:** Temporal
-- **DB / cache:** PostgreSQL + Redis
-- **AI:** OpenAI (GPT / image / Whisper) for Studio generation, refine, captions
-- **Infra:** AWS (EC2, RDS, ALB, ECR, S3, CloudFront) — managed in the private infra repo
+| Layer | Tech |
+|---|---|
+| Frontend | Next.js + React |
+| Backend | NestJS |
+| Scheduler | Temporal |
+| Data | PostgreSQL + Redis |
+| AI | OpenAI (GPT, image generation, Whisper) |
+| Infra | AWS (EC2, RDS, ALB, ECR, S3, CloudFront) — managed in a private infra repo |
 
 ## Monorepo
 
@@ -59,6 +89,10 @@ cp .env.example .env                               # fill in required vars
 pnpm run prisma-db-push
 pnpm run dev                                        # frontend :4200, backend :3000
 ```
+
+## Security
+
+Found a vulnerability? Please report it responsibly — see [SECURITY.md](SECURITY.md).
 
 ## License
 
