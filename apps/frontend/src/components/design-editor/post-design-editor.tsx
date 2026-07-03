@@ -17,6 +17,7 @@ import './fonts';
 
 installStudioFabricMetadata();
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { useRouter } from 'next/navigation';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Button } from '@gitroom/frontend/components/ui/button';
@@ -52,6 +53,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   const [savingToLibrary, setSavingToLibrary] = useState(false);
   const [multiFormatOpen, setMultiFormatOpen] = useState(false);
   const fetch = useFetch();
+  const router = useRouter();
   const toaster = useToaster();
   const t = useT();
 
@@ -259,6 +261,25 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     []
   );
 
+  // In the composer the export lands in the open post; in standalone /studio
+  // there is no post to attach to, so carry the saved media into a fresh post
+  // on /launches (NewPost picks up the query param and opens the post modal).
+  const finishExport = useCallback(
+    (uploaded: { id: string; path: string }[]) => {
+      if (mode === 'studio') {
+        router.push(
+          `/launches?newPostMedia=${encodeURIComponent(
+            JSON.stringify(uploaded)
+          )}`
+        );
+        return;
+      }
+      setMedia(uploaded);
+      closeModal();
+    },
+    [mode, router, setMedia, closeModal]
+  );
+
   const handleExport = useCallback(async () => {
     if (!fabricRef.current) return;
     setExporting(true);
@@ -293,9 +314,8 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
           uploaded.push({ id: data.id, path: data.path });
         }
 
-        setMedia(uploaded);
         useCarouselStore.getState().exitCarouselMode();
-        closeModal();
+        finishExport(uploaded);
         return;
       }
 
@@ -323,14 +343,13 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
         body: JSON.stringify({ canvasJson }),
       });
 
-      setMedia([{ id: data.id, path: data.path }]);
-      closeModal();
+      finishExport([{ id: data.id, path: data.path }]);
     } catch (err) {
       toaster.show(t('export_failed', 'Export failed. Please try again.'), 'warning');
     } finally {
       setExporting(false);
     }
-  }, [fetch, setMedia, closeModal, toaster, t, platform.width, platform.height, renderSlideToBlob]);
+  }, [fetch, finishExport, toaster, t, platform.width, platform.height, renderSlideToBlob]);
 
   const handleDownload = useCallback(() => {
     if (!fabricRef.current) return;
@@ -477,20 +496,18 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
               >
                 📐 {t('multi_format_button', 'All formats')}
               </button>
-              {mode === 'composer' && (
-                <Button
-                  loading={exporting}
-                  onClick={handleExport}
-                  className="!h-[32px] !text-xs"
-                >
-                  {carouselSlideCount > 1
-                    ? t('use_carousel_in_post', 'Export {n} slides').replace(
-                        '{n}',
-                        String(carouselSlideCount)
-                      )
-                    : t('use_in_post', 'Use in post')}
-                </Button>
-              )}
+              <Button
+                loading={exporting}
+                onClick={handleExport}
+                className="!h-[32px] !text-xs"
+              >
+                {carouselSlideCount > 1
+                  ? t('use_carousel_in_post', 'Export {n} slides').replace(
+                      '{n}',
+                      String(carouselSlideCount)
+                    )
+                  : t('use_in_post', 'Use in post')}
+              </Button>
             </div>
           </div>
 
