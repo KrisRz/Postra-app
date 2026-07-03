@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import dayjs from 'dayjs';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCalendar } from '@gitroom/frontend/components/launches/calendar.context';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
@@ -9,16 +10,28 @@ import { SetSelectionModal } from '@gitroom/frontend/components/launches/calenda
 import { AddEditModal } from '@gitroom/frontend/components/new-launch/add.edit.modal';
 import { ModalWrapperComponent } from '@gitroom/frontend/components/new-launch/modal.wrapper.component';
 
+// NewPost mounts twice on /launches (sidebar + mobile header) and React
+// strict-mode re-runs effects, so each ?newPostMedia deep link from Studio
+// must be consumed exactly once (every Studio export mints fresh media ids,
+// so comparing the raw value is enough).
+let lastConsumedNewPostMedia: string | null = null;
+
 export const NewPost = () => {
   const fetch = useFetch();
   const modal = useModals();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { integrations, reloadCalendarView, sets } = useCalendar();
   const t = useT();
 
-  const createAPost = useCallback(async () => {
+  const createAPost = useCallback(async (
+    initialMedia?: { id: string; path: string }[]
+  ) => {
     const date = (await (await fetch('/posts/find-slot')).json()).date;
 
-    const set: any = !sets.length
+    // Media arriving from Studio pre-fills the post (onlyValues), which takes
+    // precedence over a set's content — asking for a set would be misleading.
+    const set: any = !sets.length || initialMedia?.length
       ? undefined
       : await new Promise((resolve) => {
           modal.openModal({
@@ -65,6 +78,9 @@ export const NewPost = () => {
             ...p,
           }))}
           {...(set?.content ? { set: safeJsonParse<any>(set.content, undefined) } : {})}
+          {...(initialMedia?.length
+            ? { onlyValues: [{ content: '', image: initialMedia }] }
+            : {})}
           reopenModal={createAPost}
           mutate={reloadCalendarView}
           integrations={integrations}
@@ -75,9 +91,23 @@ export const NewPost = () => {
       title: ``,
     });
   }, [integrations, sets]);
+
+  // Studio's "Use in post" lands here: /launches?newPostMedia=[{id,path},…]
+  // → open the new-post modal with the exported graphic(s) pre-attached.
+  useEffect(() => {
+    const raw = searchParams.get('newPostMedia');
+    if (!raw || lastConsumedNewPostMedia === raw) return;
+    lastConsumedNewPostMedia = raw;
+    const media = safeJsonParse<{ id: string; path: string }[]>(raw, []);
+    router.replace('/launches');
+    if (media?.length) {
+      createAPost(media);
+    }
+  }, [searchParams]);
+
   return (
     <button
-      onClick={createAPost}
+      onClick={() => createAPost()}
       className="text-[#0a0e1a] flex-1 pt-[12px] pb-[14px] ps-[16px] pe-[20px] group-[.sidebar]:p-0 min-h-[46px] max-h-[46px] rounded-[14px] border border-sky-300/20 bg-[linear-gradient(135deg,#38bdf8,#a78bfa)] shadow-[0_18px_40px_rgba(56,189,248,0.22)] flex justify-center items-center gap-[5px] outline-none transition-all hover:-translate-y-[1px] hover:shadow-[0_24px_60px_rgba(56,189,248,0.28)]"
     >
       <svg
