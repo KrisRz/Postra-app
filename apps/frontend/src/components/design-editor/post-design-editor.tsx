@@ -446,8 +446,11 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       <div className="flex flex-1 min-h-0">
         <EditorToolbar canvas={fabricRef} />
 
-        <div className="flex-1 flex flex-col">
-          <div className="flex items-center justify-between px-4 py-2 border-b border-newBorder">
+        {/* min-w-0 keeps the 1080px canvas from expanding this column past the
+            viewport (it scrolls inside overflow-auto instead) — without it the
+            right side of the action bar ("Use in post") lands off-screen. */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 border-b border-newBorder">
             <div className="flex gap-2">
               <button
                 onClick={handleUndo}
@@ -473,7 +476,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                 🗑
               </button>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleSaveToLibrary}
                 disabled={savingToLibrary}
