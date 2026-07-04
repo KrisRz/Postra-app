@@ -371,6 +371,52 @@ Return concise feedback (2 short sentences, actionable). Tags = up to 4 short la
   }
 
   /**
+   * Rewrite a post caption inline in the composer — improve, shorten, expand,
+   * adapt to a platform, or fix the tone — in the user's brand voice.
+   */
+  async editText(input: {
+    text: string;
+    action: string;
+    platform?: string;
+    tone?: string;
+  }): Promise<{ text: string }> {
+    const EditSchema = z.object({ text: z.string() });
+
+    const instructions: Record<string, string> = {
+      improve:
+        'Rewrite it to be clearer, more engaging and more likely to perform well on social media, keeping the same core meaning.',
+      shorten:
+        'Make it noticeably shorter and punchier without losing the core message.',
+      expand: 'Add a little more detail and value while staying on topic.',
+      adapt: `Adapt it to fit ${
+        input.platform || 'this platform'
+      }'s style, length and conventions.`,
+      fix_tone:
+        'Rewrite it so it better matches the declared brand tone of voice.',
+    };
+
+    const system = `You are an expert social media copywriter. Rewrite the user's post caption. ${
+      instructions[input.action] || instructions.improve
+    }
+${input.tone ? `Match this brand tone of voice: ${input.tone}.` : ''}
+Keep the SAME language as the input. Preserve important facts, @mentions, #hashtags and links. Return ONLY the rewritten caption as plain text — no surrounding quotes, no explanation, no markdown or HTML.`;
+
+    const parsed = (
+      await parseChat(openai, {
+        model: MODEL_GPT,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: input.text },
+        ],
+        response_format: zodResponseFormat(EditSchema, 'editText'),
+      })
+    ).choices[0].message.parsed;
+
+    if (!parsed) throw new Error('AI returned no edited text');
+    return { text: parsed.text };
+  }
+
+  /**
    * Decompose an uploaded image into editable Fabric layers. GPT-4o vision
    * estimates bounding boxes + text content. We deliberately keep the
    * uploaded image as a single background layer (raster, not vectorised).
