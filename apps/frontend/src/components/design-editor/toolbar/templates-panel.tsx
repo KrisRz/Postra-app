@@ -8,6 +8,7 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useEditorStore } from '../editor.store';
+import { useBrandKit } from '@gitroom/frontend/components/video-studio/use-brand-kit';
 import {
   BUILT_IN_TEMPLATES,
   applyTemplate,
@@ -37,6 +38,22 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
   const toaster = useToaster();
   const fetch = useFetch();
   const { platform, pushHistory } = useEditorStore();
+  // Templates render in the org's own colours/font the moment a Brand Kit is
+  // saved — that's the whole point of "template in your brand". Without a
+  // saved kit they fall back to the Postra default palette.
+  const { kit, exists: brandExists } = useBrandKit();
+  const brand: BrandStyle = useMemo(
+    () =>
+      brandExists
+        ? {
+            primary: kit.primaryColor,
+            background: kit.secondaryColor,
+            text: kit.textColor,
+            fontFamily: `${kit.font}, system-ui, sans-serif`,
+          }
+        : DEFAULT_BRAND,
+    [brandExists, kit]
+  );
   const [category, setCategory] = useState<TemplateCategory>('promo');
   const [query, setQuery] = useState('');
   const [searchHits, setSearchHits] = useState<string[] | null>(null);
@@ -176,7 +193,6 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
       if (!tpl) return;
 
       try {
-        const brand: BrandStyle = DEFAULT_BRAND;
         applyTemplate(tpl, canvas.current, platform, brand, lang);
         pushHistory(JSON.stringify(canvas.current.toJSON()));
       } catch {
@@ -186,7 +202,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         );
       }
     },
-    [canvas, platform, pushHistory, t, toaster, lang]
+    [canvas, platform, pushHistory, t, toaster, lang, brand]
   );
 
   return (
