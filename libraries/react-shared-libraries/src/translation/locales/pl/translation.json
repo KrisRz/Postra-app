@@ -738,7 +738,7 @@
   "holiday_days": "dni",
   "holiday_post_prefix": "Post na",
   "holiday_suggestions": "Nadchodzące okazje",
-  "holiday_or_custom": "Lub wpisz własny pomysł niżej — to tylko sugestie.",
+  "holiday_or_custom": "Kliknij okazję, by od razu wygenerować projekt (✎ wstawia prompt do edycji) — albo wpisz własny pomysł niżej.",
   "ai_generate_warning": "AI tworzy nowy projekt i zastępuje obecny canvas. Aby zachować szablon, generuj na pustym canvas albo edytuj ręcznie po wygenerowaniu.",
   "font_label": "Czcionka",
   "text_add": "Dodaj tekst",
@@ -1138,5 +1138,8 @@
   "filter_preset_vivid": "Żywe kolory",
   "filter_preset_cool": "Chłodny",
   "filter_preset_warm": "Ciepły",
-  "filter_reset": "Resetuj filtry"
+  "filter_reset": "Resetuj filtry",
+  "holiday_generate_now": "Wygeneruj projekt na tę okazję od razu",
+  "holiday_fill_prompt": "Wstaw prompt do pola, by go dopracować przed generowaniem",
+  "refine_scope_hint": "Poprawia projekt — tekst, kolory, układ. Nie retuszuje zdjęć (np. nie doda osoby do fotografii)."
 }

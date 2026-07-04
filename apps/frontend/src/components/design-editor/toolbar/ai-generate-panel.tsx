@@ -40,9 +40,12 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
-  const generate = useCallback(async () => {
+  // promptOverride lets the occasion chips generate in one click — the chip
+  // passes its prompt directly because setAiPrompt hasn't re-rendered yet.
+  const generate = useCallback(async (promptOverride?: string) => {
+    const prompt = (promptOverride ?? aiPrompt).trim();
     if (!canvas.current || isGenerating) return;
-    if (!aiPrompt.trim()) {
+    if (!prompt) {
       toaster.show(t('ai_prompt_required', 'Describe what you want to generate'), 'warning');
       return;
     }
@@ -57,7 +60,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
         ? await fetch('/media/generate-carousel-design', {
             method: 'POST',
             body: JSON.stringify({
-              prompt: aiPrompt,
+              prompt,
               platform: platform.key,
               slidesCount,
             }),
@@ -65,7 +68,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
           })
         : await fetch('/media/generate-post-design', {
             method: 'POST',
-            body: JSON.stringify({ prompt: aiPrompt, platform: platform.key }),
+            body: JSON.stringify({ prompt, platform: platform.key }),
             signal: ctrl.signal,
           });
 
@@ -191,29 +194,41 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
             🗓 {t('holiday_suggestions', 'Upcoming occasions')}
           </span>
           <div className="flex flex-col gap-1">
-            {upcoming.map((entry) => (
-              <button
-                key={entry.holiday.date}
-                onClick={() =>
-                  setAiPrompt(
-                    `${t('holiday_post_prefix', 'Post for')} ${entry.holiday.localName}`
-                  )
-                }
-                disabled={isGenerating}
-                className="text-left text-[11px] px-2 py-1.5 rounded bg-newColColor/60 hover:bg-newColColor border border-newBorder/50 text-textColor/80 hover:text-textColor transition-colors disabled:opacity-50"
-              >
-                {t('holiday_upcoming', 'In')} {entry.days}{' '}
-                {entry.days === 1
-                  ? t('holiday_day', 'day')
-                  : t('holiday_days', 'days')}
-                : <strong>{entry.holiday.localName}</strong>
-              </button>
-            ))}
+            {upcoming.map((entry) => {
+              const occasionPrompt = `${t('holiday_post_prefix', 'Post for')} ${entry.holiday.localName}`;
+              return (
+                <div key={entry.holiday.date} className="flex gap-1">
+                  <button
+                    onClick={() => {
+                      setAiPrompt(occasionPrompt);
+                      generate(occasionPrompt);
+                    }}
+                    disabled={isGenerating}
+                    title={t('holiday_generate_now', 'Generate a design for this occasion now')}
+                    className="flex-1 text-left text-[11px] px-2 py-1.5 rounded bg-newColColor/60 hover:bg-newColColor border border-newBorder/50 text-textColor/80 hover:text-textColor transition-colors disabled:opacity-50"
+                  >
+                    {t('holiday_upcoming', 'In')} {entry.days}{' '}
+                    {entry.days === 1
+                      ? t('holiday_day', 'day')
+                      : t('holiday_days', 'days')}
+                    : <strong>{entry.holiday.localName}</strong>
+                  </button>
+                  <button
+                    onClick={() => setAiPrompt(occasionPrompt)}
+                    disabled={isGenerating}
+                    title={t('holiday_fill_prompt', 'Fill the prompt so you can edit it before generating')}
+                    className="px-2 rounded bg-newColColor/40 hover:bg-newColColor border border-newBorder/50 text-textColor/60 hover:text-textColor transition-colors disabled:opacity-50"
+                  >
+                    ✎
+                  </button>
+                </div>
+              );
+            })}
           </div>
           <p className="text-[10px] text-textColor/40 leading-snug">
             {t(
               'holiday_or_custom',
-              'Or type your own idea below — these are just suggestions.'
+              'Click an occasion to generate instantly (✎ fills the prompt for editing) — or type your own idea below.'
             )}
           </p>
         </div>
@@ -254,7 +269,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       </div>
       <Button
         loading={isGenerating}
-        onClick={generate}
+        onClick={() => generate()}
         className="!h-[34px] !text-xs"
       >
         {isGenerating
