@@ -1,10 +1,12 @@
 'use client';
 
-import { ReactNode, useCallback } from 'react';
+import { ReactNode, useCallback, useRef } from 'react';
 import { FetchWrapperComponent } from '@gitroom/helpers/utils/custom.fetch';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useReturnUrl } from '@gitroom/frontend/app/(app)/auth/return.url.component';
 import { useVariables } from '@gitroom/react/helpers/variable.context';
+import { useToaster } from '@gitroom/react/toaster/toaster';
+import { useT } from '@gitroom/react/translation/get.transation.service.client';
 export default function LayoutContext(params: { children: ReactNode }) {
   if (params?.children) {
     // eslint-disable-next-line react/no-children-prop
@@ -24,6 +26,10 @@ export function setCookie(cname: string, cvalue: string, exdays: number) {
 function LayoutContextInner(params: { children: ReactNode }) {
   const returnUrl = useReturnUrl();
   const { backendUrl, isGeneral, isSecured } = useVariables();
+  const toaster = useToaster();
+  const t = useT();
+  // parallel requests can all hit 429 at once — show the toast at most once per 5s
+  const last429 = useRef(0);
   const afterRequest = useCallback(
     async (url: string, options: RequestInit, response: Response) => {
       if (
@@ -93,8 +99,7 @@ function LayoutContextInner(params: { children: ReactNode }) {
           await deleteDialog(
             'You are currently on a trial. To use this feature, you need to end it.',
             'End the trial and charge now',
-            'Trial',
-
+            'Trial'
           )
         ) {
           window.open('/billing?finishTrial=true', '_blank');
@@ -115,6 +120,20 @@ function LayoutContextInner(params: { children: ReactNode }) {
         ) {
           window.open('/billing', '_blank');
           return false;
+        }
+        return true;
+      }
+
+      if (response.status === 429) {
+        if (Date.now() - last429.current > 5000) {
+          last429.current = Date.now();
+          toaster.show(
+            t(
+              'too_many_requests',
+              'Too many requests — please wait a moment and try again.'
+            ),
+            'warning'
+          );
         }
         return true;
       }

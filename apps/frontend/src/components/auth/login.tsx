@@ -41,22 +41,53 @@ export function Login() {
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setLoading(true);
     setNotActivated(false);
-    const login = await fetchData('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        ...data,
-        provider: 'LOCAL',
-      }),
-    });
-    if (login.status === 400) {
-      const errorMessage = await login.text();
-      if (errorMessage === 'User is not activated') {
-        setNotActivated(true);
-      } else {
+    try {
+      const login = await fetchData('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...data,
+          provider: 'LOCAL',
+        }),
+      });
+      if (login.ok) {
+        // success is handled globally (the `reload` response header);
+        // keep the spinner while the redirect happens
+        return;
+      }
+      if (login.status === 400) {
+        const errorMessage = await login.text();
+        if (errorMessage === 'User is not activated') {
+          setNotActivated(true);
+        } else {
+          form.setError('email', {
+            message: errorMessage,
+          });
+        }
+      } else if (login.status === 429) {
         form.setError('email', {
-          message: errorMessage,
+          message: t(
+            'too_many_login_attempts',
+            'Too many attempts — please wait a few minutes and try again.'
+          ),
+        });
+      } else {
+        console.error('[Postra:auth] login failed', login.status);
+        form.setError('email', {
+          message: t(
+            'login_failed_try_again',
+            'Something went wrong, please try again.'
+          ),
         });
       }
+      setLoading(false);
+    } catch (e) {
+      console.error('[Postra:auth] login request failed', e);
+      form.setError('email', {
+        message: t(
+          'connection_error_try_again',
+          'Connection error — check your internet and try again.'
+        ),
+      });
       setLoading(false);
     }
   };
@@ -146,7 +177,10 @@ export function Login() {
                 </div>
                 <p className="mt-4 text-sm text-textColor/66">
                   {t('don_t_have_an_account', "Don't Have An Account?")}&nbsp;
-                  <Link href="/auth/register" className="underline underline-offset-4 cursor-pointer text-textColor hover:text-[#38bdf8]">
+                  <Link
+                    href="/auth/register"
+                    className="underline underline-offset-4 cursor-pointer text-textColor hover:text-[#38bdf8]"
+                  >
                     {t('sign_up', 'Sign Up')}
                   </Link>
                 </p>

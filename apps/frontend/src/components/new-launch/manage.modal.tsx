@@ -44,6 +44,21 @@ import { useShortlinkPreference } from '@gitroom/frontend/components/settings/sh
 import dayjs from 'dayjs';
 import { Button } from '@gitroom/frontend/components/ui/button';
 
+const readResponseError = async (response: Response) => {
+  try {
+    const body = await response.clone().json();
+    if (typeof body?.message === 'string') return body.message;
+    if (Array.isArray(body?.message)) return body.message.join(', ');
+  } catch {
+    /* not JSON — fall through to text */
+  }
+  try {
+    return await response.text();
+  } catch {
+    return '';
+  }
+};
+
 export const ManageModal: FC<AddEditModalProps> = (props) => {
   const t = useT();
   const fetch = useFetch();
@@ -183,24 +198,42 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
 
   const deletePost = useCallback(async () => {
     setLoading(true);
-    if (
-      !(await deleteDialog(
-        t(
-          'are_you_sure_you_want_to_delete_post',
-          'Are you sure you want to delete this post?'
-        ),
-        t('yes_delete_it', 'Yes, delete it!')
-      ))
-    ) {
+    try {
+      if (
+        !(await deleteDialog(
+          t(
+            'are_you_sure_you_want_to_delete_post',
+            'Are you sure you want to delete this post?'
+          ),
+          t('yes_delete_it', 'Yes, delete it!')
+        ))
+      ) {
+        return;
+      }
+      const response = await fetch(`/posts/${existingData.group}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        toaster.show(
+          `${t(
+            'post_delete_failed',
+            'Could not delete the post'
+          )}: ${await readResponseError(response)}`,
+          'warning'
+        );
+        return;
+      }
+      mutate();
+      modal.closeAll();
+    } catch (e) {
+      console.error('[Postra:posts] delete failed', e);
+      toaster.show(
+        t('post_delete_failed', 'Could not delete the post'),
+        'warning'
+      );
+    } finally {
       setLoading(false);
-      return;
     }
-    await fetch(`/posts/${existingData.group}`, {
-      method: 'DELETE',
-    });
-    mutate();
-    modal.closeAll();
-    return;
   }, [existingData, mutate, modal]);
 
   const schedule = useCallback(
@@ -251,120 +284,137 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
 
       setLoading(true);
 
-      // Pull the local values to build the payload, but rely on the server
-      // (`/posts/valid`) for the actual validation — checkValidity now lives
-      // server-side so it can't be bypassed.
-      const allValues = await ref.current.getAllValues();
+      try {
+        // Pull the local values to build the payload, but rely on the server
+        // (`/posts/valid`) for the actual validation — checkValidity now lives
+        // server-side so it can't be bypassed.
+        const allValues = await ref.current.getAllValues();
 
-      const integrationById = (id: string) =>
-        selectedIntegrations.find((p) => p.integration.id === id);
+        const integrationById = (id: string) =>
+          selectedIntegrations.find((p) => p.integration.id === id);
 
-      const group = existingData.group || makeId(10);
+        const group = existingData.group || makeId(10);
 
-      const posts = allValues.map((post: any) => ({
-        integration: {
-          id: post.id,
-        },
-        group,
-        settings: { ...(post.settings || {}) },
-        value: post.values.map((value: any) => ({
-          ...(value.id ? { id: value.id } : {}),
-          content: value.content,
-          delay: value.delay || 0,
-          image:
-            (value?.media || []).map(
-              ({ id, path, alt, thumbnail, thumbnailTimestamp }: any) => ({
-                id,
-                path,
-                alt,
-                thumbnail,
-                thumbnailTimestamp,
-              })
-            ) || [],
-        })),
-      }));
+        const posts = allValues.map((post: any) => ({
+          integration: {
+            id: post.id,
+          },
+          group,
+          settings: { ...(post.settings || {}) },
+          value: post.values.map((value: any) => ({
+            ...(value.id ? { id: value.id } : {}),
+            content: value.content,
+            delay: value.delay || 0,
+            image:
+              (value?.media || []).map(
+                ({ id, path, alt, thumbnail, thumbnailTimestamp }: any) => ({
+                  id,
+                  path,
+                  alt,
+                  thumbnail,
+                  thumbnailTimestamp,
+                })
+              ) || [],
+          })),
+        }));
 
-      if (!dummy) {
-        const checkAllValid = await (
-          await fetch('/posts/valid', {
+        if (!dummy) {
+          const validResponse = await fetch('/posts/valid', {
             method: 'POST',
             body: JSON.stringify({ type, posts }),
-          })
-        ).json();
+          });
+          if (!validResponse.ok) {
+            console.error(
+              '[Postra:posts] /posts/valid failed',
+              validResponse.status
+            );
+            toaster.show(
+              `${t(
+                'post_validation_failed',
+                'Could not validate the post'
+              )}: ${await readResponseError(validResponse)}`,
+              'warning'
+            );
+            return;
+          }
+          const checkAllValid = await validResponse.json();
 
-        const focus = (id: string, where: 'fix' | 'preview') => {
-          integrationById(id)?.ref?.current?.[where]?.();
-        };
+          const focus = (id: string, where: 'fix' | 'preview') => {
+            integrationById(id)?.ref?.current?.[where]?.();
+          };
 
-        const notEnoughChars = checkAllValid.filter((p: any) => p.emptyContent);
-
-        for (const item of notEnoughChars) {
-          toaster.show(
-            `${capitalize(item.identifier.split('-')[0])} (${item.name}):` +
-              ' ' +
-              t(
-                'post_needs_content_or_image',
-                'Your post should have at least one character or one image.'
-              ),
-            'warning'
+          const notEnoughChars = checkAllValid.filter(
+            (p: any) => p.emptyContent
           );
-          setLoading(false);
-          focus(item.id, 'preview');
-          return;
-        }
 
-        if (type !== 'draft') {
-          for (const item of checkAllValid) {
-            if (item.valid === false) {
-              toaster.show(
-                `${capitalize(item.identifier.split('-')[0])} (${item.name}): ${
-                  item.settingsError ||
-                  t('please_fix_your_settings', 'Please fix your settings')
-                }`,
-                'warning'
-              );
-              focus(item.id, 'fix');
-              setLoading(false);
-              setShowSettings(true);
-              return;
-            }
+          for (const item of notEnoughChars) {
+            toaster.show(
+              `${capitalize(item.identifier.split('-')[0])} (${item.name}):` +
+                ' ' +
+                t(
+                  'post_needs_content_or_image',
+                  'Your post should have at least one character or one image.'
+                ),
+              'warning'
+            );
+            setLoading(false);
+            focus(item.id, 'preview');
+            return;
+          }
 
-            if (item.errors !== true) {
-              toaster.show(
-                `${capitalize(item.identifier.split('-')[0])} (${item.name}): ${
-                  item.errors
-                }`,
-                'warning'
-              );
-              focus(item.id, 'preview');
-              setLoading(false);
-              setShowSettings(false);
-              return;
-            }
+          if (type !== 'draft') {
+            for (const item of checkAllValid) {
+              if (item.valid === false) {
+                toaster.show(
+                  `${capitalize(item.identifier.split('-')[0])} (${
+                    item.name
+                  }): ${
+                    item.settingsError ||
+                    t('please_fix_your_settings', 'Please fix your settings')
+                  }`,
+                  'warning'
+                );
+                focus(item.id, 'fix');
+                setLoading(false);
+                setShowSettings(true);
+                return;
+              }
 
-            if (item.tooLong) {
-              toaster.show(
-                `${item.name} (${item.identifier}) ${t(
-                  'post_is_too_long',
-                  'post is too long, please fix it'
-                )}`,
-                'warning'
-              );
-              focus(item.id, 'preview');
-              setLoading(false);
-              return;
+              if (item.errors !== true) {
+                toaster.show(
+                  `${capitalize(item.identifier.split('-')[0])} (${
+                    item.name
+                  }): ${item.errors}`,
+                  'warning'
+                );
+                focus(item.id, 'preview');
+                setLoading(false);
+                setShowSettings(false);
+                return;
+              }
+
+              if (item.tooLong) {
+                toaster.show(
+                  `${item.name} (${item.identifier}) ${t(
+                    'post_is_too_long',
+                    'post is too long, please fix it'
+                  )}`,
+                  'warning'
+                );
+                focus(item.id, 'preview');
+                setLoading(false);
+                return;
+              }
             }
           }
         }
-      }
 
-      const shortlinkPreference = shortlinkPreferenceData?.shortlink || 'ASK';
+        const shortlinkPreference = shortlinkPreferenceData?.shortlink || 'ASK';
 
-      let shortLink = false;
+        let shortLink = false;
 
-      if (!dummy && shortlinkPreference !== 'NO') {
-        const shortLinkUrl = await (
-          await fetch('/posts/should-shortlink', {
+        if (!dummy && shortlinkPreference !== 'NO') {
+          const shortlinkResponse = await fetch('/posts/should-shortlink', {
             method: 'POST',
             body: JSON.stringify({
               messages: allValues
@@ -374,76 +424,107 @@ export const ManageModal: FC<AddEditModalProps> = (props) => {
                 )
                 .flatMap((p: any) => p.values.flatMap((a: any) => a.content)),
             }),
-          })
-        ).json();
-
-        if (shortLinkUrl.ask) {
-          if (shortlinkPreference === 'YES') {
-            // Automatically shortlink without asking
-            shortLink = true;
-          } else {
-            // ASK: Show the dialog
-            shortLink = await deleteDialog(
-              t(
-                'shortlink_urls_question',
-                'Do you want to shortlink the URLs? it will let you get statistics over clicks'
-              ),
-              t('yes_shortlink_it', 'Yes, shortlink it!')
+          });
+          if (!shortlinkResponse.ok) {
+            // shortlinking is optional — a failure here must not block publishing
+            console.error(
+              '[Postra:posts] /posts/should-shortlink failed',
+              shortlinkResponse.status
             );
           }
+          const shortLinkUrl = shortlinkResponse.ok
+            ? await shortlinkResponse.json()
+            : { ask: false };
+
+          if (shortLinkUrl.ask) {
+            if (shortlinkPreference === 'YES') {
+              // Automatically shortlink without asking
+              shortLink = true;
+            } else {
+              // ASK: Show the dialog
+              shortLink = await deleteDialog(
+                t(
+                  'shortlink_urls_question',
+                  'Do you want to shortlink the URLs? it will let you get statistics over clicks'
+                ),
+                t('yes_shortlink_it', 'Yes, shortlink it!')
+              );
+            }
+          }
         }
-      }
 
-      const data = {
-        type,
-        ...(repeater ? { inter: repeater } : {}),
-        tags,
-        shortLink,
-        date: date.utc().format('YYYY-MM-DDTHH:mm:ss'),
-        posts,
-      };
+        const data = {
+          type,
+          ...(repeater ? { inter: repeater } : {}),
+          tags,
+          shortLink,
+          date: date.utc().format('YYYY-MM-DDTHH:mm:ss'),
+          posts,
+        };
 
-      if (dummy) {
-        modal.openModal({
-          title: '',
-          children: <DummyCodeComponent code={data} />,
-          classNames: {
-            modal: 'w-[100%] bg-transparent text-textColor',
-          },
-          size: '100%',
-          withCloseButton: false,
-          closeOnEscape: true,
-          closeOnClickOutside: true,
-        });
+        if (dummy) {
+          modal.openModal({
+            title: '',
+            children: <DummyCodeComponent code={data} />,
+            classNames: {
+              modal: 'w-[100%] bg-transparent text-textColor',
+            },
+            size: '100%',
+            withCloseButton: false,
+            closeOnEscape: true,
+            closeOnClickOutside: true,
+          });
 
-        setLoading(false);
-      }
+          setLoading(false);
+        }
 
-      if (!dummy) {
-        addEditSets
-          ? addEditSets(data)
-          : await fetch('/posts', {
+        if (!dummy) {
+          if (addEditSets) {
+            addEditSets(data);
+          } else {
+            const saveResponse = await fetch('/posts', {
               method: 'POST',
               body: JSON.stringify(data),
             });
+            if (!saveResponse.ok) {
+              console.error('[Postra:posts] save failed', saveResponse.status);
+              toaster.show(
+                `${t(
+                  'post_save_failed',
+                  'Could not save the post'
+                )}: ${await readResponseError(saveResponse)}`,
+                'warning'
+              );
+              return;
+            }
+            mutate();
+            toaster.show(
+              !existingData.integration
+                ? t('added_successfully', 'Added successfully')
+                : t('updated_successfully', 'Updated successfully')
+            );
+          }
+          if (customClose) {
+            setTimeout(() => {
+              customClose();
+            }, 2000);
+          }
 
-        if (!addEditSets) {
-          mutate();
-          toaster.show(
-            !existingData.integration
-              ? t('added_successfully', 'Added successfully')
-              : t('updated_successfully', 'Updated successfully')
-          );
+          if (!addEditSets) {
+            modal.closeAll();
+          }
         }
-        if (customClose) {
-          setTimeout(() => {
-            customClose();
-          }, 2000);
-        }
-
-        if (!addEditSets) {
-          modal.closeAll();
-        }
+      } catch (e) {
+        console.error('[Postra:posts] schedule failed', e);
+        toaster.show(
+          t(
+            'post_save_unexpected_error',
+            'Something went wrong while saving. Your content is still here — please try again.'
+          ),
+          'warning'
+        );
+      } finally {
+        setLoading(false);
       }
     },
     [ref, repeater, tags, date, addEditSets, dummy, shortlinkPreferenceData]

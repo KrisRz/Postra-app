@@ -1165,5 +1165,13 @@
   "video_goal_text": "Tekst na wideo",
   "video_goal_text_desc": "Nałóż przekaz w stylu Twojej marki",
   "video_goal_stock": "Znajdź stock B-roll",
-  "video_goal_stock_desc": "Darmowe klipy do publikacji lub miksu"
+  "video_goal_stock_desc": "Darmowe klipy do publikacji lub miksu",
+  "post_validation_failed": "Nie udało się zweryfikować posta",
+  "post_save_failed": "Nie udało się zapisać posta",
+  "post_save_unexpected_error": "Coś poszło nie tak przy zapisie. Twoja treść nie zniknęła — spróbuj ponownie.",
+  "post_delete_failed": "Nie udało się usunąć posta",
+  "too_many_login_attempts": "Zbyt wiele prób — odczekaj kilka minut i spróbuj ponownie.",
+  "login_failed_try_again": "Coś poszło nie tak, spróbuj ponownie.",
+  "connection_error_try_again": "Błąd połączenia — sprawdź internet i spróbuj ponownie.",
+  "too_many_requests": "Zbyt wiele żądań — odczekaj chwilę i spróbuj ponownie."
 }
