@@ -31,12 +31,12 @@ const DeleteAccountComponent = () => {
       if (!res.ok) {
         throw new Error('failed');
       }
-      toaster.show(t('account_deleted', 'Twoje konto zostało usunięte'), 'success');
+      toaster.show(t('account_deleted', 'Your account has been deleted'), 'success');
       window.location.href = '/';
     } catch (e) {
       setDeleting(false);
       toaster.show(
-        t('account_delete_failed', 'Nie udało się usunąć konta. Spróbuj ponownie.'),
+        t('account_delete_failed', 'Could not delete the account. Please try again.'),
         'warning'
       );
     }
@@ -45,7 +45,7 @@ const DeleteAccountComponent = () => {
   return (
     <Card className="my-[16px] p-[24px] flex flex-col gap-[16px] border border-[rgba(248,113,113,0.4)]">
       <div className="text-[15px] font-[600] text-[#fca5a5]">
-        {t('danger_zone', 'Strefa zagrożenia')}
+        {t('danger_zone', 'Danger zone')}
       </div>
       <div className="text-[13px] text-newTextColor/70 max-w-[560px]">
         {t(
@@ -55,8 +55,8 @@ const DeleteAccountComponent = () => {
       </div>
       <div className="flex flex-col gap-[8px] max-w-[420px]">
         <label className="text-[12px] text-newTextColor/55" htmlFor="confirm-delete-account">
-          {t('type_to_confirm', 'Wpisz')} <b>{CONFIRM_WORD}</b>{' '}
-          {t('type_to_confirm_2', 'aby potwierdzić')}
+          {t('type_to_confirm', 'Type')} <b>{CONFIRM_WORD}</b>{' '}
+          {t('type_to_confirm_2', 'to confirm')}
         </label>
         <input
           id="confirm-delete-account"
@@ -71,8 +71,8 @@ const DeleteAccountComponent = () => {
       <div>
         <Button variant="danger" disabled={!confirmed} loading={deleting} onClick={deleteAccount}>
           {deleting
-            ? t('deleting', 'Usuwanie…')
-            : t('delete_my_account', 'Usuń moje konto')}
+            ? t('deleting', 'Deleting…')
+            : t('delete_my_account', 'Delete my account')}
         </Button>
       </div>
     </Card>

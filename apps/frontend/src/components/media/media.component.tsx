@@ -851,7 +851,7 @@ export const MultiMediaComponent: FC<{
                           e.stopPropagation();
                           modals.openModal({
                             askClose: false,
-                            title: t('design_media_edit', 'Edytuj projekt'),
+                            title: t('design_media_edit', 'Edit design'),
                             size: '80%',
                             height: '750px',
                             children: (close) => (
@@ -875,7 +875,7 @@ export const MultiMediaComponent: FC<{
                           });
                         }}
                         className="absolute -end-[4px] -bottom-[4px] z-[20] w-[16px] h-[16px] rounded-full bg-newAccent text-white text-[9px] flex items-center justify-center hover:bg-forth"
-                        title={t('design_media_edit_hint', 'Edytuj projekt — otwórz w Studio')}
+                        title={t('design_media_edit_hint', 'Edit design — open in Studio')}
                       >
                         ✏
                       </button>
