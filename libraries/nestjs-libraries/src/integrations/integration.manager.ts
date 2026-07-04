@@ -83,6 +83,7 @@ const enabledProviders = new Set([
   'youtube',
   'bluesky',
   'mastodon',
+  'telegram',
 ]);
 
 const hiddenProviders = new Set([
