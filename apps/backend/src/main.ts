@@ -52,7 +52,18 @@ async function start() {
     },
   });
 
-  await startMcp(app);
+  try {
+    // startMcp boots the AI copilot (Mastra + MCP server). It must never take
+    // the whole backend down: if it throws, the copilot should be unavailable,
+    // not the entire app. (A Mastra Postgres bug crash-looped bootstrap this way
+    // twice — see the mastra_ai_spans column guard in MastraService.)
+    await startMcp(app);
+  } catch (err) {
+    new Logger('startMcp').error(
+      'AI copilot / MCP failed to initialise — starting the backend without it.',
+      err instanceof Error ? err.stack : String(err)
+    );
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({
