@@ -39,6 +39,15 @@ export class NotEnoughScopes {
   ) {}
 }
 
+// Strips token-ish query params / JSON fields so full URLs and bodies can be
+// logged without leaking credentials (Meta puts access_token in the query string).
+export function sanitizeSecrets(text: string) {
+  return (text || '').replace(
+    /(access_token|refresh_token|appsecret_proof|client_secret|api_key|token)(=|":\s*")([^&\s"']+)/gi,
+    '$1$2***'
+  );
+}
+
 function safeStringify(obj: any) {
   const seen = new WeakSet();
 
@@ -123,6 +132,11 @@ export abstract class SocialAbstract {
       value = await func();
     } catch (err) {
       const handle = this.handleErrors(safeStringify(err), 200);
+      console.error(
+        `[social:${this.identifier}] provider call threw handled=${
+          handle ? `${handle.type} (${handle.value})` : 'none'
+        } error=${sanitizeSecrets(safeStringify(err)).slice(0, 4000)}`
+      );
       value = { err: true, value: 'Unknown Error', ...(handle || {}) };
       globalErr = err;
     }
@@ -156,10 +170,6 @@ export abstract class SocialAbstract {
       return request;
     }
 
-    if (totalRetries > 2) {
-      throw new BadBody(identifier, '{}', options.body || '{}', message);
-    }
-
     let json = '{}';
     try {
       json = await request.text();
@@ -168,6 +178,29 @@ export abstract class SocialAbstract {
     }
 
     const handleError = this.handleErrors(json || '{}', request.status);
+
+    // The raw platform response never survives into Temporal's "Activity failed"
+    // log line (details render as [Object]), so this is the only place the real
+    // error (e.g. Meta's error_subcode/error_user_msg) gets recorded.
+    console.error(
+      `[social:${this.identifier}] request failed status=${
+        request.status
+      } attempt=${totalRetries + 1} handled=${
+        handleError ? `${handleError.type} (${handleError.value})` : 'none'
+      } url=${sanitizeSecrets(url)} response=${sanitizeSecrets(json).slice(
+        0,
+        4000
+      )}`
+    );
+
+    if (totalRetries > 2) {
+      throw new BadBody(
+        identifier,
+        json,
+        options.body || '{}',
+        message || handleError?.value || ''
+      );
+    }
 
     if (
       request.status === 429 ||
