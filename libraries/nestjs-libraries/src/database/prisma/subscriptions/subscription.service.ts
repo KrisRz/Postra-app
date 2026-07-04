@@ -208,6 +208,57 @@ export class SubscriptionService {
     );
   }
 
+  /**
+   * One-off pre-launch backfill. Turning on Stripe billing flips every org that
+   * has no subscription down to FREE (2 channels) — this would strip access from
+   * the founder and existing users. This grants each such org a lifetime top-tier
+   * (Business/ULTIMATE) subscription instead. Passing a `code` marks it
+   * isLifetime and bypasses Stripe entirely (no customer/charge). Idempotent:
+   * orgs that already hold an active subscription are left untouched.
+   */
+  async grandfatherAllOrganizations(apply: boolean) {
+    const TIER = 'ULTIMATE' as const;
+    const MIN_CHANNELS = 100; // generous ceiling so a comped account never hits a cap
+    const orgs =
+      await this._subscriptionRepository.getAllOrganizationsForGrandfather();
+
+    const granted: Array<{ id: string; name: string; channels: number }> = [];
+    const skipped: Array<{ id: string; name: string; reason: string }> = [];
+
+    for (const org of orgs) {
+      const sub = org.subscription;
+      if (sub && !sub.deletedAt) {
+        skipped.push({
+          id: org.id,
+          name: org.name,
+          reason: `already ${sub.isLifetime ? 'lifetime' : 'active'} ${
+            sub.subscriptionTier
+          }`,
+        });
+        continue;
+      }
+
+      const channels = Math.max(MIN_CHANNELS, org.Integration.length);
+      granted.push({ id: org.id, name: org.name, channels });
+
+      if (apply) {
+        await this.createOrUpdateSubscription(
+          false, // isTrailing
+          makeId(10), // identifier
+          '', // customerId (unused when org id + code are provided)
+          channels,
+          TIER,
+          'MONTHLY',
+          null,
+          `grandfather-${org.id}`, // code -> isLifetime=true, skips Stripe
+          org.id
+        );
+      }
+    }
+
+    return { total: orgs.length, granted, skipped };
+  }
+
   getSubscriptionByIdentifier(identifier: string) {
     return this._subscriptionRepository.getSubscriptionByIdentifier(identifier);
   }
