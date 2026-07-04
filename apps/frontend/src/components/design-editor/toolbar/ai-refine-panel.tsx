@@ -148,6 +148,12 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
             'Describe what to change in the current design. AI will edit the relevant elements instead of starting from scratch.'
           )}
         </p>
+        <p className="text-[10px] text-textColor/40 leading-snug mt-1">
+          {t(
+            'refine_scope_hint',
+            'It edits the design — text, colours, layout. It does not retouch photos (e.g. it can’t add a person to an image).'
+          )}
+        </p>
       </div>
 
       <div className="flex flex-wrap gap-1">

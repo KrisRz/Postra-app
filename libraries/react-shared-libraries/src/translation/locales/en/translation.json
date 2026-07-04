@@ -738,7 +738,7 @@
   "holiday_days": "days",
   "holiday_post_prefix": "Post about",
   "holiday_suggestions": "Upcoming occasions",
-  "holiday_or_custom": "Or type your own idea below — these are just suggestions.",
+  "holiday_or_custom": "Click an occasion to generate instantly (✎ fills the prompt for editing) — or type your own idea below.",
   "ai_generate_warning": "AI creates a new design and replaces the current canvas. To keep a template, generate on an empty canvas or edit manually after generation.",
   "font_label": "Font",
   "text_add": "Add text",
@@ -1138,5 +1138,8 @@
   "filter_preset_vivid": "Vivid",
   "filter_preset_cool": "Cool",
   "filter_preset_warm": "Warm",
-  "filter_reset": "Reset filters"
+  "filter_reset": "Reset filters",
+  "holiday_generate_now": "Generate a design for this occasion now",
+  "holiday_fill_prompt": "Fill the prompt so you can edit it before generating",
+  "refine_scope_hint": "It edits the design — text, colours, layout. It does not retouch photos (e.g. it can’t add a person to an image)."
 }
