@@ -10,6 +10,11 @@ const clearCanvas = (canvas: fabric.Canvas, bg: string) => {
   canvas.backgroundColor = bg;
 };
 
+// Every template positions elements with top-left math (bars at left:0/top:0,
+// stacked top offsets), but Fabric v7 changed the DEFAULT origin to
+// center/center — which silently shifted every element by half its size and
+// broke layouts (cut-off bars, price overlapping its badge). Anchor the
+// helpers to left/top; templates that want centering set originX explicitly.
 const addTextbox = (
   canvas: fabric.Canvas,
   text: string,
@@ -20,6 +25,8 @@ const addTextbox = (
     fill: '#ffffff',
     textAlign: 'center',
     editable: true,
+    originX: 'left',
+    originY: 'top',
     ...options,
   });
   canvas.add(tb);
@@ -30,7 +37,7 @@ const addRect = (
   canvas: fabric.Canvas,
   options: Partial<fabric.Rect>
 ): fabric.Rect => {
-  const r = new fabric.Rect({ ...options });
+  const r = new fabric.Rect({ originX: 'left', originY: 'top', ...options });
   canvas.add(r);
   return r;
 };
@@ -39,7 +46,7 @@ const addCircle = (
   canvas: fabric.Canvas,
   options: Partial<fabric.Circle>
 ): fabric.Circle => {
-  const c = new fabric.Circle({ ...options });
+  const c = new fabric.Circle({ originX: 'left', originY: 'top', ...options });
   canvas.add(c);
   return c;
 };
