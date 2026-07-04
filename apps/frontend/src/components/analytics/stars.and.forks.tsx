@@ -11,7 +11,7 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
   const t = useT();
   return (
     <>
-      {list.map((item) => (
+      {(list ?? []).map((item) => (
         <div className="flex gap-[24px] h-[272px]" key={item.login}>
           <div className="flex-1 bg-secondary py-[10px] px-[16px] flex flex-col">
             <div className="flex items-center gap-[14px]">
@@ -30,8 +30,7 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
                 </svg>
               </div>
               <div className="text-[20px]">
-                {item.login
-                  .split('/')[1]
+                {(item.login.split('/')[1] ?? item.login)
                   .split('')
                   .map((char, index) =>
                     index === 0 ? char.toUpperCase() : char
@@ -73,8 +72,7 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
                 </svg>
               </div>
               <div className="text-[20px]">
-                {item.login
-                  .split('/')[1]
+                {(item.login.split('/')[1] ?? item.login)
                   .split('')
                   .map((char, index) =>
                     index === 0 ? char.toUpperCase() : char
@@ -139,7 +137,10 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
               <div className="text-[20px]">
                 {p === 0
                   ? t('last_github_trending', 'Last Github Trending')
-                  : t('next_predicted_github_trending', 'Next Predicted GitHub Trending')}
+                  : t(
+                      'next_predicted_github_trending',
+                      'Next Predicted GitHub Trending'
+                    )}
               </div>
             </div>
             <div className="flex items-center">
@@ -147,7 +148,7 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
               <div className="text-[24px] flex-1">
                 <UtcToLocalDateRender
                   date={
-                    p === 0 ? props.trending.last : props.trending.predictions
+                    p === 0 ? props.trending?.last : props.trending?.predictions
                   }
                   format="dddd"
                 />
@@ -160,7 +161,7 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
               >
                 <UtcToLocalDateRender
                   date={
-                    p === 0 ? props.trending.last : props.trending.predictions
+                    p === 0 ? props.trending?.last : props.trending?.predictions
                   }
                   format="DD MMM YYYY"
                 />
@@ -176,7 +177,7 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
               >
                 <UtcToLocalDateRender
                   date={
-                    p === 0 ? props.trending.last : props.trending.predictions
+                    p === 0 ? props.trending?.last : props.trending?.predictions
                   }
                   format="HH:mm"
                 />

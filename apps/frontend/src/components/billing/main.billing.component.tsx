@@ -11,7 +11,10 @@ import ReactLoading from '@gitroom/frontend/components/layout/loading';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import dayjs from 'dayjs';
-import { pricing, planLabel } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
+import {
+  pricing,
+  planLabel,
+} from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { FAQComponent } from '@gitroom/frontend/components/billing/faq.component';
 import { useSWRConfig } from 'swr';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
@@ -143,12 +146,35 @@ const Accept: FC<{ resolve: (res: boolean) => void }> = ({ resolve }) => {
 
   const apply = useCallback(async () => {
     setLoading(true);
-    await fetch('/billing/apply-discount', {
-      method: 'POST',
-    });
-
-    resolve(true);
-    toaster.show(t('discount_applied', 'Zniżka 50% zastosowana'));
+    try {
+      const response = await fetch('/billing/apply-discount', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        console.error(
+          '[Postra:billing] apply-discount failed',
+          response.status
+        );
+        toaster.show(
+          t(
+            'discount_failed',
+            'Could not apply the discount, please try again.'
+          ),
+          'warning'
+        );
+        return;
+      }
+      resolve(true);
+      toaster.show(t('discount_applied', '50% discount applied'));
+    } catch (e) {
+      console.error('[Postra:billing] apply-discount failed', e);
+      toaster.show(
+        t('discount_failed', 'Could not apply the discount, please try again.'),
+        'warning'
+      );
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   return (
@@ -258,8 +284,23 @@ export const MainBillingComponent: FC<{
     setSubscription(sub);
   }, [sub]);
   const updatePayment = useCallback(async () => {
-    const { portal } = await (await fetch('/billing/portal')).json();
-    window.location.href = portal;
+    try {
+      const response = await fetch('/billing/portal');
+      const portal = response.ok ? (await response.json())?.portal : undefined;
+      if (!portal) {
+        throw new Error(`no portal url (status ${response.status})`);
+      }
+      window.location.href = portal;
+    } catch (e) {
+      console.error('[Postra:billing] portal failed', e);
+      toast.show(
+        t(
+          'billing_portal_failed',
+          'Could not open the billing portal, please try again.'
+        ),
+        'warning'
+      );
+    }
   }, []);
   const currentPackage = useMemo(() => {
     if (!subscription) {
@@ -276,10 +317,10 @@ export const MainBillingComponent: FC<{
   const moveToCheckout = useCallback(
     (billing: 'STANDARD' | 'PRO' | 'FREE', reactivate = false) =>
       async () => {
-        if (reactivate) {
-          setLoading(true);
-          const { cancel_at } = await (
-            await fetch('/billing/cancel', {
+        try {
+          if (reactivate) {
+            setLoading(true);
+            const reactivateResponse = await fetch('/billing/cancel', {
               method: 'POST',
               body: JSON.stringify({
                 feedback: '',
@@ -287,76 +328,96 @@ export const MainBillingComponent: FC<{
               headers: {
                 'Content-Type': 'application/json',
               },
-            })
-          ).json();
-          setSubscription((subs) => ({
-            ...subs!,
-            cancelAt: cancel_at,
-          }));
+            });
+            if (!reactivateResponse.ok) {
+              console.error(
+                '[Postra:billing] reactivate failed',
+                reactivateResponse.status
+              );
+              toast.show(
+                t(
+                  'billing_action_failed',
+                  'Something went wrong, please try again.'
+                ),
+                'warning'
+              );
+              return;
+            }
+            const { cancel_at } = await reactivateResponse.json();
+            setSubscription((subs) => ({
+              ...subs!,
+              cancelAt: cancel_at,
+            }));
 
-          toast.show('Subscription reactivated successfully');
-          setLoading(false);
-          return;
-        }
+            toast.show(
+              t(
+                'subscription_reactivated',
+                'Subscription reactivated successfully'
+              )
+            );
+            setLoading(false);
+            return;
+          }
 
-        const messages = [];
-        if (
-          !pricing[billing].team_members &&
-          pricing[subscription?.subscriptionTier!]?.team_members
-        ) {
-          messages.push(
-            `Your team members will be removed from your organization`
-          );
-        }
-        if (billing === 'FREE') {
+          const messages = [];
           if (
-            subscription?.cancelAt ||
-            (await deleteDialog(
-              `Are you sure you want to cancel your subscription?
-              ${messages.join(', ')}`,
-              'Yes, cancel',
-              'Cancel Subscription'
-            ))
+            !pricing[billing].team_members &&
+            pricing[subscription?.subscriptionTier!]?.team_members
           ) {
-            const checkDiscount = await (
-              await fetch('/billing/check-discount')
-            ).json();
-            if (checkDiscount.offerCoupon) {
+            messages.push(
+              `Your team members will be removed from your organization`
+            );
+          }
+          if (billing === 'FREE') {
+            if (
+              subscription?.cancelAt ||
+              (await deleteDialog(
+                `Are you sure you want to cancel your subscription?
+              ${messages.join(', ')}`,
+                'Yes, cancel',
+                'Cancel Subscription'
+              ))
+            ) {
+              const discountResponse = await fetch('/billing/check-discount');
+              // the retention offer is optional — a failure must not block cancelling
+              const checkDiscount = discountResponse.ok
+                ? await discountResponse.json()
+                : {};
+              if (checkDiscount.offerCoupon) {
+                const info = await new Promise((res) => {
+                  modal.openModal({
+                    title: 'Before you cancel',
+                    withCloseButton: true,
+                    classNames: {
+                      modal: 'bg-transparent text-textColor',
+                    },
+                    children: <Accept resolve={res} />,
+                  });
+                });
+
+                modal.closeAll();
+
+                if (info) {
+                  return;
+                }
+              }
+
               const info = await new Promise((res) => {
                 modal.openModal({
-                  title: 'Before you cancel',
+                  title: t(
+                    'we_are_sorry_to_see_you_go',
+                    'We are sorry to see you go :('
+                  ),
                   withCloseButton: true,
                   classNames: {
                     modal: 'bg-transparent text-textColor',
                   },
-                  children: <Accept resolve={res} />,
+                  children: <Info proceed={(e) => res(e)} />,
                 });
               });
 
-              modal.closeAll();
-
-              if (info) {
-                return;
-              }
-            }
-
-            const info = await new Promise((res) => {
-              modal.openModal({
-                title: t(
-                  'we_are_sorry_to_see_you_go',
-                  'We are sorry to see you go :('
-                ),
-                withCloseButton: true,
-                classNames: {
-                  modal: 'bg-transparent text-textColor',
-                },
-                children: <Info proceed={(e) => res(e)} />,
-              });
-            });
-
-            setLoading(true);
-            const { cancel_at } = await (
-              await fetch('/billing/cancel', {
+              setLoading(true);
+              const cancelResponse = await fetch('/billing/cancel', {
                 method: 'POST',
                 body: JSON.stringify({
                   feedback: info,
@@ -364,27 +425,45 @@ export const MainBillingComponent: FC<{
                 headers: {
                   'Content-Type': 'application/json',
                 },
-              })
-            ).json();
-            setSubscription((subs) => ({
-              ...subs!,
-              cancelAt: cancel_at,
-            }));
-            if (cancel_at)
-              toast.show('Subscription set to canceled successfully');
-            setLoading(false);
+              });
+              if (!cancelResponse.ok) {
+                console.error(
+                  '[Postra:billing] cancel failed',
+                  cancelResponse.status
+                );
+                toast.show(
+                  t(
+                    'billing_action_failed',
+                    'Something went wrong, please try again.'
+                  ),
+                  'warning'
+                );
+                return;
+              }
+              const { cancel_at } = await cancelResponse.json();
+              setSubscription((subs) => ({
+                ...subs!,
+                cancelAt: cancel_at,
+              }));
+              if (cancel_at)
+                toast.show(
+                  t(
+                    'subscription_canceled',
+                    'Subscription set to canceled successfully'
+                  )
+                );
+              setLoading(false);
+            }
+            return;
           }
-          return;
-        }
-        if (
-          messages.length &&
-          !(await deleteDialog(messages.join(', '), 'Yes, continue'))
-        ) {
-          return;
-        }
-        setLoading(true);
-        const { url, portal } = await (
-          await fetch('/billing/subscribe', {
+          if (
+            messages.length &&
+            !(await deleteDialog(messages.join(', '), 'Yes, continue'))
+          ) {
+            return;
+          }
+          setLoading(true);
+          const subscribeResponse = await fetch('/billing/subscribe', {
             method: 'POST',
             body: JSON.stringify({
               period: monthlyOrYearly === 'on' ? 'YEARLY' : 'MONTHLY',
@@ -392,48 +471,75 @@ export const MainBillingComponent: FC<{
               billing,
               ...(dub ? { dub } : {}),
             }),
-          })
-        ).json();
-        if (url) {
-          await track(TrackEnum.InitiateCheckout, {
-            value:
-              pricing[billing][
-                monthlyOrYearly === 'on' ? 'year_price' : 'month_price'
-              ],
           });
-          window.location.href = url;
-          return;
-        }
-        if (portal) {
-          if (
-            await deleteDialog(
-              'We could not charge your credit card, please update your payment method',
-              'Update',
-              'Payment Method Required'
-            )
-          ) {
-            window.open(portal);
+          if (!subscribeResponse.ok) {
+            console.error(
+              '[Postra:billing] subscribe failed',
+              subscribeResponse.status
+            );
+            toast.show(
+              t(
+                'billing_action_failed',
+                'Something went wrong, please try again.'
+              ),
+              'warning'
+            );
+            return;
           }
-        } else {
-          setPeriod(monthlyOrYearly === 'on' ? 'YEARLY' : 'MONTHLY');
-          setSubscription((subs) => ({
-            ...subs!,
-            subscriptionTier: billing,
-            cancelAt: null,
-          }));
-          mutate(
-            '/user/self',
-            {
-              ...user,
-              tier: billing,
-            },
-            {
-              revalidate: false,
+          const { url, portal } = await subscribeResponse.json();
+          if (url) {
+            await track(TrackEnum.InitiateCheckout, {
+              value:
+                pricing[billing][
+                  monthlyOrYearly === 'on' ? 'year_price' : 'month_price'
+                ],
+            });
+            window.location.href = url;
+            return;
+          }
+          if (portal) {
+            if (
+              await deleteDialog(
+                'We could not charge your credit card, please update your payment method',
+                'Update',
+                'Payment Method Required'
+              )
+            ) {
+              window.open(portal);
             }
+          } else {
+            setPeriod(monthlyOrYearly === 'on' ? 'YEARLY' : 'MONTHLY');
+            setSubscription((subs) => ({
+              ...subs!,
+              subscriptionTier: billing,
+              cancelAt: null,
+            }));
+            mutate(
+              '/user/self',
+              {
+                ...user,
+                tier: billing,
+              },
+              {
+                revalidate: false,
+              }
+            );
+            toast.show(
+              t('subscription_updated', 'Subscription updated successfully')
+            );
+          }
+        } catch (e) {
+          console.error('[Postra:billing] checkout failed', e);
+          toast.show(
+            t(
+              'billing_action_failed',
+              'Something went wrong, please try again.'
+            ),
+            'warning'
           );
-          toast.show('Subscription updated successfully');
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       },
     [monthlyOrYearly, subscription, user, utm]
   );

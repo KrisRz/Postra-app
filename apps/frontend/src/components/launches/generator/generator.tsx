@@ -21,12 +21,14 @@ import dayjs from 'dayjs';
 import { Select } from '@gitroom/react/form/select';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { AddEditModal } from '@gitroom/frontend/components/new-launch/add.edit.modal';
+import { useToaster } from '@gitroom/react/toaster/toaster';
 
 const FirstStep: FC = (props) => {
   const { integrations, reloadCalendarView } = useCalendar();
   const modal = useModals();
   const fetch = useFetch();
   const [loading, setLoading] = useState(false);
+  const toaster = useToaster();
   const [showStep, setShowStep] = useState('');
   const t = useT();
   const resolver = useMemo(() => {
@@ -50,7 +52,8 @@ const FirstStep: FC = (props) => {
       // eslint-disable-next-line no-constant-condition
       while (true) {
         const { done, value } = await reader.read();
-        if (done) return lastResponse.data.output;
+        // the stream can end without a valid chunk (e.g. server error mid-stream)
+        if (done) return lastResponse?.data?.output;
 
         // Convert chunked binary data to string
         const chunkStr = decoder.decode(value, {
@@ -121,64 +124,80 @@ const FirstStep: FC = (props) => {
   }> = useCallback(
     async (value) => {
       setLoading(true);
-      const response = await fetch('/posts/generator', {
-        method: 'POST',
-        body: JSON.stringify(value),
-      });
-      if (!response.body) {
-        return;
-      }
-      const reader = response.body.getReader();
-      const load = await generateStep(reader);
-      const messages = load.content.map((p: any, index: number) => {
-        if (index === 0) {
+      try {
+        const response = await fetch('/posts/generator', {
+          method: 'POST',
+          body: JSON.stringify(value),
+        });
+        if (!response.ok || !response.body) {
+          throw new Error(`generator request failed (${response.status})`);
+        }
+        const reader = response.body.getReader();
+        const load = await generateStep(reader);
+        if (!load?.content) {
+          throw new Error('generator stream ended without content');
+        }
+        const messages = load.content.map((p: any, index: number) => {
+          if (index === 0) {
+            return {
+              content: load.hook + '\n' + p.content,
+              ...(p?.image?.path
+                ? {
+                    image: [p.image],
+                  }
+                : {}),
+            };
+          }
           return {
-            content: load.hook + '\n' + p.content,
+            content: p.content,
             ...(p?.image?.path
               ? {
                   image: [p.image],
                 }
               : {}),
           };
-        }
-        return {
-          content: p.content,
-          ...(p?.image?.path
-            ? {
-                image: [p.image],
-              }
-            : {}),
-        };
-      });
-      setShowStep('');
-      modal.openModal({
-        id: 'add-edit-modal',
-        closeOnClickOutside: false,
-        removeLayout: true,
-        closeOnEscape: false,
-        withCloseButton: false,
-        askClose: true,
-        fullScreen: true,
-        classNames: {
-          modal: 'w-[100%] max-w-[1400px] text-textColor',
-        },
-        children: (
-          <AddEditModal
-            allIntegrations={integrations.map((p) => ({
-              ...p,
-            }))}
-            integrations={integrations.slice(0).map((p) => ({
-              ...p,
-            }))}
-            mutate={reloadCalendarView}
-            date={dayjs.utc(load.date).local()}
-            reopenModal={() => ({})}
-            onlyValues={messages}
-          />
-        ),
-        size: '80%',
-      });
-      setLoading(false);
+        });
+        setShowStep('');
+        modal.openModal({
+          id: 'add-edit-modal',
+          closeOnClickOutside: false,
+          removeLayout: true,
+          closeOnEscape: false,
+          withCloseButton: false,
+          askClose: true,
+          fullScreen: true,
+          classNames: {
+            modal: 'w-[100%] max-w-[1400px] text-textColor',
+          },
+          children: (
+            <AddEditModal
+              allIntegrations={integrations.map((p) => ({
+                ...p,
+              }))}
+              integrations={integrations.slice(0).map((p) => ({
+                ...p,
+              }))}
+              mutate={reloadCalendarView}
+              date={dayjs.utc(load.date).local()}
+              reopenModal={() => ({})}
+              onlyValues={messages}
+            />
+          ),
+          size: '80%',
+        });
+      } catch (e) {
+        console.error('[Postra:generator] failed', e);
+        toaster.show(
+          t(
+            'generator_failed',
+            'Could not generate the post, please try again.'
+          ),
+          'warning'
+        );
+      } finally {
+        setShowStep('');
+        setLoading(false);
+      }
     },
     [integrations, reloadCalendarView]
   );

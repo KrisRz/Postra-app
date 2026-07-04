@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 // Route-level error boundary for the (app) segment. Without it, any render
 // throw (e.g. an unguarded .map over an undefined value) bubbles to the root
@@ -29,6 +30,8 @@ export default function AppError({
     // Separate log so the browser prints the clickable, source-mapped stack.
     console.error('[Postra:error-boundary] stack:', error?.stack || error);
     /* eslint-enable no-console */
+    // No-op when Sentry isn't initialized (no DSN), so safe to call always.
+    Sentry.captureException(error);
   }, [error]);
 
   return (

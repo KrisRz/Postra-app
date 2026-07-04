@@ -50,11 +50,10 @@ const AiImageModal: FC<{
     close();
     setLocked(true);
     try {
-      const image = await (
-        await fetch('/media/generate-image-with-prompt', {
-          method: 'POST',
-          body: JSON.stringify({
-            prompt: `
+      const response = await fetch('/media/generate-image-with-prompt', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: `
 <!-- description -->
 ${prompt}
 <!-- /description -->
@@ -64,15 +63,29 @@ ${style}
 <!-- /style -->
 
 `,
-          }),
-        })
-      ).json();
-      if (image) {
-        onChange(image);
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`generate-image failed (${response.status})`);
       }
-    } catch (e) {}
-    setLocked(false);
-    setLoading(false);
+      const image = await response.json();
+      if (!image?.path) {
+        throw new Error('generate-image returned no image');
+      }
+      onChange(image);
+    } catch (e) {
+      console.error('[Postra:ai-image] generate failed', e);
+      toaster.show(
+        t(
+          'image_generation_failed',
+          'Could not generate the image, please try again.'
+        ),
+        'warning'
+      );
+    } finally {
+      setLocked(false);
+      setLoading(false);
+    }
   }, [prompt, style, onChange]);
 
   return (

@@ -1173,5 +1173,14 @@
   "too_many_login_attempts": "Too many attempts — please wait a few minutes and try again.",
   "login_failed_try_again": "Something went wrong, please try again.",
   "connection_error_try_again": "Connection error — check your internet and try again.",
-  "too_many_requests": "Too many requests — please wait a moment and try again."
+  "too_many_requests": "Too many requests — please wait a moment and try again.",
+  "discount_failed": "Could not apply the discount, please try again.",
+  "billing_portal_failed": "Could not open the billing portal, please try again.",
+  "billing_action_failed": "Something went wrong, please try again.",
+  "subscription_reactivated": "Subscription reactivated successfully",
+  "subscription_canceled": "Subscription set to canceled successfully",
+  "subscription_updated": "Subscription updated successfully",
+  "generator_failed": "Could not generate the post, please try again.",
+  "settings_save_failed": "Could not save the settings, please try again.",
+  "image_generation_failed": "Could not generate the image, please try again."
 }

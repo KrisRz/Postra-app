@@ -38,17 +38,24 @@ export const Modal: FC<{
   const { data } = useSWR('copilot-credits', loadCredits);
 
   const generate = useCallback(async () => {
-    await fetch(`/media/generate-video/${type.identifier}/allowed`);
-    setLoading(true);
-    close();
-    setLocked(true);
-
+    // validate before locking the composer — a failed validation used to
+    // leave the editor locked forever
     const customParams = form.getValues();
     if (!(await form.trigger())) {
       toaster.show('Fill in all required fields', 'warning');
       return;
     }
+
+    setLoading(true);
+    close();
+    setLocked(true);
     try {
+      const allowed = await fetch(
+        `/media/generate-video/${type.identifier}/allowed`
+      );
+      if (!allowed.ok) {
+        throw new Error(`generate-video not allowed (${allowed.status})`);
+      }
       const image = await fetch(`/media/generate-video`, {
         method: 'POST',
         body: JSON.stringify({
@@ -60,11 +67,19 @@ export const Modal: FC<{
 
       if (image.status == 200 || image.status == 201) {
         onChange(await image.json());
+      } else {
+        throw new Error(`generate-video failed (${image.status})`);
       }
-    } catch (e) {}
-
-    setLocked(false);
-    setLoading(false);
+    } catch (e) {
+      console.error('[Postra:ai-video] generate failed', e);
+      toaster.show(
+        'Could not generate the video, please try again.',
+        'warning'
+      );
+    } finally {
+      setLocked(false);
+      setLoading(false);
+    }
   }, [type, position]);
 
   return (
@@ -215,7 +230,10 @@ export const AiVideo: FC<{
           </div>
         )}
         <div
-          className={clsx('flex gap-[5px] items-center', loading && 'invisible')}
+          className={clsx(
+            'flex gap-[5px] items-center',
+            loading && 'invisible'
+          )}
         >
           <div>
             <svg
