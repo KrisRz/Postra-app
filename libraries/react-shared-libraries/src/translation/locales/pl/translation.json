@@ -1151,4 +1151,19 @@
   "my_template_apply_hint": "Zastosuj ten szablon (zastępuje canvas — cofniesz Ctrl+Z)",
   "my_template_remove_hint": "Usuń z szablonów (grafika zostaje w bibliotece)",
   "template_applying": "Wczytywanie…",
-  "template_remove_failed": "Nie udało się usunąć szablonu."}
+  "template_remove_failed": "Nie udało się usunąć szablonu.",
+  "video_goals_title": "Co chcesz zrobić?",
+  "video_goals_hint": "Te same narzędzia co w zakładkach wyżej — to tylko najszybsze wejście.",
+  "video_goals_back": "Co chcesz zrobić? — wróć do celów",
+  "video_goal_last": "ostatnio",
+  "video_goal_slideshow": "Zdjęcia → Reels",
+  "video_goal_slideshow_desc": "Zamień kilka zdjęć w wideo z ruchem",
+  "video_goal_trim": "Przytnij wideo",
+  "video_goal_trim_desc": "Skróć klip do właściwej długości",
+  "video_goal_captions": "Dodaj napisy",
+  "video_goal_captions_desc": "AI transkrybuje i wypala napisy",
+  "video_goal_text": "Tekst na wideo",
+  "video_goal_text_desc": "Nałóż przekaz w stylu Twojej marki",
+  "video_goal_stock": "Znajdź stock B-roll",
+  "video_goal_stock_desc": "Darmowe klipy do publikacji lub miksu"
+}
