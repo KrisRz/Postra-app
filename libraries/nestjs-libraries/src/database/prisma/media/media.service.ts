@@ -26,6 +26,7 @@ import {
 } from '@gitroom/nestjs-libraries/studio/studio-spec';
 import {
   BrandVoiceCheckDto,
+  AiEditTextDto,
   DecomposeImageDto,
   GenerateVariantsDto,
   RefineDesignDto,
@@ -487,6 +488,26 @@ export class MediaService {
               tone: brandKit.tone,
             }
           : undefined,
+      })
+    );
+  }
+
+  // Inline composer AI: rewrite/shorten/expand/adapt/fix-tone the caption in the
+  // user's brand voice. Follows the brand-voice-check convention of metering on
+  // the shared ai_images credit bucket.
+  async aiEditText(
+    org: Organization,
+    body: AiEditTextDto
+  ): Promise<{ text: string }> {
+    await this.requireAiImageCredit(org);
+    const brandKit = await this._brandKitService.getNormalized(org.id);
+
+    return this._subscriptionService.useCredit(org, 'ai_images', () =>
+      this._studioAi.editText({
+        text: body.text,
+        action: body.action,
+        platform: body.platform,
+        tone: brandKit?.tone,
       })
     );
   }

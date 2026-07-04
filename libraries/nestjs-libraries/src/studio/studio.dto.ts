@@ -59,6 +59,32 @@ export class BrandVoiceCheckDto {
   caption: string;
 }
 
+const AI_EDIT_ACTIONS = [
+  'improve',
+  'shorten',
+  'expand',
+  'adapt',
+  'fix_tone',
+] as const;
+
+export class AiEditTextDto {
+  @IsString()
+  @IsDefined()
+  @MinLength(3)
+  @MaxLength(3000)
+  text: string;
+
+  @IsString()
+  @IsDefined()
+  @IsIn(AI_EDIT_ACTIONS as unknown as string[])
+  action: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  platform?: string;
+}
+
 export class DecomposeImageDto {
   @IsString()
   @IsDefined()

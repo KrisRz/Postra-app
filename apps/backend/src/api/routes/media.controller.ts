@@ -37,6 +37,7 @@ import { createHash } from 'crypto';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import {
   BrandVoiceCheckDto,
+  AiEditTextDto,
   DecomposeImageDto,
   GenerateVariantsDto,
   RefineDesignDto,
@@ -305,6 +306,15 @@ export class MediaController {
     @Body() body: BrandVoiceCheckDto
   ) {
     return this._mediaService.checkBrandVoice(org, body);
+  }
+
+  @Post('/ai-edit')
+  @UseGuards(AccountAgeGuard)
+  aiEdit(
+    @GetOrgFromRequest() org: Organization,
+    @Body() body: AiEditTextDto
+  ) {
+    return this._mediaService.aiEditText(org, body);
   }
 
   @Post('/decompose-image')
