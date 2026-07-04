@@ -17,6 +17,28 @@ const renderArray = (list: string[], show: boolean) => {
   return list.map((p) => `- ${p}`).join('\n');
 };
 
+// The org's Brand Kit is injected into requestContext by the /copilot/agent
+// controller. Turn it into a prompt section so the agent writes in the user's
+// voice and reflects their brand when generating images/designs.
+const renderBrandKit = (raw?: string) => {
+  if (!raw) return '';
+  try {
+    const bk = JSON.parse(raw);
+    if (!bk) return '';
+    return `
+      Brand guidelines (apply these to everything you write and generate):
+        - Tone of voice: ${bk.tone || 'not specified'}
+        - Brand colors: primary ${bk.colors?.primary || '-'}, secondary ${
+      bk.colors?.secondary || '-'
+    }, text ${bk.colors?.text || '-'}
+        - Brand font: ${bk.font || 'not specified'}
+      Always write post copy in this tone of voice, and reflect these brand colors/style when you generate images or designs.
+`;
+  } catch {
+    return '';
+  }
+};
+
 @Injectable()
 export class LoadToolsService {
   constructor(private _moduleRef: ModuleRef) {}
@@ -48,16 +70,20 @@ export class LoadToolsService {
       description: 'Agent that helps manage and schedule social media posts for users',
       instructions: ({ requestContext }) => {
         const ui: string = requestContext.get('ui' as never);
+        const brandKit = renderBrandKit(
+          requestContext.get('brandKit' as never) as string
+        );
         return `
       Global information:
         - Date (UTC): ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
-
+${brandKit}
       You are an agent that helps manage and schedule social media posts for users, you can:
         - Schedule posts into the future, or now, adding texts, images and videos
         - Generate pictures for posts
         - Generate videos for posts
         - Generate text for posts
-        - Show global analytics about socials
+        - View and manage the user's content calendar: list their existing scheduled/queued/draft/published posts (listScheduledPosts), reschedule a post to a new date (reschedulePost — uses the post id), and delete/cancel a post (deletePost — uses the group id)
+        - Show real analytics for a channel — followers, engagement, reach and more (getAnalytics)
         - List integrations (channels)
       
       - We schedule posts to different integration like facebook, instagram, etc. but to the user we don't say integrations we say channels as integration is the technical name
@@ -75,6 +101,8 @@ export class LoadToolsService {
       - In every message I will send you the list of needed social medias (id and platform), if you already have the information use it, if not, use the integrationSchema tool to get it.
       - Make sure you always take the last information I give you about the socials, it might have changed.
       - Before scheduling a post, always make sure you ask the user confirmation by providing all the details of the post (text, images, videos, date, time, social media platform, account).
+      - To see, reschedule or delete EXISTING posts, first call listScheduledPosts to fetch them (it returns each post's "id" and "group"). Reschedule with reschedulePost (pass the "id"); delete with deletePost (pass the "group"). Deleting cannot be undone, so always confirm with the user before deleting.
+      - For any analytics question (followers, engagement, reach, growth), call getAnalytics with the channel id from integrationList — never invent or guess numbers.
       - Between tools, we will reference things like: [output:name] and [input:name] to set the information right.
       - When outputting a date for the user, make sure it's human readable with time
       - The content of the post, HTML, Each line must be wrapped in <p> here is the possible tags: h1, h2, h3, u, strong, li, ul, p (you can\'t have u and strong together), don't use a "code" box

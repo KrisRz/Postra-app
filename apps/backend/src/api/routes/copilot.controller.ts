@@ -17,6 +17,7 @@ import {
 import { GetOrgFromRequest } from '@gitroom/nestjs-libraries/user/org.from.request';
 import { Organization } from '@prisma/client';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
+import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
 import { MastraAgent } from '@ag-ui/mastra';
 import { MastraService } from '@gitroom/nestjs-libraries/chat/mastra.service';
 import { Request, Response } from 'express';
@@ -28,13 +29,15 @@ export type ChannelsContext = {
   integrations: string;
   organization: string;
   ui: string;
+  brandKit: string;
 };
 
 @Controller('/copilot')
 export class CopilotController {
   constructor(
     private _subscriptionService: SubscriptionService,
-    private _mastraService: MastraService
+    private _mastraService: MastraService,
+    private _brandKitService: BrandKitService
   ) {}
   @Post('/chat')
   chatAgent(@Req() req: Request, @Res() res: Response) {
@@ -80,6 +83,11 @@ export class CopilotController {
 
     requestContext.set('organization', JSON.stringify(organization));
     requestContext.set('ui', 'true');
+
+    // Give the agent the org's Brand Kit (voice, colors, font) so it writes in
+    // the user's brand and reflects it when generating images/designs.
+    const brandKit = await this._brandKitService.getNormalized(organization.id);
+    requestContext.set('brandKit', brandKit ? JSON.stringify(brandKit) : '');
 
     const agents = MastraAgent.getLocalAgents({
       resourceId: organization.id,
