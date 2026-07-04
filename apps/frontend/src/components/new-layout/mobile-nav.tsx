@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import clsx from 'clsx';
@@ -24,7 +25,7 @@ const BottomNavItem: FC<{
       prefetch={true}
       className={clsx(
         'flex flex-col items-center justify-center gap-[2px] flex-1 h-full text-[10px] font-[600] transition-colors',
-        isActive ? 'text-[#38bdf8]' : 'text-textItemBlur'
+        isActive ? 'text-[#38bdf8]' : 'text-textItemBlur',
       )}
     >
       <div className="w-[22px] h-[22px] flex items-center justify-center">
@@ -121,52 +122,49 @@ export const MobileNav: FC = () => {
         </svg>
       </button>
 
-      <div
-        className={clsx(
-          'md:hidden fixed inset-0 z-50 transition-opacity duration-200',
-          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        )}
-        aria-hidden={!open}
-      >
-        <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={() => setOpen(false)}
-        />
-        <aside
-          aria-label={t('main_menu', 'Menu główne')}
-          className={clsx(
-            'absolute start-0 top-0 h-full w-[260px] bg-[rgba(10,14,26,0.98)] border-e border-white/10 shadow-[0_24px_80px_rgba(2,6,23,0.6)] transition-transform duration-200 ease-out flex flex-col',
-            open ? 'translate-x-0' : '-translate-x-full'
-          )}
-        >
-          <div className="flex items-center justify-between px-[16px] h-[56px] border-b border-white/10">
-            <Logo />
-            <button
-              type="button"
-              aria-label={t('close_menu', 'Zamknij menu')}
+      {/* Portal na body: topbar ma backdrop-blur, który robi containing block
+          dla fixed — drawer renderowany w nim byłby przycięty do nagłówka. */}
+      {open &&
+        createPortal(
+          <div className="md:hidden fixed inset-0 z-[600]">
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fadeIn"
               onClick={() => setOpen(false)}
-              className="flex items-center justify-center w-[36px] h-[36px] rounded-[10px] text-textItemBlur hover:text-newTextColor hover:bg-white/[0.06] transition-colors"
+            />
+            <aside
+              aria-label={t('main_menu', 'Menu główne')}
+              className="absolute start-0 top-0 h-full w-[260px] bg-[rgba(10,14,26,0.98)] border-e border-white/10 shadow-[0_24px_80px_rgba(2,6,23,0.6)] flex flex-col animate-fadeIn"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-          <div className="flex flex-col flex-1 overflow-y-auto py-[16px] px-[8px] gap-[6px]">
-            <MobileDrawerMenu />
-          </div>
-        </aside>
-      </div>
+              <div className="flex items-center justify-between px-[16px] h-[56px] border-b border-white/10">
+                <Logo />
+                <button
+                  type="button"
+                  aria-label={t('close_menu', 'Zamknij menu')}
+                  onClick={() => setOpen(false)}
+                  className="flex items-center justify-center w-[36px] h-[36px] rounded-[10px] text-textItemBlur hover:text-newTextColor hover:bg-white/[0.06] transition-colors"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </div>
+              <div className="flex flex-col flex-1 overflow-y-auto py-[16px] px-[8px] gap-[6px]">
+                <MobileDrawerMenu />
+              </div>
+            </aside>
+          </div>,
+          document.body,
+        )}
     </>
   );
 };
@@ -197,15 +195,17 @@ const MobileDrawerMenu: FC = () => {
           user?.orgId &&
             // @ts-ignore
             (user.tier !== 'FREE' || !isGeneral || !billingEnabled) &&
-            firstMenu.filter(filter).map((item, index) => (
-              <MenuItem
-                key={`drawer-first-${index}`}
-                path={item.path}
-                label={item.name}
-                icon={item.icon}
-                onClick={item.onClick}
-              />
-            ))
+            firstMenu
+              .filter(filter)
+              .map((item, index) => (
+                <MenuItem
+                  key={`drawer-first-${index}`}
+                  path={item.path}
+                  label={item.name}
+                  icon={item.icon}
+                  onClick={item.onClick}
+                />
+              ))
         }
       </div>
       <div className="h-[1px] bg-white/[0.08] my-[8px]" />
