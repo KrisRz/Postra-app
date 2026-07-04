@@ -22,7 +22,7 @@ export const CopyButton = ({
   const onClick = useCallback(() => {
     copy(text);
     setCopied(true);
-    toaster.show(t('copied_to_clipboard', 'Skopiowano do schowka'), 'success');
+    toaster.show(t('copied_to_clipboard', 'Copied to clipboard'), 'success');
     setTimeout(() => setCopied(false), 1500);
   }, [text, t, toaster]);
 
@@ -30,7 +30,7 @@ export const CopyButton = ({
     <button
       type="button"
       onClick={onClick}
-      aria-label={t('copy_to_clipboard', 'Kopiuj do schowka')}
+      aria-label={t('copy_to_clipboard', 'Copy to clipboard')}
       className={clsx(
         'cursor-pointer px-[16px] h-[36px] bg-btnSimple hover:bg-boxHover transition-colors rounded-[8px] text-[13px] font-[600] flex items-center gap-[6px]',
         className

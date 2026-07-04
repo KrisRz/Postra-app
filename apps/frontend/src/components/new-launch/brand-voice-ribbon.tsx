@@ -58,12 +58,12 @@ export const BrandVoiceRibbon: FC<Props> = ({ content }) => {
       if (!res.ok) {
         if (res.status === 402) {
           toaster.show(
-            t('ai_no_credits', 'Skończyły się kredyty AI.'),
+            t('ai_no_credits', 'You ran out of AI credits.'),
             'warning'
           );
         } else {
           toaster.show(
-            t('voice_failed', 'Nie udało się sprawdzić tonu — spróbuj później.'),
+            t('voice_failed', 'Could not check the tone — try again later.'),
             'warning'
           );
         }
@@ -75,7 +75,7 @@ export const BrandVoiceRibbon: FC<Props> = ({ content }) => {
     } catch (err) {
       if ((err as { name?: string })?.name !== 'AbortError') {
         toaster.show(
-          t('voice_failed', 'Nie udało się sprawdzić tonu — spróbuj później.'),
+          t('voice_failed', 'Could not check the tone — try again later.'),
           'warning'
         );
       }
@@ -98,8 +98,8 @@ export const BrandVoiceRibbon: FC<Props> = ({ content }) => {
           className="self-start text-[10px] px-2 py-1 rounded bg-newColColor hover:bg-forth hover:text-white text-textColor/80 transition-colors disabled:opacity-50"
         >
           {busy
-            ? t('voice_running', 'Sprawdzam ton…')
-            : t('voice_check', '🎯 Sprawdź ton')}
+            ? t('voice_running', 'Checking tone…')
+            : t('voice_check', '🎯 Check tone')}
         </button>
       )}
 
@@ -121,7 +121,7 @@ export const BrandVoiceRibbon: FC<Props> = ({ content }) => {
               }}
               className="text-[10px] opacity-70 hover:opacity-100 underline"
             >
-              {t('voice_recheck', 'sprawdź ponownie')}
+              {t('voice_recheck', 'check again')}
             </button>
           </div>
           <p className="opacity-90">{result.feedback}</p>

@@ -64,7 +64,7 @@ export const BottomNav: FC = () => {
 
   return (
     <nav
-      aria-label={t('mobile_nav', 'Nawigacja mobilna')}
+      aria-label={t('mobile_nav', 'Mobile navigation')}
       className="js-bottom-nav md:hidden fixed bottom-0 start-0 end-0 h-[64px] bg-[rgba(15,23,42,0.92)] backdrop-blur-xl border-t border-white/10 flex items-stretch z-40 pb-[env(safe-area-inset-bottom)]"
     >
       {items.map((item) => (
@@ -101,7 +101,7 @@ export const MobileNav: FC = () => {
     <>
       <button
         type="button"
-        aria-label={t('open_menu', 'Otwórz menu')}
+        aria-label={t('open_menu', 'Open menu')}
         aria-expanded={open}
         onClick={() => setOpen(true)}
         className="md:hidden flex items-center justify-center w-[40px] h-[40px] rounded-[10px] text-textItemBlur hover:text-newTextColor hover:bg-white/[0.06] transition-colors"
@@ -132,14 +132,14 @@ export const MobileNav: FC = () => {
               onClick={() => setOpen(false)}
             />
             <aside
-              aria-label={t('main_menu', 'Menu główne')}
+              aria-label={t('main_menu', 'Main menu')}
               className="absolute start-0 top-0 h-full w-[260px] bg-[rgba(10,14,26,0.98)] border-e border-white/10 shadow-[0_24px_80px_rgba(2,6,23,0.6)] flex flex-col animate-fadeIn"
             >
               <div className="flex items-center justify-between px-[16px] h-[56px] border-b border-white/10">
                 <Logo />
                 <button
                   type="button"
-                  aria-label={t('close_menu', 'Zamknij menu')}
+                  aria-label={t('close_menu', 'Close menu')}
                   onClick={() => setOpen(false)}
                   className="flex items-center justify-center w-[36px] h-[36px] rounded-[10px] text-textItemBlur hover:text-newTextColor hover:bg-white/[0.06] transition-colors"
                 >

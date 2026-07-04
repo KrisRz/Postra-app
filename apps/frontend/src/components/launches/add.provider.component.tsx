@@ -277,7 +277,7 @@ const ExtensionNotFound: FC = () => {
             modals.closeCurrent();
           }}
         >
-          {t('install_extension', 'Zainstaluj rozszerzenie')}
+          {t('install_extension', 'Install the extension')}
         </Button>
         <Button
           type="button"
@@ -340,7 +340,7 @@ const ChromeExtensionWarning: FC<{
             onConfirm();
           }}
         >
-          {t('i_understand_continue', 'Rozumiem, kontynuuj')}
+          {t('i_understand_continue', 'I understand, continue')}
         </Button>
         <Button
           type="button"
@@ -530,7 +530,7 @@ export const AddProviderComponent: FC<{
           }
           if (!extensionId || !chrome?.runtime?.sendMessage) {
             modal.openModal({
-              title: t('extension_not_available_title', 'Nie znaleziono rozszerzenia'),
+              title: t('extension_not_available_title', 'Extension not found'),
               withCloseButton: true,
               children: <ExtensionNotFound />,
             });

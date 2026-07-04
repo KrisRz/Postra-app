@@ -610,23 +610,18 @@ export const Editor: FC<{
 
   const paste = useCallback(
     async (event: ClipboardEvent | File[]) => {
-      console.log('[Postra:paste] triggered', { num, comments, eventType: event?.constructor?.name });
       if (num > 0 && comments === 'no-media') {
-        console.log('[Postra:paste] blocked: no-media for num > 0');
         return;
       }
       // @ts-ignore
       const clipboardItems = event.clipboardData?.items;
-      console.log('[Postra:paste] clipboardItems count:', clipboardItems?.length ?? 'none');
       if (!clipboardItems) {
-        console.log('[Postra:paste] no clipboardData, letting TipTap handle text paste');
         return;
       }
 
       const files: File[] = [];
       // @ts-ignore
       for (const item of clipboardItems) {
-        console.log('[Postra:paste] item:', { kind: item.kind, type: item.type });
         if (item.kind === 'file') {
           const file = item.getAsFile();
           if (file) {
@@ -635,7 +630,6 @@ export const Editor: FC<{
         }
       }
 
-      console.log('[Postra:paste] files found:', files.length);
       const totalSize = files.reduce((acc, file) => acc + file.size, 0);
 
       if (totalSize > MAX_UPLOAD_SIZE) {
@@ -650,7 +644,6 @@ export const Editor: FC<{
       }
 
       if (files.length > 0) {
-        console.log('[Postra:paste] uploading files via Uppy');
         setLoading(true);
       }
 

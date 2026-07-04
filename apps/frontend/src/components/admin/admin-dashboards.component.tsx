@@ -32,12 +32,12 @@ export const AdminDashboardsComponent: FC = () => {
           {t('admin_dashboards', 'Dashboards')}
         </h1>
         <p className="text-[12.5px] text-newTextColor/55 mt-[3px]">
-          {t('admin_dashboards_sub', 'Monitoring & observability — jedno miejsce na wszystkie panele')}
+          {t('admin_dashboards_sub', 'Monitoring & observability — one place for every dashboard')}
         </p>
       </div>
 
       {/* Launch cards */}
-      <Section title={t('admin_dashboards_open', 'Otwórz panel')} hint={t('admin_dashboards_open_hint', '— linki do pełnych dashboardów')} />
+      <Section title={t('admin_dashboards_open', 'Open dashboard')} hint={t('admin_dashboards_open_hint', '— links to full dashboards')} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[12px]">
         {links.map((l) => (
           <a
@@ -57,7 +57,7 @@ export const AdminDashboardsComponent: FC = () => {
       </div>
 
       {/* Live uptime — embedded status page */}
-      <Section title={t('admin_dashboards_uptime', 'Live uptime')} hint={t('admin_dashboards_uptime_hint', '— wbudowany status.postra.pl')} />
+      <Section title={t('admin_dashboards_uptime', 'Live uptime')} hint={t('admin_dashboards_uptime_hint', '— built-in status.postra.pl')} />
       <div className="bg-white/[0.03] border border-white/10 rounded-[16px] overflow-hidden backdrop-blur-[8px]">
         <iframe
           src="https://status.postra.pl"
@@ -68,7 +68,7 @@ export const AdminDashboardsComponent: FC = () => {
       </div>
 
       {/* Tier 1 teaser */}
-      <Section title={t('admin_dashboards_metrics', 'Metryki aplikacji')} hint={t('admin_dashboards_metrics_hint', '— wbudowane panele Grafana (Tier 1, wkrótce)')} />
+      <Section title={t('admin_dashboards_metrics', 'App metrics')} hint={t('admin_dashboards_metrics_hint', '— built-in Grafana panels (Tier 1, soon)')} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[12px]">
         {teaser.map((label) => (
           <div

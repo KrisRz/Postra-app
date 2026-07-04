@@ -142,10 +142,8 @@ export const PickPlatforms: FC<{
       .map((id) => integrations.find((p) => p.id === id)!)
       .filter((p) => p);
     setSelectedAccounts(newIntegrations, () => {
-      console.log('changed');
     });
     onChange(newIntegrations, () => {
-      console.log('changed');
     });
   };
   useCopilotReadable({
