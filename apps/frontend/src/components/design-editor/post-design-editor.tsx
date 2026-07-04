@@ -51,6 +51,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   const fabricRef = useRef<fabric.Canvas | null>(null);
   const [exporting, setExporting] = useState(false);
   const [savingToLibrary, setSavingToLibrary] = useState(false);
+  const [savingTemplate, setSavingTemplate] = useState(false);
   const [multiFormatOpen, setMultiFormatOpen] = useState(false);
   const fetch = useFetch();
   const router = useRouter();
@@ -370,11 +371,12 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   // Save the design into the media library (so it's reusable in any post)
   // WITHOUT attaching to a post or closing — this is the "get it out" action
   // in standalone /studio, where setMedia/closeModal are no-ops and the only
-  // alternative was Download PNG (→ laptop, not the app).
-  const handleSaveToLibrary = useCallback(async () => {
-    if (!fabricRef.current || savingToLibrary) return;
-    setSavingToLibrary(true);
-    try {
+  // alternative was Download PNG (→ laptop, not the app). With asTemplate the
+  // same Media row is flagged as a reusable org template ("Your templates"
+  // section in the Templates panel).
+  const saveDesignToLibrary = useCallback(
+    async (asTemplate: boolean) => {
+      if (!fabricRef.current) return;
       const scale = 1 / fabricRef.current.getZoom();
       const dataUrl = fabricRef.current.toDataURL({
         format: 'png',
@@ -383,7 +385,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       });
       const blob = await (await window.fetch(dataUrl)).blob();
       const formData = new FormData();
-      formData.append('file', blob, 'design.png');
+      formData.append('file', blob, asTemplate ? 'template.png' : 'design.png');
       const data = await (
         await fetch('/media/upload-simple', { method: 'POST', body: formData })
       ).json();
@@ -392,6 +394,21 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
         method: 'PUT',
         body: JSON.stringify({ canvasJson }),
       });
+      if (asTemplate) {
+        await fetch(`/media/${data.id}/template`, {
+          method: 'PUT',
+          body: JSON.stringify({ isTemplate: true }),
+        });
+      }
+    },
+    [fetch]
+  );
+
+  const handleSaveToLibrary = useCallback(async () => {
+    if (!fabricRef.current || savingToLibrary) return;
+    setSavingToLibrary(true);
+    try {
+      await saveDesignToLibrary(false);
       toaster.show(
         t(
           'saved_to_library',
@@ -407,7 +424,36 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     } finally {
       setSavingToLibrary(false);
     }
-  }, [fetch, toaster, t, savingToLibrary]);
+  }, [saveDesignToLibrary, toaster, t, savingToLibrary]);
+
+  const handleSaveAsTemplate = useCallback(async () => {
+    if (!fabricRef.current || savingTemplate) return;
+    if (!fabricRef.current.getObjects().length) {
+      toaster.show(
+        t('template_save_empty', 'The canvas is empty — design something first.'),
+        'warning'
+      );
+      return;
+    }
+    setSavingTemplate(true);
+    try {
+      await saveDesignToLibrary(true);
+      toaster.show(
+        t(
+          'template_saved',
+          'Saved as your template — find it in the Templates panel.'
+        ),
+        'success'
+      );
+    } catch {
+      toaster.show(
+        t('template_save_failed', 'Failed to save the template.'),
+        'warning'
+      );
+    } finally {
+      setSavingTemplate(false);
+    }
+  }, [saveDesignToLibrary, toaster, t, savingTemplate]);
 
   const handleDelete = useCallback(() => {
     if (!fabricRef.current) return;
@@ -484,6 +530,14 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
                 title={t('save_to_library_hint', 'Save to media library — use it in any post')}
               >
                 💾 {savingToLibrary ? t('saving', 'Saving…') : t('save_to_library_btn', 'Save to library')}
+              </button>
+              <button
+                onClick={handleSaveAsTemplate}
+                disabled={savingTemplate}
+                className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-50"
+                title={t('template_save_hint', 'Save this design as a reusable template for your team')}
+              >
+                ⭐ {savingTemplate ? t('saving', 'Saving…') : t('template_save_btn', 'Save as template')}
               </button>
               <button
                 onClick={handleDownload}

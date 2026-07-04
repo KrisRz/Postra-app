@@ -140,9 +140,23 @@ export class MediaController {
     return this._mediaService.saveCanvasJson(org.id, id, body.canvasJson);
   }
 
+  @Put('/:id/template')
+  setTemplateFlag(
+    @GetOrgFromRequest() org: Organization,
+    @Param('id') id: string,
+    @Body() body: { isTemplate: boolean }
+  ) {
+    return this._mediaService.setTemplateFlag(org.id, id, !!body.isTemplate);
+  }
+
   // Literal GET paths (e.g. /pixabay-videos) MUST come BEFORE the
   // parameterized `@Get('/:id')` — otherwise NestJS matches them as an id and
   // they silently return "media not found" (empty body → Stock search failed).
+  @Get('/my-templates')
+  getMyTemplates(@GetOrgFromRequest() org: Organization) {
+    return this._mediaService.getTemplates(org.id);
+  }
+
   @Get('/pixabay-videos')
   async pixabayVideos(
     @Query('q') q: string,

@@ -42,6 +42,74 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
   const [searchHits, setSearchHits] = useState<string[] | null>(null);
   const [searching, setSearching] = useState(false);
   const searchAbort = useRef<AbortController | null>(null);
+  const [myTemplates, setMyTemplates] = useState<
+    { id: string; name: string; path: string }[]
+  >([]);
+  const [applyingId, setApplyingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/media/my-templates');
+        if (!res.ok) return;
+        const list = await res.json();
+        if (!cancelled && Array.isArray(list)) setMyTemplates(list);
+      } catch {
+        // panel still works with built-ins only
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const applyMyTemplate = useCallback(
+    async (id: string) => {
+      if (!canvas.current || applyingId) return;
+      setApplyingId(id);
+      try {
+        const data = await (await fetch(`/media/${id}`)).json();
+        if (!data?.canvasJson || !canvas.current) {
+          toaster.show(
+            t('template_apply_failed', 'Failed to apply template'),
+            'warning'
+          );
+          return;
+        }
+        await canvas.current.loadFromJSON(data.canvasJson);
+        canvas.current.renderAll();
+        pushHistory(data.canvasJson);
+      } catch {
+        toaster.show(
+          t('template_apply_failed', 'Failed to apply template'),
+          'warning'
+        );
+      } finally {
+        setApplyingId(null);
+      }
+    },
+    [canvas, fetch, applyingId, pushHistory, t, toaster]
+  );
+
+  const removeMyTemplate = useCallback(
+    async (id: string) => {
+      try {
+        await fetch(`/media/${id}/template`, {
+          method: 'PUT',
+          body: JSON.stringify({ isTemplate: false }),
+        });
+        setMyTemplates((prev) => prev.filter((m) => m.id !== id));
+      } catch {
+        toaster.show(
+          t('template_remove_failed', 'Failed to remove the template.'),
+          'warning'
+        );
+      }
+    },
+    [fetch, t, toaster]
+  );
 
   useEffect(() => {
     if (query.trim().length < MIN_SEARCH_LEN) {
@@ -133,6 +201,44 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         )}
         className="text-xs px-2 py-1.5 rounded bg-newColColor border border-newBorder text-textColor placeholder-textColor/40 focus:outline-none focus:border-forth"
       />
+      {!searchHits && myTemplates.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[10px] uppercase tracking-wide text-textColor/50">
+            ⭐ {t('my_templates', 'Your templates')}
+          </span>
+          <div className="grid grid-cols-2 gap-1.5">
+            {myTemplates.map((m) => (
+              <div key={m.id} className="relative group">
+                <button
+                  onClick={() => applyMyTemplate(m.id)}
+                  disabled={!!applyingId}
+                  title={t('my_template_apply_hint', 'Apply this template (replaces the canvas — undo with Ctrl+Z)')}
+                  className="w-full rounded overflow-hidden border border-newBorder/60 hover:border-forth transition-colors disabled:opacity-50 bg-newColColor"
+                >
+                  <img
+                    src={m.path}
+                    alt={m.name}
+                    loading="lazy"
+                    className="w-full h-16 object-cover"
+                  />
+                </button>
+                {applyingId === m.id && (
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] bg-black/50 text-white rounded">
+                    {t('template_applying', 'Applying…')}
+                  </span>
+                )}
+                <button
+                  onClick={() => removeMyTemplate(m.id)}
+                  title={t('my_template_remove_hint', 'Remove from templates (the image stays in your library)')}
+                  className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-black/60 text-white text-[9px] leading-4 text-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {!searchHits && (
         <div className="flex flex-wrap gap-1">
           {TEMPLATE_CATEGORIES.map((c) => (

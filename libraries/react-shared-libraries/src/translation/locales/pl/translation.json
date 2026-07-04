@@ -1141,5 +1141,14 @@
   "filter_reset": "Resetuj filtry",
   "holiday_generate_now": "Wygeneruj projekt na tę okazję od razu",
   "holiday_fill_prompt": "Wstaw prompt do pola, by go dopracować przed generowaniem",
-  "refine_scope_hint": "Poprawia projekt — tekst, kolory, układ. Nie retuszuje zdjęć (np. nie doda osoby do fotografii)."
-}
+  "refine_scope_hint": "Poprawia projekt — tekst, kolory, układ. Nie retuszuje zdjęć (np. nie doda osoby do fotografii).",
+  "template_save_btn": "Zapisz jako szablon",
+  "template_save_hint": "Zapisz ten projekt jako szablon do wielokrotnego użycia",
+  "template_saved": "Zapisano jako Twój szablon — znajdziesz go w panelu Szablony.",
+  "template_save_failed": "Nie udało się zapisać szablonu.",
+  "template_save_empty": "Canvas jest pusty — najpierw coś zaprojektuj.",
+  "my_templates": "Twoje szablony",
+  "my_template_apply_hint": "Zastosuj ten szablon (zastępuje canvas — cofniesz Ctrl+Z)",
+  "my_template_remove_hint": "Usuń z szablonów (grafika zostaje w bibliotece)",
+  "template_applying": "Wczytywanie…",
+  "template_remove_failed": "Nie udało się usunąć szablonu."}

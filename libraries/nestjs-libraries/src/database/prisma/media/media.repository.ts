@@ -62,6 +62,27 @@ export class MediaRepository {
     });
   }
 
+  setTemplateFlag(org: string, id: string, isTemplate: boolean) {
+    return this._media.model.media.update({
+      where: { id, organizationId: org },
+      data: { isTemplate },
+      select: { id: true, isTemplate: true },
+    });
+  }
+
+  getTemplates(org: string) {
+    return this._media.model.media.findMany({
+      where: {
+        organizationId: org,
+        isTemplate: true,
+        deletedAt: null,
+        canvasJson: { not: null },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, name: true, path: true, createdAt: true },
+    });
+  }
+
   deleteMedia(org: string, id: string) {
     return this._media.model.media.update({
       where: {

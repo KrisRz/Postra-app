@@ -242,6 +242,7 @@ model Media {
   thumbnailTimestamp Int?
   designSpec         Json?
   canvasJson         String?             @db.Text
+  isTemplate         Boolean             @default(false)
   organization       Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agencies           SocialMediaAgency[]
   userPicture        User[]
@@ -249,6 +250,7 @@ model Media {
 
   @@index([name])
   @@index([organizationId])
+  @@index([organizationId, isTemplate])
   @@index([type])
 }
 
