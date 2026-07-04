@@ -3,6 +3,7 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import { Injectable } from '@nestjs/common';
 import { MediaService } from '@gitroom/nestjs-libraries/database/prisma/media/media.service';
+import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { checkAuth } from '@gitroom/nestjs-libraries/chat/auth.context';
 
@@ -10,7 +11,10 @@ import { checkAuth } from '@gitroom/nestjs-libraries/chat/auth.context';
 export class GenerateImageTool implements AgentToolInterface {
   private storage = UploadFactory.createStorage();
 
-  constructor(private _mediaService: MediaService) {}
+  constructor(
+    private _mediaService: MediaService,
+    private _brandKitService: BrandKitService
+  ) {}
   name = 'generateImageTool';
 
   run() {
@@ -39,10 +43,15 @@ export class GenerateImageTool implements AgentToolInterface {
       execute: async (inputData, context) => {
         checkAuth(inputData, context);
         const org = JSON.parse((context?.requestContext as any)?.get('organization') as string);
-        const image = await this._mediaService.generateImage(
-          inputData.prompt,
-          org
-        );
+
+        // Reflect the org's Brand Kit in generated visuals so the agent's
+        // images come out on-brand, not just whatever the model picks.
+        const brandKit = await this._brandKitService.getNormalized(org.id);
+        const prompt = brandKit
+          ? `${inputData.prompt}. Visual brand style: build the palette around ${brandKit.colors.primary} and ${brandKit.colors.secondary}, keep it consistent with a ${brandKit.tone} brand.`
+          : inputData.prompt;
+
+        const image = await this._mediaService.generateImage(prompt, org);
 
         const file = await this.storage.uploadSimple(
           'data:image/png;base64,' + image
