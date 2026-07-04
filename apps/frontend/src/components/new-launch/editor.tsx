@@ -26,6 +26,7 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { AddPostButton } from '@gitroom/frontend/components/new-launch/add.post.button';
 import { BrandVoiceRibbon } from '@gitroom/frontend/components/new-launch/brand-voice-ribbon';
+import { AiAssistRibbon } from '@gitroom/frontend/components/new-launch/ai-assist-ribbon';
 import { MultiMediaComponent } from '@gitroom/frontend/components/media/media.component';
 import { UpDownArrow } from '@gitroom/frontend/components/launches/up.down.arrow';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
@@ -525,6 +526,18 @@ export const EditorWrapper: FC<{
                   <DelayComponent currentIndex={index} currentDelay={g.delay} />
                 )}
               </div>
+            )}
+            {canEdit && (
+              <AiAssistRibbon
+                content={g.content}
+                platform={
+                  internalFromAll?.identifier &&
+                  internalFromAll.identifier !== 'global'
+                    ? internalFromAll.identifier
+                    : undefined
+                }
+                onReplace={(html) => changeValue(index)(html)}
+              />
             )}
             {index === 0 && canEdit && <BrandVoiceRibbon content={g.content} />}
           </div>
