@@ -242,6 +242,14 @@ export class MediaService {
     return this._mediaRepository.saveCanvasJson(org, id, canvasJson);
   }
 
+  async setTemplateFlag(org: string, id: string, isTemplate: boolean) {
+    return this._mediaRepository.setTemplateFlag(org, id, isTemplate);
+  }
+
+  async getTemplates(org: string) {
+    return this._mediaRepository.getTemplates(org);
+  }
+
   getMediaForEdit(org: string, id: string) {
     return this._mediaRepository.getMediaByIdForOrg(org, id);
   }

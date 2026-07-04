@@ -1141,5 +1141,14 @@
   "filter_reset": "Reset filters",
   "holiday_generate_now": "Generate a design for this occasion now",
   "holiday_fill_prompt": "Fill the prompt so you can edit it before generating",
-  "refine_scope_hint": "It edits the design — text, colours, layout. It does not retouch photos (e.g. it can’t add a person to an image)."
-}
+  "refine_scope_hint": "It edits the design — text, colours, layout. It does not retouch photos (e.g. it can’t add a person to an image).",
+  "template_save_btn": "Save as template",
+  "template_save_hint": "Save this design as a reusable template for your team",
+  "template_saved": "Saved as your template — find it in the Templates panel.",
+  "template_save_failed": "Failed to save the template.",
+  "template_save_empty": "The canvas is empty — design something first.",
+  "my_templates": "Your templates",
+  "my_template_apply_hint": "Apply this template (replaces the canvas — undo with Ctrl+Z)",
+  "my_template_remove_hint": "Remove from templates (the image stays in your library)",
+  "template_applying": "Applying…",
+  "template_remove_failed": "Failed to remove the template."}
