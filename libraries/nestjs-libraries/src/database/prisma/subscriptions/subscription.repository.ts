@@ -36,6 +36,29 @@ export class SubscriptionRepository {
     });
   }
 
+  // One-off grandfathering support: every org with its current subscription
+  // state and its count of live integrations (so we never grant fewer channels
+  // than an account already uses).
+  getAllOrganizationsForGrandfather() {
+    return this._organization.model.organization.findMany({
+      select: {
+        id: true,
+        name: true,
+        subscription: {
+          select: {
+            subscriptionTier: true,
+            isLifetime: true,
+            deletedAt: true,
+          },
+        },
+        Integration: {
+          where: { deletedAt: null },
+          select: { id: true },
+        },
+      },
+    });
+  }
+
   updateAccount(userId: string, account: string) {
     return this._user.model.user.update({
       where: {

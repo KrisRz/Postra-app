@@ -5,12 +5,19 @@ import { RefreshTokens } from './tasks/refresh.tokens';
 import { ConfigurationTask } from './tasks/configuration';
 import { AgentRun } from './tasks/agent.run';
 import { EncryptTokens } from './tasks/encrypt.tokens';
+import { GrandfatherSubscriptions } from './tasks/grandfather.subscriptions';
 import { AgentModule } from '@gitroom/nestjs-libraries/agent/agent.module';
 
 @Module({
   imports: [ExternalCommandModule, DatabaseModule, AgentModule],
   controllers: [],
-  providers: [RefreshTokens, ConfigurationTask, AgentRun, EncryptTokens],
+  providers: [
+    RefreshTokens,
+    ConfigurationTask,
+    AgentRun,
+    EncryptTokens,
+    GrandfatherSubscriptions,
+  ],
   get exports() {
     return [...this.imports, ...this.providers];
   },
