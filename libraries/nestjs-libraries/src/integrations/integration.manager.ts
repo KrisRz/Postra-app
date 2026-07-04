@@ -81,6 +81,7 @@ const enabledProviders = new Set([
   'linkedin-page',
   'tiktok',
   'youtube',
+  'bluesky',
 ]);
 
 const hiddenProviders = new Set([
