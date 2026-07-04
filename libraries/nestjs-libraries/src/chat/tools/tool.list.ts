@@ -7,6 +7,10 @@ import { GenerateVideoTool } from '@gitroom/nestjs-libraries/chat/tools/generate
 import { GenerateImageTool } from '@gitroom/nestjs-libraries/chat/tools/generate.image.tool';
 import { IntegrationListTool } from '@gitroom/nestjs-libraries/chat/tools/integration.list.tool';
 import { UploadFromUrlTool } from '@gitroom/nestjs-libraries/chat/tools/upload.from.url.tool';
+import { ListScheduledPostsTool } from '@gitroom/nestjs-libraries/chat/tools/list.scheduled.posts.tool';
+import { ReschedulePostTool } from '@gitroom/nestjs-libraries/chat/tools/reschedule.post.tool';
+import { DeletePostTool } from '@gitroom/nestjs-libraries/chat/tools/delete.post.tool';
+import { GetAnalyticsTool } from '@gitroom/nestjs-libraries/chat/tools/get.analytics.tool';
 
 export const toolList = [
   IntegrationListTool,
@@ -18,4 +22,8 @@ export const toolList = [
   GenerateVideoTool,
   GenerateImageTool,
   UploadFromUrlTool,
+  ListScheduledPostsTool,
+  ReschedulePostTool,
+  DeletePostTool,
+  GetAnalyticsTool,
 ];
