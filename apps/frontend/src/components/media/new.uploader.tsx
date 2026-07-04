@@ -193,6 +193,8 @@ export function useUppyUploader(props: {
       });
     });
     uppy2.on('error', (result) => {
+      console.error('[Postra:upload] upload failed', result);
+      toast.show('Upload failed — please try again.', 'warning');
       uppy2.clear();
       setLocked(false);
       props.onEnd();
@@ -202,7 +204,6 @@ export function useUppyUploader(props: {
       props.onStart();
     });
     uppy2.on('complete', async (result) => {
-      console.log(result);
       for (const file of [...result.successful]) {
         uppy2.removeFile(file.id);
       }
@@ -215,58 +216,75 @@ export function useUppyUploader(props: {
         return orderA - orderB;
       });
 
-      if (storageProvider === 'local') {
-        setLocked(false);
-        fileOrderIndex = 0;
-        onUploadSuccess(sortedSuccessful.map((p) => p.response.body));
-        return;
-      }
+      // whatever happens below, never leave the composer locked
+      try {
+        if (storageProvider === 'local') {
+          onUploadSuccess(sortedSuccessful.map((p) => p.response.body));
+          return;
+        }
 
-      if (transloadit.length > 0) {
-        // @ts-ignore
-        const allRes = result.transloadit[0].results;
-        const toSave = uniqBy<{ name: string; originalName: string; order: number }>(
+        if (transloadit.length > 0) {
           // @ts-ignore
-          Object.values(allRes).flatMap((p: any[]) => {
-            return p.flatMap((item) => ({
-              name: item.url.split('/').pop(),
-              originalName: item.name || '',
-              order: +item.user_meta.addedOrder,
-            }));
-          }),
-          (item) => item.name
-        );
+          const allRes = result.transloadit?.[0]?.results;
+          if (!allRes) {
+            throw new Error('empty transloadit assembly result');
+          }
+          const toSave = uniqBy<{
+            name: string;
+            originalName: string;
+            order: number;
+          }>(
+            // @ts-ignore
+            Object.values(allRes).flatMap((p: any[]) => {
+              return p.flatMap((item) => ({
+                name: item.url.split('/').pop(),
+                originalName: item.name || '',
+                order: +item.user_meta.addedOrder,
+              }));
+            }),
+            (item) => item.name
+          );
 
-        const loadAllMedia = (
-          await Promise.all(
-            toSave.map(async ({ name, originalName, order }) => ({
-              file: await (
-                await fetch('/media/save-media', {
+          const loadAllMedia = (
+            await Promise.all(
+              toSave.map(async ({ name, originalName, order }) => {
+                const saveResponse = await fetch('/media/save-media', {
                   method: 'POST',
                   body: JSON.stringify({
                     name,
                     originalName,
                   }),
-                })
-              ).json(),
-              order,
-            }))
+                });
+                if (!saveResponse.ok) {
+                  throw new Error(`save-media failed (${saveResponse.status})`);
+                }
+                return {
+                  file: await saveResponse.json(),
+                  order,
+                };
+              })
+            )
           )
-        )
-          .sort((a, b) => {
-            return a.order - b.order;
-          })
-          .map((p) => p.file);
+            .sort((a, b) => {
+              return a.order - b.order;
+            })
+            .map((p) => p.file);
 
+          onUploadSuccess(loadAllMedia);
+          return;
+        }
+
+        onUploadSuccess(sortedSuccessful.map((p) => p.response.body.saved));
+      } catch (e) {
+        console.error('[Postra:upload] post-upload processing failed', e);
+        toast.show(
+          'Upload failed while saving the file — please try again.',
+          'warning'
+        );
+      } finally {
         setLocked(false);
         fileOrderIndex = 0;
-        onUploadSuccess(loadAllMedia);
-        return;
       }
-
-      setLocked(false);
-      fileOrderIndex = 0;
-      onUploadSuccess(sortedSuccessful.map((p) => p.response.body.saved));
     });
     uppy2.on('upload-success', (file, response) => {
       // @ts-ignore

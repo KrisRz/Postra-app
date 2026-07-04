@@ -1173,5 +1173,14 @@
   "too_many_login_attempts": "Zbyt wiele prób — odczekaj kilka minut i spróbuj ponownie.",
   "login_failed_try_again": "Coś poszło nie tak, spróbuj ponownie.",
   "connection_error_try_again": "Błąd połączenia — sprawdź internet i spróbuj ponownie.",
-  "too_many_requests": "Zbyt wiele żądań — odczekaj chwilę i spróbuj ponownie."
+  "too_many_requests": "Zbyt wiele żądań — odczekaj chwilę i spróbuj ponownie.",
+  "discount_failed": "Nie udało się zastosować zniżki, spróbuj ponownie.",
+  "billing_portal_failed": "Nie udało się otworzyć portalu płatności, spróbuj ponownie.",
+  "billing_action_failed": "Coś poszło nie tak, spróbuj ponownie.",
+  "subscription_reactivated": "Subskrypcja ponownie aktywowana",
+  "subscription_canceled": "Subskrypcja ustawiona do anulowania",
+  "subscription_updated": "Subskrypcja zaktualizowana",
+  "generator_failed": "Nie udało się wygenerować posta, spróbuj ponownie.",
+  "settings_save_failed": "Nie udało się zapisać ustawień, spróbuj ponownie.",
+  "image_generation_failed": "Nie udało się wygenerować obrazu, spróbuj ponownie."
 }
