@@ -1151,4 +1151,19 @@
   "my_template_apply_hint": "Apply this template (replaces the canvas — undo with Ctrl+Z)",
   "my_template_remove_hint": "Remove from templates (the image stays in your library)",
   "template_applying": "Applying…",
-  "template_remove_failed": "Failed to remove the template."}
+  "template_remove_failed": "Failed to remove the template.",
+  "video_goals_title": "What do you want to make?",
+  "video_goals_hint": "Same tools as the tabs above — this is just the quickest way in.",
+  "video_goals_back": "What do you want to make? — back to goals",
+  "video_goal_last": "last used",
+  "video_goal_slideshow": "Photos → Reels",
+  "video_goal_slideshow_desc": "Turn a few photos into a video with motion",
+  "video_goal_trim": "Trim a video",
+  "video_goal_trim_desc": "Cut a clip to the right length",
+  "video_goal_captions": "Add captions",
+  "video_goal_captions_desc": "AI transcribes and burns in subtitles",
+  "video_goal_text": "Text on video",
+  "video_goal_text_desc": "Overlay your message in brand style",
+  "video_goal_stock": "Find stock B-roll",
+  "video_goal_stock_desc": "Free clips to post or mix in"
+}

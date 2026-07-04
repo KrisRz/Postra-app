@@ -41,6 +41,23 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
   const [browserSupported, setBrowserSupported] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
   const [isImportingLibrary, setIsImportingLibrary] = useState(false);
+  // Goal-based start screen: tools are tabs, but users think in outcomes
+  // ("photos → Reels"), so the content area opens on goals until one is
+  // picked (or a tab is clicked directly). 🎯 in the header brings it back.
+  const [showGoals, setShowGoals] = useState(true);
+  // A goal that needs a clip first (captions) is parked here until the file
+  // the user just picked lands in state.
+  const [pendingGoal, setPendingGoal] = useState<Tab | null>(null);
+  const [lastGoal, setLastGoal] = useState<Tab | null>(null);
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('postra:video-last-goal');
+      if (saved) setLastGoal(saved as Tab);
+    } catch {
+      // private mode — no memory of the last goal, nothing breaks
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && typeof (window as unknown as { VideoEncoder?: unknown }).VideoEncoder === 'undefined') {
@@ -151,6 +168,47 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     setTab('captions');
   }, [ensureUploaded, toaster, t]);
 
+  // Finish a clip-dependent goal once the picked file lands in state.
+  useEffect(() => {
+    if (!pendingGoal || !file) return;
+    if (pendingGoal === 'captions') {
+      handleSwitchToCaptions();
+    } else {
+      setTab(pendingGoal);
+    }
+    setPendingGoal(null);
+  }, [file, pendingGoal, handleSwitchToCaptions]);
+
+  const pickGoal = useCallback(
+    (goal: Tab) => {
+      setShowGoals(false);
+      setLastGoal(goal);
+      try {
+        window.localStorage.setItem('postra:video-last-goal', goal);
+      } catch {
+        // private mode — fine
+      }
+      const hasSource = !!(file || trimmedBlob);
+      if (goal === 'captions' && !hasSource) {
+        // Captions need a clip — send the user straight to picking one and
+        // continue to the captions tab as soon as it loads.
+        setPendingGoal('captions');
+        setTab('trim');
+        fileInputRef.current?.click();
+        return;
+      }
+      if (goal === 'captions') {
+        handleSwitchToCaptions();
+        return;
+      }
+      setTab(goal);
+      if (goal === 'trim' && !hasSource) {
+        fileInputRef.current?.click();
+      }
+    },
+    [file, trimmedBlob, handleSwitchToCaptions]
+  );
+
   const handleUseInPost = useCallback(async () => {
     if (uploadedMedia) {
       setMedia([uploadedMedia]);
@@ -241,13 +299,28 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
     <div className="flex flex-col h-full bg-white/[0.03] rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2 border-b border-newBorder">
         <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setShowGoals(true)}
+            title={t('video_goals_back', 'What do you want to make? — back to goals')}
+            className={`text-xs px-2 py-1 rounded transition-colors ${
+              showGoals
+                ? 'bg-newAccent text-white'
+                : 'bg-newColColor text-textColor hover:bg-forth'
+            }`}
+          >
+            🎯
+          </button>
           {tabs.map((tDef) => (
             <button
               key={tDef.key}
-              onClick={() => (tDef.onClick ? tDef.onClick() : setTab(tDef.key))}
+              onClick={() => {
+                setShowGoals(false);
+                if (tDef.onClick) tDef.onClick();
+                else setTab(tDef.key);
+              }}
               disabled={tDef.needsClip && !hasClip}
               className={`text-xs px-3 py-1 rounded transition-colors ${
-                tab === tDef.key
+                tab === tDef.key && !showGoals
                   ? 'bg-newAccent text-white'
                   : 'bg-newColColor text-textColor hover:bg-forth'
               } disabled:opacity-40`}
@@ -289,27 +362,66 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
             />
           </div>
         )}
-        {tab === 'trim' && (
+        {showGoals && (
+          <div className="flex flex-col items-center justify-center h-full gap-4 p-6">
+            <div className="text-sm font-semibold text-textColor">
+              {t('video_goals_title', 'What do you want to make?')}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-[560px]">
+              {(
+                [
+                  { goal: 'slideshow' as Tab, icon: '📸', label: t('video_goal_slideshow', 'Photos → Reels'), desc: t('video_goal_slideshow_desc', 'Turn a few photos into a video with motion') },
+                  { goal: 'trim' as Tab, icon: '✂', label: t('video_goal_trim', 'Trim a video'), desc: t('video_goal_trim_desc', 'Cut a clip to the right length') },
+                  { goal: 'captions' as Tab, icon: '💬', label: t('video_goal_captions', 'Add captions'), desc: t('video_goal_captions_desc', 'AI transcribes and burns in subtitles') },
+                  { goal: 'text' as Tab, icon: '🅰', label: t('video_goal_text', 'Text on video'), desc: t('video_goal_text_desc', 'Overlay your message in brand style') },
+                  { goal: 'stock' as Tab, icon: '🎞', label: t('video_goal_stock', 'Find stock B-roll'), desc: t('video_goal_stock_desc', 'Free clips to post or mix in') },
+                ]
+              ).map((g) => (
+                <button
+                  key={g.goal}
+                  onClick={() => pickGoal(g.goal)}
+                  className="relative text-left p-3 rounded-lg bg-newColColor hover:bg-forth hover:text-white text-textColor transition-colors group"
+                >
+                  <div className="text-sm font-semibold">
+                    {g.icon} {g.label}
+                  </div>
+                  <div className="text-[11px] text-textColor/60 group-hover:text-white/70 mt-0.5">
+                    {g.desc}
+                  </div>
+                  {lastGoal === g.goal && (
+                    <span className="absolute top-1.5 right-2 text-[9px] uppercase tracking-wide text-textColor/40 group-hover:text-white/60">
+                      {t('video_goal_last', 'last used')}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+            <div className="text-[10px] text-textColor/40">
+              {t('video_goals_hint', 'Same tools as the tabs above — this is just the quickest way in.')}
+            </div>
+          </div>
+        )}
+        {!showGoals && tab === 'trim' && (
           <VideoTrimmer file={file} onTrimmed={handleTrimmedExport} />
         )}
-        {tab === 'formats' && (
+        {!showGoals && tab === 'formats' && (
           <VideoMultiFormat source={trimmedBlob ?? file} onExported={handleFormatsExported} />
         )}
-        {tab === 'captions' && (
+        {!showGoals && tab === 'captions' && (
           <VideoCaptions
             mediaId={uploadedMedia?.id ?? null}
             source={trimmedBlob ?? file}
             onCaptioned={handleCaptionedReady}
           />
         )}
-        {tab === 'stock' && (
+        {!showGoals && tab === 'stock' && (
           <VideoStock onImported={handleStockImported} />
         )}
-        {tab === 'text' && <VideoTextOverlay onReady={handleComposedReady} />}
-        {tab === 'slideshow' && <VideoSlideshow onReady={handleComposedReady} />}
+        {!showGoals && tab === 'text' && <VideoTextOverlay onReady={handleComposedReady} />}
+        {!showGoals && tab === 'slideshow' && <VideoSlideshow onReady={handleComposedReady} />}
       </div>
 
-      {trimmedBlob && tab === 'trim' && (
+      {trimmedBlob && !showGoals && tab === 'trim' && (
         <div className="px-4 py-2 border-t border-newBorder flex items-center justify-between">
           <div className="text-[11px] text-textColor/60">
             {t('video_trim_done', 'Trimmed. Continue to pick formats or use the single file.')}
