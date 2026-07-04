@@ -96,7 +96,9 @@ const FormWrapper: FC<{ showCoupon?: boolean; autoApplyCoupon?: string }> = ({
 }) => {
   const checkoutState = useCheckout();
   const toaster = useToaster();
+  const t = useT();
   const [loading, setLoading] = useState(false);
+  const [consent, setConsent] = useState(false);
 
   if (checkoutState.type !== 'success') {
     return null;
@@ -104,6 +106,20 @@ const FormWrapper: FC<{ showCoupon?: boolean; autoApplyCoupon?: string }> = ({
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
+
+    // Consumer Contracts Regs 2013: the 14-day cancellation waiver is only valid
+    // if the customer gives active express consent — never proceed without it.
+    if (!consent) {
+      toaster.show(
+        t(
+          'billing_consent_required',
+          'Please confirm you agree to the Subscription Terms to continue.'
+        ),
+        'warning'
+      );
+      return;
+    }
+
     setLoading(true);
 
     const { checkout } = checkoutState;
@@ -123,6 +139,8 @@ const FormWrapper: FC<{ showCoupon?: boolean; autoApplyCoupon?: string }> = ({
         showCoupon={showCoupon}
         autoApplyCoupon={autoApplyCoupon}
         loading={loading}
+        consent={consent}
+        setConsent={setConsent}
       />
     </form>
   );
@@ -132,7 +150,9 @@ const StripeInputs: FC<{
   showCoupon: boolean;
   autoApplyCoupon?: string;
   loading: boolean;
-}> = ({ showCoupon, autoApplyCoupon, loading }) => {
+  consent: boolean;
+  setConsent: (v: boolean) => void;
+}> = ({ showCoupon, autoApplyCoupon, loading, consent, setConsent }) => {
   const checkout = useCheckout();
   const t = useT();
   const [ready, setReady] = useState(false);
@@ -162,7 +182,10 @@ const StripeInputs: FC<{
         {showCoupon && ready && (
           <CouponInput autoApplyCoupon={autoApplyCoupon} />
         )}
-        {ready && <SubmitBar loading={loading} />}
+        {ready && (
+          <ConsentCheckbox consent={consent} setConsent={setConsent} />
+        )}
+        {ready && <SubmitBar loading={loading} consent={consent} />}
         {checkout.type === 'loading' ? null : (
           <div className="mt-[24px] text-[16px] font-[600] flex gap-[4px] items-center">
             <div>
@@ -599,7 +622,46 @@ export const CouponInput: FC<{ autoApplyCoupon?: string }> = ({
   );
 };
 
-const SubmitBar: FC<{ loading: boolean }> = ({ loading }) => {
+const ConsentCheckbox: FC<{
+  consent: boolean;
+  setConsent: (v: boolean) => void;
+}> = ({ consent, setConsent }) => {
+  const t = useT();
+  return (
+    // mb clears the fixed SubmitBar so the (legally required) consent stays visible
+    <label className="mt-[40px] mb-[120px] flex gap-[12px] items-start cursor-pointer text-[14px] text-textColor/80 leading-[1.5]">
+      <input
+        type="checkbox"
+        checked={consent}
+        onChange={(e) => setConsent(e.target.checked)}
+        className="mt-[3px] h-[18px] w-[18px] shrink-0 accent-[#38bdf8] cursor-pointer"
+      />
+      <span>
+        {t('billing_consent_agree', 'I agree to the')}{' '}
+        <a
+          href="https://postra.co.uk/subscription-terms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline text-[#38bdf8] hover:opacity-80"
+        >
+          {t(
+            'billing_consent_terms_link',
+            'Subscription Terms & Refund Policy'
+          )}
+        </a>
+        {t(
+          'billing_consent_ack',
+          ', and I ask for my subscription to start immediately. I understand I lose my 14-day right to cancel once the service has started.'
+        )}
+      </span>
+    </label>
+  );
+};
+
+const SubmitBar: FC<{ loading: boolean; consent: boolean }> = ({
+  loading,
+  consent,
+}) => {
   const checkout = useCheckout();
   const t = useT();
   if (checkout.type === 'loading' || checkout.type === 'error') {
@@ -636,6 +698,7 @@ const SubmitBar: FC<{ loading: boolean }> = ({ loading }) => {
             className="h-[42px] rounded-[10px] mobile:w-full"
             type="submit"
             loading={loading}
+            disabled={!consent}
           >
             {checkout.checkout.recurring?.trial?.trialEnd
               ? t(
