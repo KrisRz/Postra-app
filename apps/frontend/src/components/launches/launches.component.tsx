@@ -7,6 +7,7 @@ import { capitalize, groupBy, orderBy } from 'lodash';
 import { CalendarWeekProvider } from '@gitroom/frontend/components/launches/calendar.context';
 import { Filters } from '@gitroom/frontend/components/launches/filters';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import { CalendarSkeleton } from '@gitroom/frontend/components/ui/skeleton';
 import clsx from 'clsx';
 import { useUser } from '../layout/user.context';
@@ -376,7 +377,7 @@ export const LaunchesComponent = () => {
   const changeItemGroup = useCallback(
     async (id: string, group: string) => {
       mutate(
-        integrations.map((integration: any) => {
+        (integrations || []).map((integration: any) => {
           if (integration.id === id) {
             return {
               ...integration,
@@ -448,15 +449,40 @@ export const LaunchesComponent = () => {
         }
       ) =>
       async () => {
-        const { url } = await (
-          await fetch(
+        try {
+          const response = await fetch(
             `/integrations/social/${integration.identifier}?refresh=${integration.internalId}`,
             {
               method: 'GET',
             }
-          )
-        ).json();
-        window.location.href = url;
+          );
+          if (!response.ok) {
+            toast.show(
+              `${t(
+                'channel_reconnect_failed',
+                'Could not reconnect the channel'
+              )}: ${await readResponseError(response)}`,
+              'warning'
+            );
+            return;
+          }
+          const { url } = await response.json();
+          // Guard against `location.href = undefined` → navigating to `/undefined`
+          if (!url) {
+            toast.show(
+              t('channel_reconnect_failed', 'Could not reconnect the channel'),
+              'warning'
+            );
+            return;
+          }
+          window.location.href = url;
+        } catch (e) {
+          console.error('[Postra:channels] reconnect failed', e);
+          toast.show(
+            t('channel_reconnect_failed', 'Could not reconnect the channel'),
+            'warning'
+          );
+        }
       },
     []
   );

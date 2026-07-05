@@ -34,6 +34,7 @@ import { HtmlComponent } from '@gitroom/frontend/components/layout/html.componen
 import Script from 'next/script';
 import { ChangeDirClient } from '@gitroom/frontend/components/new-layout/change.dir.client';
 import { GlobalErrorLogger } from '@gitroom/frontend/components/layout/global-error-logger.client';
+import { SwrProvider } from '@gitroom/frontend/components/layout/swr.provider';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
@@ -119,7 +120,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               >
                 <LayoutContext>
                   <UtmSaver />
-                  {children}
+                  <SwrProvider>{children}</SwrProvider>
                 </LayoutContext>
               </PHProvider>
             </Plausible>

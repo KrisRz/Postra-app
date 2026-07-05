@@ -96,6 +96,20 @@ export const ContinueIntegration: FC<{
 
   useEffect(() => {
     (async () => {
+      // OAuth providers redirect back with `?error=access_denied` (and an
+      // `error_description`) when the user declines consent. Surface that
+      // instead of POSTing an empty code and showing a generic failure.
+      if (searchParams?.error || searchParams?.error_description) {
+        setErrorMessage(
+          searchParams.error_description ||
+            (searchParams.error === 'access_denied'
+              ? t('oauth_access_denied', 'You declined the connection request.')
+              : t('could_not_add_provider', 'Could not add provider'))
+        );
+        setError(true);
+        return;
+      }
+
       const timezone = String(dayjs.tz().utcOffset());
 
       // Try public endpoint first (handles both public and fallback scenarios)

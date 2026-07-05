@@ -64,7 +64,7 @@ export const TagsComponentInner: FC<{
   const [allowClose, setAllowClose] = useState(true);
   const [tagValue, setTagValue] = useState<any[]>(
     (initial?.slice(0) || []).map((p: any) => {
-      return data?.tags.find((a: any) => a.name === p.value) || p;
+      return data?.tags?.find((a: any) => a.name === p.value) || p;
     })
   );
   const modals = useModals();
@@ -407,7 +407,7 @@ export const TagsComponentA: FC<{
       value: string;
     }>(
       [
-        ...(data?.tags.map((p) => ({
+        ...(data?.tags?.map((p) => ({
           label: p.name,
           value: p.name,
         })) || []),
