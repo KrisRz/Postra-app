@@ -10,10 +10,20 @@ import {
   buildBrandVoicePrompt,
   buildBrandDesignPrompt,
 } from '@gitroom/nestjs-libraries/openai/brand-prompt';
+import pLimit from 'p-limit';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
+  // Cap per-request time (SDK default is 10 min) so a stuck OpenAI call can't
+  // pin a request/worker under load. 90s comfortably covers image generation
+  // (~40s). maxRetries stays at the SDK default (2, backoff on 429/5xx).
+  timeout: 90_000,
 });
+
+// Cap concurrent image generations so peak traffic can't stampede OpenAI's
+// image rate limits (429s). One process today; move to a shared/Redis limiter
+// if we scale out.
+const imageGenLimit = pLimit(Number(process.env.OPENAI_IMAGE_CONCURRENCY) || 4);
 
 const PicturePrompt = z.object({
   prompt: z.string(),
@@ -64,14 +74,16 @@ export class OpenaiService {
     // return b64 only and reject response_format.
     const model = 'gpt-image-1';
     const generate = (
-      await openai.images.generate({
-        prompt,
-        model,
-        size: isVertical ? '1024x1536' : '1024x1024',
-        // 'medium' is ~4x cheaper than gpt-image-1's default ('high'/'auto') with
-        // quality good enough for social graphics — keeps AI-image unit cost sane.
-        quality: 'medium',
-      })
+      await imageGenLimit(() =>
+        openai.images.generate({
+          prompt,
+          model,
+          size: isVertical ? '1024x1536' : '1024x1024',
+          // 'medium' is ~4x cheaper than gpt-image-1's default ('high'/'auto')
+          // with quality good enough for social graphics — keeps unit cost sane.
+          quality: 'medium',
+        })
+      )
     ).data?.[0];
 
     const b64 = generate?.b64_json;

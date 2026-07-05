@@ -12,10 +12,16 @@ import {
 import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
 import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
 import { parseDataUrl } from '@gitroom/nestjs-libraries/upload/data.url';
+import pLimit from 'p-limit';
 
 // Fabric renders line height at 1.16 by default; mirror it so wrapped copy
 // stacks the same server-side as it does in the browser design editor.
 const LINE_HEIGHT = 1.16;
+
+// Cap concurrent sharp renders. sharp/libvips is memory-heavy and this box is
+// small (3.7 GiB + swap), so unbounded concurrent renders under peak traffic
+// can OOM. One process today; move to a shared/Redis limiter if we scale out.
+const renderLimit = pLimit(Number(process.env.DESIGN_RENDER_CONCURRENCY) || 2);
 
 /**
  * Server-side renderer for a generated post design (`PostDesignSpec`).
@@ -34,6 +40,13 @@ const LINE_HEIGHT = 1.16;
 @Injectable()
 export class DesignRenderService {
   async renderDesignToPng(
+    spec: PostDesignSpec,
+    size: DesignSize
+  ): Promise<Buffer> {
+    return renderLimit(() => this._renderDesignToPng(spec, size));
+  }
+
+  private async _renderDesignToPng(
     spec: PostDesignSpec,
     size: DesignSize
   ): Promise<Buffer> {
@@ -215,6 +228,9 @@ export class DesignRenderService {
       const res = await fetch(url, {
         // @ts-ignore — undici option, not in lib.dom fetch types
         dispatcher: ssrfSafeDispatcher,
+        // Don't let a slow S3/CDN pin the render; on timeout the catch below
+        // returns null and the design falls back to its gradient background.
+        signal: AbortSignal.timeout(10_000),
       });
       if (!res.ok) return null;
       return Buffer.from(await res.arrayBuffer());
