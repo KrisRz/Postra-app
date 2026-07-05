@@ -6,6 +6,7 @@ import { MediaService } from '@gitroom/nestjs-libraries/database/prisma/media/me
 import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { checkAuth } from '@gitroom/nestjs-libraries/chat/auth.context';
+import { buildBrandImagePrompt } from '@gitroom/nestjs-libraries/openai/brand-prompt';
 
 @Injectable()
 export class GenerateImageTool implements AgentToolInterface {
@@ -47,8 +48,9 @@ export class GenerateImageTool implements AgentToolInterface {
         // Reflect the org's Brand Kit in generated visuals so the agent's
         // images come out on-brand, not just whatever the model picks.
         const brandKit = await this._brandKitService.getNormalized(org.id);
-        const prompt = brandKit
-          ? `${inputData.prompt}. Visual brand style: build the palette around ${brandKit.colors.primary} and ${brandKit.colors.secondary}, keep it consistent with a ${brandKit.tone} brand.`
+        const brandStyle = buildBrandImagePrompt(brandKit);
+        const prompt = brandStyle
+          ? `${inputData.prompt}. ${brandStyle}`
           : inputData.prompt;
 
         const image = await this._mediaService.generateImage(prompt, org);

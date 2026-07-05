@@ -6,6 +6,10 @@ import { z } from 'zod';
 import { createReadStream } from 'fs';
 import { stat } from 'fs/promises';
 import { parseChat } from '@gitroom/nestjs-libraries/openai/parse-chat';
+import {
+  buildBrandVoicePrompt,
+  buildBrandDesignPrompt,
+} from '@gitroom/nestjs-libraries/openai/brand-prompt';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
@@ -295,14 +299,7 @@ export class OpenaiService {
       ]),
     });
 
-    const brandHint = brandKit?.colors
-      ? `BRAND CONSTRAINTS — respect strictly:
-- Background color: ${brandKit.colors.secondary || 'designer choice'}
-- Accent color: ${brandKit.colors.primary || 'designer choice'}
-- Text color: ${brandKit.colors.text || '#ffffff'}
-- Font family: ${brandKit.font || 'sans-serif'}
-- Tone: ${brandKit.tone || 'professional'}`
-      : '';
+    const brandHint = buildBrandDesignPrompt(brandKit);
 
     for (let i = 0; i < 3; i++) {
       try {
@@ -357,9 +354,7 @@ ${brandHint}`,
     }
   ): Promise<string> {
     const CaptionSchema = z.object({ caption: z.string() });
-    const toneHint = brandKit?.tone
-      ? `Brand tone of voice: ${brandKit.tone}. Write the caption in that voice.`
-      : '';
+    const toneHint = buildBrandVoicePrompt(brandKit);
 
     const parsed = (
       await this.parseChat({
@@ -432,14 +427,7 @@ ${toneHint}`,
         ),
     });
 
-    const brandHint = brandKit?.colors
-      ? `BRAND CONSTRAINTS — respect strictly:
-- Background color: ${brandKit.colors.secondary || 'designer choice'}
-- Accent color: ${brandKit.colors.primary || 'designer choice'}
-- Text color: ${brandKit.colors.text || '#ffffff'}
-- Font family: ${brandKit.font || 'sans-serif'}
-- Tone: ${brandKit.tone || 'professional'}`
-      : '';
+    const brandHint = buildBrandDesignPrompt(brandKit);
 
     // OpenAI structured outputs ignore array min/max in strict mode, so the
     // model can return the wrong number of slides. Validate the count, prefer an

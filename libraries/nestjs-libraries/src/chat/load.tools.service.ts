@@ -7,6 +7,7 @@ import { array, object, string } from 'zod';
 import { ModuleRef } from '@nestjs/core';
 import { toolList } from '@gitroom/nestjs-libraries/chat/tools/tool.list';
 import dayjs from 'dayjs';
+import { buildBrandAgentPrompt } from '@gitroom/nestjs-libraries/openai/brand-prompt';
 
 export const AgentState = object({
   proverbs: array(string()).default([]),
@@ -23,17 +24,7 @@ const renderArray = (list: string[], show: boolean) => {
 const renderBrandKit = (raw?: string) => {
   if (!raw) return '';
   try {
-    const bk = JSON.parse(raw);
-    if (!bk) return '';
-    return `
-      Brand guidelines (apply these to everything you write and generate):
-        - Tone of voice: ${bk.tone || 'not specified'}
-        - Brand colors: primary ${bk.colors?.primary || '-'}, secondary ${
-      bk.colors?.secondary || '-'
-    }, text ${bk.colors?.text || '-'}
-        - Brand font: ${bk.font || 'not specified'}
-      Always write post copy in this tone of voice, and reflect these brand colors/style when you generate images or designs.
-`;
+    return buildBrandAgentPrompt(JSON.parse(raw));
   } catch {
     return '';
   }
