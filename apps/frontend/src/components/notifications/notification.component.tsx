@@ -17,9 +17,9 @@ function replaceLinks(text: string) {
   return DOMPurify.sanitize(
     text.replace(
       urlRegex,
-      '<a class="cursor-pointer underline font-bold" target="_blank" href="$1">$1</a>'
+      '<a class="cursor-pointer underline font-bold" target="_blank" rel="noopener noreferrer" href="$1">$1</a>'
     ),
-    { ADD_ATTR: ['target'] }
+    { ADD_ATTR: ['target', 'rel'] }
   );
 }
 export const ShowNotification: FC<{
