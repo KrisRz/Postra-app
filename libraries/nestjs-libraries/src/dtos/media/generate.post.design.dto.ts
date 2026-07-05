@@ -72,4 +72,12 @@ export class GeneratePostDesignDto {
   @ValidateNested()
   @Type(() => BrandKitDto)
   brandKit?: BrandKitDto;
+
+  // Language for the on-image text (headline/subtext/cta). When omitted the
+  // generator detects it from the prompt. Set it to keep a draft's design and
+  // caption in the same language (see MediaService.createBrandedDraft).
+  @IsString()
+  @IsOptional()
+  @MaxLength(40)
+  language?: string;
 }

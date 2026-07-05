@@ -279,7 +279,8 @@ export class OpenaiService {
       colors?: { primary?: string; secondary?: string; text?: string };
       font?: string;
       tone?: string;
-    }
+    },
+    language?: string
   ) {
     const PostDesignSchema = z.object({
       headline: z.string().max(60),
@@ -316,7 +317,10 @@ export class OpenaiService {
                 content: `You are an expert social media graphic designer.
 Generate a complete design specification for a ${platform} post.
 
-LANGUAGE: Detect the language of the user's prompt. Generate ALL text fields (headline, subtext, cta) in that SAME language. If Polish prompt → Polish text. Never mix.
+LANGUAGE: Write ALL text fields (headline, subtext, cta) in ${
+                  language ||
+                  "the SAME language as the user's prompt (detect it — Polish prompt → Polish text, English → English)"
+                }. Never mix languages. IGNORE the language of the brand constraints below when choosing the text language.
 
 CONTENT RULES:
 - headline: short, impactful, max ~5 words
@@ -355,7 +359,8 @@ ${brandHint}`,
       colors?: { primary?: string; secondary?: string; text?: string };
       font?: string;
       tone?: string;
-    }
+    },
+    language?: string
   ): Promise<string> {
     const CaptionSchema = z.object({ caption: z.string() });
     const toneHint = buildBrandVoicePrompt(brandKit);
@@ -368,7 +373,10 @@ ${brandHint}`,
             role: 'system',
             content: `You are a senior social media copywriter writing the caption for a ${platform} post.
 
-LANGUAGE: detect the language of the topic and write the caption in that SAME language.
+LANGUAGE: write the caption in ${
+              language ||
+              'the SAME language as the topic (detect it)'
+            }. Never mix languages.
 
 RULES:
 - Write the POST caption (the body text), NOT the on-image graphic text. Open with a hook line, then 1-3 short sentences, end with a light call to action.

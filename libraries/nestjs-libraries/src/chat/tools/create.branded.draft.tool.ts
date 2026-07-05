@@ -33,6 +33,11 @@ export class CreateBrandedDraftTool implements AgentToolInterface {
           .describe(
             'Target social platform, e.g. instagram, facebook, linkedin, x, tiktok, threads.'
           ),
+        language: z
+          .string()
+          .describe(
+            'Language for ALL text in the post — the caption AND the on-image headline/subtext/CTA, so they match. Infer it from the language the user is writing in, e.g. "English" or "Polish".'
+          ),
       }),
       outputSchema: z.object({
         copy: z.string(),
@@ -49,6 +54,7 @@ export class CreateBrandedDraftTool implements AgentToolInterface {
         return this._mediaService.createBrandedDraft(org, {
           prompt: inputData.topic,
           platform: inputData.platform,
+          language: inputData.language,
         });
       },
     });
