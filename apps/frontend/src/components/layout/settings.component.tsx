@@ -31,6 +31,12 @@ import { Autopost } from '@gitroom/frontend/components/autopost/autopost';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { GlobalSettings } from '@gitroom/frontend/components/settings/global.settings';
 import { ApprovedAppsComponent } from '@gitroom/frontend/components/approved-apps/approved-apps.component';
+
+// The Developers tab documents the `@postra/node` SDK / CLI and
+// docs.postra.co.uk, none of which are published yet. Keep the code but hide
+// the tab until they exist — flip to `true` once the package + docs ship.
+const DEVELOPER_API_ENABLED = false;
+
 export const SettingsPopup: FC<{
   getRef?: Ref<any>;
 }> = (props) => {
@@ -102,7 +108,12 @@ export const SettingsPopup: FC<{
     if (user?.tier.current !== 'FREE') {
       arr.push({ tab: 'signatures', label: t('signatures', 'Signatures') });
     }
-    if (user?.tier?.public_api && isGeneral && showLogout) {
+    if (
+      DEVELOPER_API_ENABLED &&
+      user?.tier?.public_api &&
+      isGeneral &&
+      showLogout
+    ) {
       arr.push({ tab: 'api', label: t('developers', 'Developers') });
     }
     arr.push({ tab: 'approved_apps', label: t('approved_apps', 'Approved Apps') });
@@ -188,7 +199,8 @@ export const SettingsPopup: FC<{
                 </div>
               )}
 
-              {tab === 'api' &&
+              {DEVELOPER_API_ENABLED &&
+                tab === 'api' &&
                 !!user?.tier?.public_api &&
                 isGeneral &&
                 showLogout && (

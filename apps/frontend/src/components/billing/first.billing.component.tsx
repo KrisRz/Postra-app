@@ -27,7 +27,6 @@ import SafeImage from '@gitroom/react/helpers/safe.image';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import useCookie from 'react-use-cookie';
 import { LogoutComponent } from '@gitroom/frontend/components/layout/logout.component';
-import { DeveloperIconComponent } from '@gitroom/frontend/components/developer/developer.icon.component';
 
 const ModeComponent = dynamic(
   () => import('@gitroom/frontend/components/layout/mode.component'),
@@ -193,7 +192,7 @@ export const FirstBillingComponent = () => {
             <LanguageComponent />
             <div className="w-[1px] h-[20px] bg-blockSeparator" />
             <AttachToFeedbackIcon />
-            <DeveloperIconComponent />
+            {/* Developer SDK/CLI/MCP surface hidden until @postra/node ships */}
             {/*<NotificationComponent />*/}
             <div className="hover:text-newTextColor">
               {user?.tier.current === 'FREE' && (
