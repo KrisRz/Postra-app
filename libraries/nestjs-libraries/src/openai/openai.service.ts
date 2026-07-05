@@ -53,19 +53,22 @@ export class OpenaiService {
     _isUrl: boolean,
     isVertical = false
   ): Promise<string | undefined> {
-    // Model = 'gpt-image-2' (SOTA since Apr 2026). Migrated off 'gpt-image-1',
-    // which OpenAI retires 2026-10-23. Do NOT use 'chatgpt-image-latest' — that's
-    // ChatGPT's internal alias, not an API image model our key can call; 'dall-e-3'
-    // is retired. An upstream sync keeps re-clobbering this line; if image
-    // generation 502s after a merge, check here first. gpt-image-2 returns b64
-    // only, rejects response_format, and does NOT support transparent backgrounds.
+    // Model = 'gpt-image-1'. NOTE: gpt-image-1 is retired by OpenAI 2026-10-23,
+    // so we MUST move off it before then — but 'gpt-image-2' (tried in #102)
+    // returns "Unsupported file type" on our account (tier/access or an
+    // openai-node 6.x routing quirk — needs the raw API error to fix). Until
+    // that's resolved, stay on gpt-image-1. Do NOT use 'chatgpt-image-latest'
+    // (ChatGPT's internal alias, not callable by our key); 'dall-e-3' is retired.
+    // An upstream sync keeps re-clobbering this line; if image generation 502s
+    // after a merge, check here first. gpt-image-1 returns b64 only, rejects
+    // response_format.
     const generate = (
       await openai.images.generate({
         prompt,
-        model: 'gpt-image-2',
+        model: 'gpt-image-1',
         size: isVertical ? '1024x1536' : '1024x1024',
-        // 'medium' keeps AI-image unit cost sane (~$0.05/1024² vs ~$0.21 at 'high')
-        // with quality good enough for social graphics.
+        // 'medium' is ~4x cheaper than gpt-image-1's default ('high'/'auto') with
+        // quality good enough for social graphics — keeps AI-image unit cost sane.
         quality: 'medium',
       })
     ).data?.[0];
