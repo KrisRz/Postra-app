@@ -19,6 +19,8 @@ import { useToaster } from '@gitroom/react/toaster/toaster';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import copy from 'copy-to-clipboard';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import Spinner from '@gitroom/frontend/components/layout/loading';
+import { EmptyState } from '@gitroom/frontend/components/ui/empty-state';
 
 const roles = [
   {
@@ -156,7 +158,7 @@ export const TeamsComponent = () => {
       children: <AddMember />,
     });
   }, [t]);
-  const { data, mutate } = useSWR('/api/teams', loadTeam, {
+  const { data, isLoading, mutate } = useSWR('/api/teams', loadTeam, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     revalidateIfStale: false,
@@ -214,7 +216,21 @@ export const TeamsComponent = () => {
       </div>
       <Card className="my-[16px] p-[24px] flex flex-col gap-[24px]">
         <div className="flex flex-col gap-[16px]">
-          {(data || []).map((p) => (
+          {isLoading ? (
+            <div className="flex justify-center py-[12px]">
+              <Spinner width={36} height={36} />
+            </div>
+          ) : (data || []).length === 0 ? (
+            <EmptyState
+              title={t('no_team_members_yet', 'No team members yet')}
+              description={t(
+                'no_team_members_description',
+                'Invite an assistant or teammate to help manage your account.'
+              )}
+              className="py-[12px]"
+            />
+          ) : (
+            (data || []).map((p) => (
             <div key={p.user.id} className="flex items-center">
               <div className="flex-1">
                 {capitalize(p.user.email.split('@')[0]).split('.')[0]}
@@ -256,7 +272,7 @@ export const TeamsComponent = () => {
                 <div className="flex-1" />
               )}
             </div>
-          ))}
+          )))}
         </div>
         <div>
           <Button onClick={addMember}>
