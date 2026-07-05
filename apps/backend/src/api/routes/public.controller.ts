@@ -27,6 +27,9 @@ import { promisify } from 'util';
 import { OnlyURL } from '@gitroom/nestjs-libraries/dtos/webhooks/webhooks.dto';
 import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
 import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
+// undici's own fetch — Node's global fetch can't drive the undici-package
+// dispatcher below (throws "invalid onRequestStart method"); see design-render.
+import { fetch } from 'undici';
 
 const pump = promisify(pipeline);
 
@@ -176,7 +179,7 @@ export class PublicController {
     // `redirect: 'follow'`, which bypasses the DTO-level URL check.
     const MAX_REDIRECTS = 5;
     let currentUrl = url;
-    let r: globalThis.Response | undefined;
+    let r: Awaited<ReturnType<typeof fetch>> | undefined;
     for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
       if (!(await isSafePublicHttpsUrl(currentUrl))) {
         return res.status(400).send('Blocked URL');

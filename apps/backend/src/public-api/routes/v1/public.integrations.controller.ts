@@ -35,6 +35,9 @@ import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/n
 import { GetNotificationsDto } from '@gitroom/nestjs-libraries/dtos/notifications/get.notifications.dto';
 import { Readable } from 'stream';
 import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
+// undici's own fetch — Node's global fetch can't drive the undici-package
+// dispatcher below (throws "invalid onRequestStart method"); see design-render.
+import { fetch } from 'undici';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { fromBuffer } = require('file-type');
 
