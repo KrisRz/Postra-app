@@ -124,7 +124,8 @@ export class MediaService {
     const spec = await this._openAi.generatePostDesign(
       dto.prompt,
       dto.platform,
-      brandKit
+      brandKit,
+      dto.language
     );
 
     const cacheKey = `bg:${createHash('md5')
@@ -173,20 +174,29 @@ export class MediaService {
    */
   async createBrandedDraft(
     org: Organization,
-    dto: { prompt: string; platform: string }
+    dto: { prompt: string; platform: string; language?: string }
   ) {
     const designPlatform =
       DESIGN_PLATFORM_BY_SOCIAL[dto.platform.toLowerCase()] ?? 'instagram-feed';
 
+    // Pass one explicit language to BOTH the design and the caption so they
+    // can't diverge (each generator otherwise detects language independently
+    // and the brand-kit tone can tip the design to a different language).
     const spec = await this.generatePostDesign(org, {
       prompt: dto.prompt,
       platform: designPlatform,
+      language: dto.language,
     } as GeneratePostDesignDto);
 
     const brandKit = await this._brandKitService.getNormalized(org.id);
 
     const [copy, png] = await Promise.all([
-      this._openAi.generateCaption(dto.prompt, dto.platform, brandKit ?? undefined),
+      this._openAi.generateCaption(
+        dto.prompt,
+        dto.platform,
+        brandKit ?? undefined,
+        dto.language
+      ),
       this._designRender.renderDesignToPng(spec, platformDesignSize(dto.platform)),
     ]);
 
