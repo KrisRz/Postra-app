@@ -21,6 +21,11 @@ import pLimit from 'p-limit';
 // keep it here too if an upstream sync reintroduces the global fetch.
 import { fetch } from 'undici';
 
+// This box is small (3.7 GiB, whole backend in one process). Don't let libvips
+// retain decoded images between renders — a branded-draft render now composites
+// a real photo background, and retained buffers add avoidable memory pressure.
+sharp.cache(false);
+
 // Fabric renders line height at 1.16 by default; mirror it so wrapped copy
 // stacks the same server-side as it does in the browser design editor.
 const LINE_HEIGHT = 1.16;
@@ -57,11 +62,34 @@ export class DesignRenderService {
     spec: PostDesignSpec,
     size: DesignSize
   ): Promise<Buffer> {
-    const { width, height } = size;
-
     const bgBuffer = spec.backgroundUrl
       ? await this.loadImage(spec.backgroundUrl)
       : null;
+
+    // Composite over the real background when we have one, but never let a bad
+    // background (corrupt bytes, unexpected dimensions, a sharp/libvips error)
+    // fail the whole draft: fall back to the gradient, which is cheap and always
+    // renders. Keeps the branded-draft loop from erroring on a single flaky
+    // image instead of returning a usable post.
+    if (bgBuffer) {
+      try {
+        return await this.compose(spec, size, bgBuffer);
+      } catch (err) {
+        console.error(
+          '[design-render] background composite failed; rendering gradient instead',
+          err
+        );
+      }
+    }
+    return this.compose(spec, size, null);
+  }
+
+  private async compose(
+    spec: PostDesignSpec,
+    size: DesignSize,
+    bgBuffer: Buffer | null
+  ): Promise<Buffer> {
+    const { width, height } = size;
 
     // When we have a real background image the SVG overlay is text-only and
     // transparent; otherwise it carries the gradient placeholder itself.
@@ -70,10 +98,13 @@ export class DesignRenderService {
     const composites: sharp.OverlayOptions[] = [];
     let base: sharp.Sharp;
     if (bgBuffer) {
-      base = sharp(bgBuffer).resize(width, height, {
-        fit: 'cover',
-        position: 'centre',
-      });
+      // Cap decode size so a pathologically large image can't blow up memory;
+      // our backgrounds are ~1–2 MP, so 30 MP is a generous safety limit.
+      base = sharp(bgBuffer, { limitInputPixels: 30_000_000 }).resize(
+        width,
+        height,
+        { fit: 'cover', position: 'centre' }
+      );
       composites.push({ input: overlay, top: 0, left: 0 });
     } else {
       base = sharp(overlay, { density: 96 });
