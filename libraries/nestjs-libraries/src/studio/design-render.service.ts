@@ -13,6 +13,13 @@ import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/we
 import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
 import { parseDataUrl } from '@gitroom/nestjs-libraries/upload/data.url';
 import pLimit from 'p-limit';
+// Use undici's own fetch, NOT Node's global fetch. Global fetch cannot drive a
+// dispatcher built from the undici *package* (the two undici builds have
+// incompatible handler interfaces and it throws "invalid onRequestStart
+// method"). With global fetch every background/logo load silently fails and the
+// render falls back to a plain gradient. The upload storages already do this;
+// keep it here too if an upstream sync reintroduces the global fetch.
+import { fetch } from 'undici';
 
 // Fabric renders line height at 1.16 by default; mirror it so wrapped copy
 // stacks the same server-side as it does in the browser design editor.
