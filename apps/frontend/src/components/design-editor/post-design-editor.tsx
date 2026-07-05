@@ -13,9 +13,21 @@ import {
   installStudioFabricMetadata,
   wireStudioIds,
 } from './utils/fabric-studio-metadata';
+import { renderDesignSpec, PostDesignSpec } from './utils/canvas-renderer';
 import './fonts';
 
 installStudioFabricMetadata();
+
+// A generated post design (flat headline/subtext/cta) versus a semantic
+// StudioSpec (layer list) — they share the media `designSpec` column, told
+// apart by shape.
+const isPostDesignSpec = (spec: unknown): spec is PostDesignSpec =>
+  !!spec &&
+  typeof spec === 'object' &&
+  'layout' in spec &&
+  'headline' in spec &&
+  'colors' in spec &&
+  !('layers' in spec);
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useRouter } from 'next/navigation';
 import { useToaster } from '@gitroom/react/toaster/toaster';
@@ -171,6 +183,18 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
         if (cancelled || !fabricRef.current) return;
         if (data?.canvasJson) {
           restoreState(data.canvasJson);
+          return;
+        }
+        // A branded draft the agent produced server-side: rebuild an editable
+        // canvas from its design spec (rather than loading the flat PNG), so
+        // the user can keep editing headline / colours / layout in Studio.
+        if (data?.designSpec && isPostDesignSpec(data.designSpec)) {
+          await renderDesignSpec(
+            fabricRef.current,
+            data.designSpec as PostDesignSpec,
+            useEditorStore.getState().platform
+          );
+          saveStateRef.current?.();
           return;
         }
         if (data?.path) {

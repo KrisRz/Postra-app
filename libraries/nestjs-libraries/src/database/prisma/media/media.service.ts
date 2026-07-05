@@ -8,7 +8,10 @@ import { SaveMediaInformationDto } from '@gitroom/nestjs-libraries/dtos/media/sa
 import { VideoManager } from '@gitroom/nestjs-libraries/videos/video.manager';
 import { VideoDto } from '@gitroom/nestjs-libraries/dtos/videos/video.dto';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
-import { GeneratePostDesignDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
+import {
+  GeneratePostDesignDto,
+  PostDesignPlatform,
+} from '@gitroom/nestjs-libraries/dtos/media/generate.post.design.dto';
 import { GeneratePostCarouselDto } from '@gitroom/nestjs-libraries/dtos/media/generate.post.carousel.dto';
 import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
 import { PostsRepository } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.repository';
@@ -24,6 +27,8 @@ import {
   StudioPlatformKey,
   StudioSpec,
 } from '@gitroom/nestjs-libraries/studio/studio-spec';
+import { DesignRenderService } from '@gitroom/nestjs-libraries/studio/design-render.service';
+import { platformDesignSize } from '@gitroom/nestjs-libraries/studio/post-design-spec';
 import {
   BrandVoiceCheckDto,
   AiEditTextDto,
@@ -39,6 +44,21 @@ import {
 } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
 
 const POST_DESIGN_BG_CACHE_TTL = 60 * 60 * 24 * 7; // 7 days
+
+// Map a social channel to the design format that reads best on it. The design
+// generator only uses this as descriptive context; the actual canvas size is
+// resolved separately from `platformDesignSize`.
+const DESIGN_PLATFORM_BY_SOCIAL: Record<string, PostDesignPlatform> = {
+  instagram: 'instagram-feed',
+  facebook: 'facebook-feed',
+  linkedin: 'linkedin-feed',
+  tiktok: 'tiktok-cover',
+  x: 'x-post',
+  twitter: 'x-post',
+  threads: 'instagram-feed',
+  mastodon: 'instagram-feed',
+  bluesky: 'instagram-feed',
+};
 const TEMPLATE_EMBED_CACHE_TTL = 60 * 60 * 24 * 30; // 30 days
 const RECENT_POSTS_FOR_VOICE = 5;
 
@@ -53,7 +73,8 @@ export class MediaService {
     private _videoManager: VideoManager,
     private _brandKitService: BrandKitService,
     private _studioAi: StudioAiService,
-    private _postsRepository: PostsRepository
+    private _postsRepository: PostsRepository,
+    private _designRender: DesignRenderService
   ) {}
 
   async deleteMedia(org: string, id: string) {
@@ -137,6 +158,56 @@ export class MediaService {
       backgroundUrl,
       cacheHit,
       brandKit: brandKit ? { logoPath: brandKit.logoPath ?? null } : null,
+    };
+  }
+
+  /**
+   * One-shot "opportunity → branded draft": generate the on-brand design + a
+   * caption, render the design to a flat PNG server-side, save it to the media
+   * library and persist the design spec so it stays editable in Studio.
+   *
+   * The agent calls this via a single tool; the server orchestrates every step
+   * and returns a finished draft, so there is no partial state to clean up.
+   * Credit metering is inherited from `generatePostDesign` (one `ai_images`
+   * credit for the background) — the caption + render add no extra charge.
+   */
+  async createBrandedDraft(
+    org: Organization,
+    dto: { prompt: string; platform: string }
+  ) {
+    const designPlatform =
+      DESIGN_PLATFORM_BY_SOCIAL[dto.platform.toLowerCase()] ?? 'instagram-feed';
+
+    const spec = await this.generatePostDesign(org, {
+      prompt: dto.prompt,
+      platform: designPlatform,
+    } as GeneratePostDesignDto);
+
+    const brandKit = await this._brandKitService.getNormalized(org.id);
+
+    const [copy, png] = await Promise.all([
+      this._openAi.generateCaption(dto.prompt, dto.platform, brandKit ?? undefined),
+      this._designRender.renderDesignToPng(spec, platformDesignSize(dto.platform)),
+    ]);
+
+    const uploaded = await this.storage.uploadSimple(
+      'data:image/png;base64,' + png.toString('base64')
+    );
+    const media = await this._mediaRepository.saveFile(
+      org.id,
+      uploaded.split('/').pop() as string,
+      uploaded
+    );
+
+    // Persist the design spec so opening this media in Studio rebuilds an
+    // editable canvas (edit-anywhere) rather than a flat raster.
+    await this._mediaRepository.savePostDesignSpec(org.id, media.id, spec);
+
+    return {
+      copy,
+      mediaId: media.id,
+      path: media.path,
+      headline: spec.headline,
     };
   }
 

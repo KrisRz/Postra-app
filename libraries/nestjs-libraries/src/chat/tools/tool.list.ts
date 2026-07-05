@@ -11,6 +11,7 @@ import { ListScheduledPostsTool } from '@gitroom/nestjs-libraries/chat/tools/lis
 import { ReschedulePostTool } from '@gitroom/nestjs-libraries/chat/tools/reschedule.post.tool';
 import { DeletePostTool } from '@gitroom/nestjs-libraries/chat/tools/delete.post.tool';
 import { GetAnalyticsTool } from '@gitroom/nestjs-libraries/chat/tools/get.analytics.tool';
+import { CreateBrandedDraftTool } from '@gitroom/nestjs-libraries/chat/tools/create.branded.draft.tool';
 
 export const toolList = [
   IntegrationListTool,
@@ -21,6 +22,7 @@ export const toolList = [
   VideoFunctionTool,
   GenerateVideoTool,
   GenerateImageTool,
+  CreateBrandedDraftTool,
   UploadFromUrlTool,
   ListScheduledPostsTool,
   ReschedulePostTool,
