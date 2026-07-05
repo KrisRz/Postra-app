@@ -626,7 +626,7 @@ export const Editor: FC<{
       if (num > 0 && comments === 'no-media') {
         return;
       }
-      // @ts-expect-error
+      // @ts-expect-error event is a File[]|ClipboardEvent union; clipboardData is on one arm
       const clipboardItems = event.clipboardData?.items;
       if (!clipboardItems) {
         return;
@@ -1052,7 +1052,7 @@ export const OnlyEditor = forwardRef<
     content: value || '',
     shouldRerenderOnTransaction: true,
     immediatelyRender: false,
-    // @ts-expect-error
+    // @ts-expect-error paste handler signature doesn't match the editor prop overload
     onPaste: paste,
     onUpdate: (innerProps) => {
       onChange?.(innerProps.editor.getHTML());

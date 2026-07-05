@@ -345,7 +345,7 @@ export const Menu: FC<{
       title: t('additional_settings', 'Additional Settings'),
       children: (
         <SettingsModal
-          // @ts-expect-error
+          // @ts-expect-error findIntegration (Integrations) doesn't match the prop's expanded shape
           integration={findIntegration}
           onClose={() => {
             mutate();
@@ -370,7 +370,7 @@ export const Menu: FC<{
       closeOnClickOutside: true,
       children: (
         <CustomerModal
-          // @ts-expect-error
+          // @ts-expect-error findIntegration (Integrations) doesn't match the prop's expanded shape
           integration={findIntegration}
           onClose={() => {
             mutate();

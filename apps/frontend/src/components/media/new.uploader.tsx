@@ -34,7 +34,7 @@ export class CompressionWrapper<M = any, B = any> extends Compressor<any, any> {
 }
 
 export function useUppyUploader(props: {
-  // @ts-expect-error
+  // @ts-expect-error UploadResult is generic; Uppy's types require its 2 type args
   onUploadSuccess: (result: UploadResult) => void;
   onStart: () => void;
   onEnd: () => void;
@@ -222,7 +222,7 @@ export function useUppyUploader(props: {
         }
 
         if (transloadit.length > 0) {
-          // @ts-expect-error
+          // @ts-expect-error transloadit result is typed as {}; indexing it isn't allowed
           const allRes = result.transloadit?.[0]?.results;
           if (!allRes) {
             throw new Error('empty transloadit assembly result');
@@ -232,7 +232,7 @@ export function useUppyUploader(props: {
             originalName: string;
             order: number;
           }>(
-            // @ts-expect-error
+            // @ts-expect-error flatMap value is unknown; the callback takes any[]
             Object.values(allRes).flatMap((p: any[]) => {
               return p.flatMap((item) => ({
                 name: item.url.split('/').pop(),

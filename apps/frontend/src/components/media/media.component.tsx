@@ -298,7 +298,7 @@ export const MediaBox: FC<{
 
       setLoading(true);
 
-      // @ts-expect-error
+      // @ts-expect-error Uppy addFiles expects UppyFile[]; we pass raw File[]
       uppy.addFiles(files);
     },
     [toaster, t]
@@ -306,7 +306,7 @@ export const MediaBox: FC<{
 
   const dragAndDrop = useCallback(
     async (event: ClipboardEvent<HTMLDivElement> | File[]) => {
-      // @ts-expect-error
+      // @ts-expect-error event is a ClipboardEvent|File[] union; map is on one arm
       const clipboardItems = event.map((p) => ({
         kind: 'file',
         getAsFile: () => p,

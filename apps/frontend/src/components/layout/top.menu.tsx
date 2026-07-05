@@ -297,7 +297,7 @@ export const TopMenu: FC = () => {
       <div className="flex flex-1 flex-col minCustom:gap-[16px] blurMe w-full items-center">
         {
           user?.orgId &&
-            // @ts-expect-error
+            // @ts-expect-error user.tier is typed as PricingInnerInterface, compared to a string literal
             (user.tier !== 'FREE' || !isGeneral || !billingEnabled) &&
             firstMenu
               .filter((f) => {

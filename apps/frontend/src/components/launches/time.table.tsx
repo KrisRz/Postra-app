@@ -9,7 +9,7 @@ import { Button } from '@gitroom/frontend/components/ui/button';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
-// @ts-expect-error
+// @ts-expect-error react-use-keypress ships no type declarations
 import useKeypress from 'react-use-keypress';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { sortBy } from 'lodash';

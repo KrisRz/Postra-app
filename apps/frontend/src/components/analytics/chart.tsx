@@ -53,11 +53,11 @@ export const Chart: FC<{
         datasets: [
           {
             borderColor: '#fff',
-            // @ts-expect-error
+            // @ts-expect-error row is a forks|stars union; the metric exists on only one arm
             label: list?.[0]?.totalForks ? 'Forks by date' : 'Stars by date',
             backgroundColor: gradient,
             fill: true,
-            // @ts-expect-error
+            // @ts-expect-error row is a forks|stars union; the metric exists on only one arm
             data: list.map((row) => row.totalForks || row.totalStars),
           },
         ],

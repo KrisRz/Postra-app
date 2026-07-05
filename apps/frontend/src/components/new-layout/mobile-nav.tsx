@@ -44,7 +44,7 @@ export const BottomNav: FC = () => {
 
   if (
     !user?.orgId ||
-    // @ts-expect-error
+    // @ts-expect-error user.tier is typed as PricingInnerInterface, compared to a string literal
     (user?.tier === 'FREE' && isGeneral && billingEnabled)
   ) {
     return null;
@@ -191,7 +191,7 @@ const MobileDrawerMenu: FC = () => {
       <div className="flex flex-col gap-[4px]">
         {
           user?.orgId &&
-            // @ts-expect-error
+            // @ts-expect-error user.tier is typed as PricingInnerInterface, compared to a string literal
             (user.tier !== 'FREE' || !isGeneral || !billingEnabled) &&
             firstMenu
               .filter(filter)
