@@ -89,6 +89,10 @@ const enabledProviders = new Set([
 
 const hiddenProviders = new Set([
   'instagram-standalone',
+  // Upstream crypto channels Postra doesn't offer — keep the providers
+  // registered but out of the add-channel picker (no "coming soon" tiles).
+  'wrapcast',
+  'moltbook',
 ]);
 
 @Injectable()

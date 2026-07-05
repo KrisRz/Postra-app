@@ -1,6 +1,5 @@
 'use client';
 
-import '@neynar/react/dist/style.css';
 import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Web3ProviderInterface } from '@gitroom/frontend/components/launches/web3/web3.provider.interface';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
@@ -55,7 +54,7 @@ export const TelegramProvider: FC<Web3ProviderInterface> = (props) => {
   };
   const copyText = useCallback(() => {
     copy(`/connect ${word.current}`);
-    toaster.show('Skopiowano do schowka', 'success');
+    toaster.show(t('copied_to_clipboard', 'Copied to clipboard'), 'success');
   }, []);
   useEffect(() => {
     return () => {
