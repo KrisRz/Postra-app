@@ -163,7 +163,10 @@ export const Menu: FC<{
   const deleteChannel = useCallback(async () => {
     if (
       !(await deleteDialog(
-        t('are_you_sure_delete_channel', 'Are you sure you want to delete this channel?'),
+        t(
+          'are_you_sure_delete_channel',
+          'Deleting this channel also permanently deletes all its scheduled and published posts. This cannot be undone.'
+        ),
         t('delete_channel_title', 'Delete Channel')
       ))
     ) {
@@ -176,13 +179,10 @@ export const Menu: FC<{
           id,
         }),
       });
-      if (deleteIntegration.status === 406) {
-        toast.show(
-          t('delete_posts_before_channel', 'You have to delete all the posts associated with this channel before deleting it'),
-          'warning'
-        );
-        return;
-      }
+      // Note: the backend deletes the channel's posts and returns 200 (the user
+      // already consented to that in the dialog above); it never returns 406
+      // here, so we don't special-case it — a 406 would be the global trial
+      // dialog, not this endpoint.
       if (!deleteIntegration.ok) {
         toast.show(
           `${t(
