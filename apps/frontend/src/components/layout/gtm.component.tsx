@@ -13,7 +13,7 @@ export const TrialTracker: FC = () => {
       typeof window === 'undefined' ||
       !user?.id ||
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
+      // @ts-expect-error gtag is a GTM-injected global, absent from TS types
       !window.gtag ||
       !googleAdsId ||
       !googleAdsTrialTracking
@@ -25,7 +25,7 @@ export const TrialTracker: FC = () => {
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, '1');
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
+    // @ts-expect-error gtag is a GTM-injected global, absent from TS types
     gtag('event', 'conversion', {
       send_to: `${googleAdsId}/${googleAdsTrialTracking}`,
     });

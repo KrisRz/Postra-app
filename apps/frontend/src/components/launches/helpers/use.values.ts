@@ -66,7 +66,7 @@ export const useValues = (
     });
   }, [form, integration]);
 
-  // @ts-ignore
+  // @ts-expect-error entry may still be the {} fallback that lacks the required shape
   finalInformation[integration] = finalInformation[integration] || {};
   finalInformation[integration].posts = value;
   finalInformation[integration].isValid = form.formState.isValid;

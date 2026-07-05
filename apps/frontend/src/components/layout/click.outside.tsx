@@ -15,12 +15,12 @@ export const useClickOutside = (callback: () => Promise<void>) => {
   useEffect(() => {
     document
       .querySelector('.mantine-Modal-root')
-      // @ts-ignore
+      // @ts-expect-error ref node union doesn't match the addEventListener overloads
       ?.addEventListener('click', handleClick);
     return () => {
       document
         .querySelector('.mantine-Modal-root')
-        // @ts-ignore
+        // @ts-expect-error ref node union doesn't match the removeEventListener overloads
         ?.removeEventListener('click', handleClick);
     };
   });

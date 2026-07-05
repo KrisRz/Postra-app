@@ -1089,7 +1089,7 @@ const CalendarItem: FC<{
   );
   return (
     <div
-      // @ts-ignore
+      // @ts-expect-error react-dnd connector ref isn't assignable to React's Ref
       ref={dragRef}
       className={clsx(
         'w-full flex h-full flex-1 flex-col group',

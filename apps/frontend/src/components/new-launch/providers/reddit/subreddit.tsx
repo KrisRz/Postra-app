@@ -69,7 +69,7 @@ export const Subreddit: FC<{
   const dummy = useLaunchStore((state) => state.dummy);
   const split = name.split('.');
   const [loading, setLoading] = useState(false);
-  // @ts-ignore
+  // @ts-expect-error dynamic split path can't index the react-hook-form error type
   const errors = state?.formState?.errors?.[split?.[0]]?.[split?.[1]]?.value;
   const [results, setResults] = useState([]);
   const func = useCustomProviderFunction();
@@ -167,15 +167,13 @@ export const Subreddit: FC<{
   );
   const search = useDebouncedCallback(
     useCallback(async (e: FormEvent<HTMLInputElement>) => {
-      // @ts-ignore
       setResults([]);
-      // @ts-ignore
+      // @ts-expect-error e.target is typed as EventTarget, which has no value
       if (!e.target.value) {
         return;
       }
-      // @ts-ignore
+      // @ts-expect-error e.target is typed as EventTarget, which has no value
       const results = await func.get('subreddits', { word: e.target.value });
-      // @ts-ignore
       setResults(results);
     }, []),
     500
@@ -245,7 +243,7 @@ export const Subreddit: FC<{
             error={errors?.message}
             disableForm={true}
             onInput={async (e) => {
-              // @ts-ignore
+              // @ts-expect-error e.target is typed as EventTarget, which has no value
               setSearchValue(e.target.value);
               await search(e);
             }}

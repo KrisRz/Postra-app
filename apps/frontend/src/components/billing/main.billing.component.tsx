@@ -634,7 +634,7 @@ export const MainBillingComponent: FC<{
                             .local()
                             .format('D MMM, YYYY')}`
                         : t('cancel_subscription', 'Anuluj subskrypcję')
-                      : // @ts-ignore
+                      : // @ts-expect-error user.tier is typed as PricingInnerInterface, compared to a string literal
                       (user?.tier === 'FREE' ||
                           user?.tier?.current === 'FREE') &&
                         user.allowTrial

@@ -276,7 +276,6 @@ export const MediaBox: FC<{
     if (standalone) {
       return;
     }
-    // @ts-ignore
     setMedia(selected);
     modals.closeCurrent();
   }, [selected]);
@@ -299,7 +298,7 @@ export const MediaBox: FC<{
 
       setLoading(true);
 
-      // @ts-ignore
+      // @ts-expect-error Uppy addFiles expects UppyFile[]; we pass raw File[]
       uppy.addFiles(files);
     },
     [toaster, t]
@@ -307,7 +306,7 @@ export const MediaBox: FC<{
 
   const dragAndDrop = useCallback(
     async (event: ClipboardEvent<HTMLDivElement> | File[]) => {
-      // @ts-ignore
+      // @ts-expect-error event is a ClipboardEvent|File[] union; map is on one arm
       const clipboardItems = event.map((p) => ({
         kind: 'file',
         getAsFile: () => p,
@@ -317,7 +316,6 @@ export const MediaBox: FC<{
       }
 
       const files: File[] = [];
-      // @ts-ignore
       for (const item of clipboardItems) {
         if (item.kind === 'file') {
           const file = item.getAsFile();

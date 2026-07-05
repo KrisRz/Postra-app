@@ -181,7 +181,6 @@ export const ThirdPartyComponent = () => {
                         />
                       </div>
                       <div
-                        // @ts-ignore
                         role="Handle"
                         className={clsx(
                           'flex-1 whitespace-nowrap text-ellipsis overflow-hidden group-[.sidebar]:hidden'
