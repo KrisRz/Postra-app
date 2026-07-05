@@ -6,6 +6,10 @@ import { z } from 'zod';
 import { createReadStream } from 'fs';
 import { stat } from 'fs/promises';
 import { parseChat } from '@gitroom/nestjs-libraries/openai/parse-chat';
+import {
+  buildBrandVoicePrompt,
+  buildBrandDesignPrompt,
+} from '@gitroom/nestjs-libraries/openai/brand-prompt';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
@@ -295,14 +299,7 @@ export class OpenaiService {
       ]),
     });
 
-    const brandHint = brandKit?.colors
-      ? `BRAND CONSTRAINTS — respect strictly:
-- Background color: ${brandKit.colors.secondary || 'designer choice'}
-- Accent color: ${brandKit.colors.primary || 'designer choice'}
-- Text color: ${brandKit.colors.text || '#ffffff'}
-- Font family: ${brandKit.font || 'sans-serif'}
-- Tone: ${brandKit.tone || 'professional'}`
-      : '';
+    const brandHint = buildBrandDesignPrompt(brandKit);
 
     for (let i = 0; i < 3; i++) {
       try {
@@ -345,6 +342,46 @@ ${brandHint}`,
     }
 
     throw new Error('Failed to generate post design after 3 attempts');
+  }
+
+  async generateCaption(
+    topic: string,
+    platform: string,
+    brandKit?: {
+      colors?: { primary?: string; secondary?: string; text?: string };
+      font?: string;
+      tone?: string;
+    }
+  ): Promise<string> {
+    const CaptionSchema = z.object({ caption: z.string() });
+    const toneHint = buildBrandVoicePrompt(brandKit);
+
+    const parsed = (
+      await this.parseChat({
+        model: 'gpt-4.1',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a senior social media copywriter writing the caption for a ${platform} post.
+
+LANGUAGE: detect the language of the topic and write the caption in that SAME language.
+
+RULES:
+- Write the POST caption (the body text), NOT the on-image graphic text. Open with a hook line, then 1-3 short sentences, end with a light call to action.
+- Fit the platform: punchy for X/Instagram/Threads, a little more context for LinkedIn/Facebook.
+- Sound like a person. Ban AI clichés ("Unlock", "Elevate", "Discover the power of", "Take it to the next level", "Game-changer", "In today's fast-paced world").
+- No hashtags unless they genuinely help — at most 2-3, at the very end.
+- No emoji unless they fit the brand tone.
+
+${toneHint}`,
+          },
+          { role: 'user', content: topic },
+        ],
+        response_format: zodResponseFormat(CaptionSchema, 'caption'),
+      })
+    ).choices[0].message.parsed;
+
+    return parsed?.caption?.trim() || topic;
   }
 
   async generatePostCarousel(
@@ -390,14 +427,7 @@ ${brandHint}`,
         ),
     });
 
-    const brandHint = brandKit?.colors
-      ? `BRAND CONSTRAINTS — respect strictly:
-- Background color: ${brandKit.colors.secondary || 'designer choice'}
-- Accent color: ${brandKit.colors.primary || 'designer choice'}
-- Text color: ${brandKit.colors.text || '#ffffff'}
-- Font family: ${brandKit.font || 'sans-serif'}
-- Tone: ${brandKit.tone || 'professional'}`
-      : '';
+    const brandHint = buildBrandDesignPrompt(brandKit);
 
     // OpenAI structured outputs ignore array min/max in strict mode, so the
     // model can return the wrong number of slides. Validate the count, prefer an

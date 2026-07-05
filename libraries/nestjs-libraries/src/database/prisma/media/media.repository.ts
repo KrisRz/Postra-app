@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { SaveMediaInformationDto } from '@gitroom/nestjs-libraries/dtos/media/save.media.information.dto';
 import { StudioSpec } from '@gitroom/nestjs-libraries/studio/studio-spec';
+import { PostDesignSpec } from '@gitroom/nestjs-libraries/studio/post-design-spec';
 
 @Injectable()
 export class MediaRepository {
@@ -42,11 +43,23 @@ export class MediaRepository {
   getMediaByIdForOrg(org: string, id: string) {
     return this._media.model.media.findFirst({
       where: { id, organizationId: org },
-      select: { id: true, path: true, canvasJson: true },
+      select: { id: true, path: true, canvasJson: true, designSpec: true },
     });
   }
 
   saveDesignSpec(org: string, id: string, spec: StudioSpec) {
+    return this._media.model.media.update({
+      where: { id, organizationId: org },
+      data: { designSpec: spec as unknown as Prisma.InputJsonValue },
+      select: { id: true },
+    });
+  }
+
+  // The flat generation shape (headline/subtext/cta over a background). Stored
+  // so Studio can rebuild an editable canvas from it (a branded draft the agent
+  // produced server-side). Shares the `designSpec` column with `StudioSpec`;
+  // the two are told apart on read by shape (`layout`/`headline` vs `layers`).
+  savePostDesignSpec(org: string, id: string, spec: PostDesignSpec) {
     return this._media.model.media.update({
       where: { id, organizationId: org },
       data: { designSpec: spec as unknown as Prisma.InputJsonValue },

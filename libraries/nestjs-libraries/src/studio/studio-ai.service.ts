@@ -3,6 +3,7 @@ import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
 import { parseChat } from '@gitroom/nestjs-libraries/openai/parse-chat';
+import { buildBrandVoicePrompt } from '@gitroom/nestjs-libraries/openai/brand-prompt';
 
 import {
   StudioBrandRef,
@@ -398,7 +399,7 @@ Return concise feedback (2 short sentences, actionable). Tags = up to 4 short la
     const system = `You are an expert social media copywriter. Rewrite the user's post caption. ${
       instructions[input.action] || instructions.improve
     }
-${input.tone ? `Match this brand tone of voice: ${input.tone}.` : ''}
+${buildBrandVoicePrompt({ tone: input.tone })}
 Keep the SAME language as the input. Preserve important facts, @mentions, #hashtags and links. Return ONLY the rewritten caption as plain text — no surrounding quotes, no explanation, no markdown or HTML.`;
 
     const parsed = (
