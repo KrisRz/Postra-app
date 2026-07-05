@@ -257,12 +257,13 @@ export const CustomVariables: FC<{
 const ExtensionNotFound: FC = () => {
   const modals = useModals();
   const t = useT();
+  const { extensionId } = useVariables();
   return (
     <div className="flex flex-col gap-[16px] pt-[8px]">
       <p className="text-[14px] text-textColor/80">
         {t(
           'extension_not_available',
-          'Rozszerzenie przeglądarkowe Postra nie jest zainstalowane. Zainstaluj je, zanim połączysz ten kanał.'
+          'The Postra browser extension is not installed. Install it before connecting this channel.'
         )}
       </p>
       <div className="flex gap-[10px]">
@@ -271,7 +272,7 @@ const ExtensionNotFound: FC = () => {
           className="flex-1"
           onClick={() => {
             window.open(
-              'https://chromewebstore.google.com/detail/postiz/cidhffagahknaeodkplfbcpfeielnkjl?hl=en',
+              `https://chromewebstore.google.com/detail/${extensionId}`,
               '_blank'
             );
             modals.closeCurrent();
@@ -446,14 +447,14 @@ export const AddProviderComponent: FC<{
         };
         const gotoIntegration = async (externalUrl?: string) => {
           // Mobile WebView: reuse the existing `externalUrl` param to
-          // carry the `postiz://` deep link so the backend redirects
+          // carry the `postra://` deep link so the backend redirects
           // back to the iOS/Android app after OAuth completes, instead
           // of the default web redirect.
           const params = [
             `externalUrl=${encodeURIComponent(externalUrl)}`,
             onboardingParam,
             isMobile
-              ? `redirectUrl=${encodeURIComponent('postiz://integrations')}`
+              ? `redirectUrl=${encodeURIComponent('postra://integrations')}`
               : '',
           ]
             .filter(Boolean)
@@ -491,7 +492,7 @@ export const AddProviderComponent: FC<{
             // `window.open`/`location.href` aren't reliable here because
             // RN WebView doesn't always route them through the native
             // navigation intercept. The backend redirects back to the
-            // app via `postiz://` once OAuth completes.
+            // app via `postra://` once OAuth completes.
             const rn = (window as any).ReactNativeWebView;
             if (rn && typeof rn.postMessage === 'function') {
               rn.postMessage(JSON.stringify({ type: 'open-external', url }));

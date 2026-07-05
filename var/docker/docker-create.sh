@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
-docker kill postiz || true 
-docker rm postiz || true 
-docker create --name postiz -p 3000:3000 -p 4200:4200 localhost/postiz
+docker kill postra || true 
+docker rm postra || true 
+docker create --name postra -p 3000:3000 -p 4200:4200 localhost/postra

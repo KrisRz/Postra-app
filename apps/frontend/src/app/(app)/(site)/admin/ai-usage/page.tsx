@@ -5,7 +5,7 @@ import { Metadata } from 'next';
 import { isGeneralServerSide } from '@gitroom/helpers/utils/is.general.server.side';
 
 export const metadata: Metadata = {
-  title: `${isGeneralServerSide() ? 'Postiz' : 'Gitroom'} Admin AI Usage`,
+  title: `${isGeneralServerSide() ? 'Postra' : 'Gitroom'} Admin AI Usage`,
   description: '',
 };
 

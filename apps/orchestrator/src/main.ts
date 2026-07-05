@@ -17,7 +17,7 @@ import { Runtime } from '@temporalio/worker';
 // product signal ("are posts going out, on time?"). Must run before the worker
 // is created; nestjs-temporal-core does not install a Runtime itself, so this
 // one wins (no "already installed" clash). Bound to 0.0.0.0 = docker-net only,
-// not published to host/ALB; Alloy scrapes postiz:9464. See observability.md 1.2.
+// not published to host/ALB; Alloy scrapes app:9464. See observability.md 1.2.
 Runtime.install({
   telemetryOptions: {
     metrics: {

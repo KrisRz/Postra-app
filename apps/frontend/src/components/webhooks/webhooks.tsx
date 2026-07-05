@@ -66,7 +66,7 @@ export const Webhooks: FC = () => {
       </h3>
       <div className="text-[12.5px] text-newTextColor/55 mt-[3px]">
         {t(
-          'webhooks_are_a_way_to_get_notified_when_something_happens_in_postiz_via_an_http_request',
+          'webhooks_are_a_way_to_get_notified_when_something_happens_in_postra_via_an_http_request',
           'Webhooks are a way to get notified when something happens in Postra via\n        an HTTP request.'
         )}
       </div>
