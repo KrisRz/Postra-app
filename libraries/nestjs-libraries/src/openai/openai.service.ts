@@ -13,6 +13,10 @@ import {
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
+  // Cap per-request time (SDK default is 10 min) so a stuck OpenAI call can't
+  // pin a request/worker under load. 90s comfortably covers image generation
+  // (~40s). maxRetries stays at the SDK default (2, backoff on 429/5xx).
+  timeout: 90_000,
 });
 
 const PicturePrompt = z.object({

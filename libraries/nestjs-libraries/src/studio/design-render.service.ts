@@ -215,6 +215,9 @@ export class DesignRenderService {
       const res = await fetch(url, {
         // @ts-ignore — undici option, not in lib.dom fetch types
         dispatcher: ssrfSafeDispatcher,
+        // Don't let a slow S3/CDN pin the render; on timeout the catch below
+        // returns null and the design falls back to its gradient background.
+        signal: AbortSignal.timeout(10_000),
       });
       if (!res.ok) return null;
       return Buffer.from(await res.arrayBuffer());
