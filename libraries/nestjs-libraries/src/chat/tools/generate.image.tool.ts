@@ -4,14 +4,11 @@ import { z } from 'zod';
 import { Injectable } from '@nestjs/common';
 import { MediaService } from '@gitroom/nestjs-libraries/database/prisma/media/media.service';
 import { BrandKitService } from '@gitroom/nestjs-libraries/database/prisma/brand-kit/brand-kit.service';
-import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { checkAuth } from '@gitroom/nestjs-libraries/chat/auth.context';
 import { buildBrandImagePrompt } from '@gitroom/nestjs-libraries/openai/brand-prompt';
 
 @Injectable()
 export class GenerateImageTool implements AgentToolInterface {
-  private storage = UploadFactory.createStorage();
-
   constructor(
     private _mediaService: MediaService,
     private _brandKitService: BrandKitService
@@ -53,13 +50,16 @@ export class GenerateImageTool implements AgentToolInterface {
           ? `${inputData.prompt}. ${brandStyle}`
           : inputData.prompt;
 
-        const image = await this._mediaService.generateImage(prompt, org);
+        // generateImage already uploads the image and returns its CDN URL, so
+        // just persist that. (It used to re-wrap the returned URL as a base64
+        // data URL and re-upload it — decoding a URL as base64 yielded garbage
+        // bytes and an "Unsupported file type" error.)
+        const url = await this._mediaService.generateImage(prompt, org);
+        if (!url) {
+          throw new Error('Image generation returned no image.');
+        }
 
-        const file = await this.storage.uploadSimple(
-          'data:image/png;base64,' + image
-        );
-
-        return this._mediaService.saveFile(org.id, file.split('/').pop(), file);
+        return this._mediaService.saveFile(org.id, url.split('/').pop(), url);
       },
     });
   }

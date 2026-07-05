@@ -53,19 +53,20 @@ export class OpenaiService {
     _isUrl: boolean,
     isVertical = false
   ): Promise<string | undefined> {
-    // Model = 'gpt-image-1'. NOTE: gpt-image-1 is retired by OpenAI 2026-10-23,
-    // so we MUST move off it before then — but 'gpt-image-2' (tried in #102)
-    // returns "Unsupported file type" on our account (tier/access or an
-    // openai-node 6.x routing quirk — needs the raw API error to fix). Until
-    // that's resolved, stay on gpt-image-1. Do NOT use 'chatgpt-image-latest'
-    // (ChatGPT's internal alias, not callable by our key); 'dall-e-3' is retired.
-    // An upstream sync keeps re-clobbering this line; if image generation 502s
-    // after a merge, check here first. gpt-image-1 returns b64 only, rejects
-    // response_format.
+    // Model = 'gpt-image-1'. It is retired by OpenAI 2026-10-23, so we must move
+    // to 'gpt-image-2' before then. That swap failed once (#102), but the visible
+    // "Unsupported file type" was a SEPARATE upload bug in generate.image.tool —
+    // NOT gpt-image-2 — so gpt-image-2 is worth re-testing now that this path
+    // surfaces the real error (see the guard below). Do NOT use
+    // 'chatgpt-image-latest' (ChatGPT's internal alias, not callable by our key);
+    // 'dall-e-3' is retired. An upstream sync keeps re-clobbering this line; if
+    // image generation breaks after a merge, check here first. gpt-image models
+    // return b64 only and reject response_format.
+    const model = 'gpt-image-1';
     const generate = (
       await openai.images.generate({
         prompt,
-        model: 'gpt-image-1',
+        model,
         size: isVertical ? '1024x1536' : '1024x1024',
         // 'medium' is ~4x cheaper than gpt-image-1's default ('high'/'auto') with
         // quality good enough for social graphics — keeps AI-image unit cost sane.
@@ -74,7 +75,20 @@ export class OpenaiService {
     ).data?.[0];
 
     const b64 = generate?.b64_json;
-    return b64 ? `data:image/png;base64,${b64}` : undefined;
+    if (!b64) {
+      // Fail loudly with the response shape instead of returning undefined
+      // (which becomes a silent 502 or a misleading "Unsupported file type"
+      // downstream). If an image model returns its bytes differently, this
+      // tells us exactly what came back.
+      throw new Error(
+        `Image generation returned no image data (model ${model}). Response fields: ${
+          generate
+            ? Object.keys(generate).join(', ') || '(empty object)'
+            : '(no data[0])'
+        }`
+      );
+    }
+    return `data:image/png;base64,${b64}`;
   }
 
   async generatePromptForPicture(prompt: string) {
