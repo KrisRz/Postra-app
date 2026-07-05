@@ -260,7 +260,7 @@ const OnboardingStep2: FC<{ onBack: () => void; onFinish: () => void }> = ({
         </div>
       </div>
 
-      {/* TODO(Postra): record + embed our OWN onboarding video. Upstream Postiz
+      {/* TODO(Postra): record + embed our OWN onboarding video. The upstream
           promo (youtube BdsCVvEYgHU) removed — it was their marketing content. */}
       <div className="relative flex-1 rounded-[12px] overflow-hidden">
         <div className="absolute left-0 top-0 w-full h-full flex flex-col items-center justify-center gap-[8px] bg-white/[0.03] text-center px-[24px]">

@@ -43,13 +43,13 @@ infra-stop:
 # Push Prisma schema to local DB
 db-push:
 	@echo "Waiting for Postgres..."
-	@until docker exec postiz-postgres pg_isready -U postiz-local -d postiz-db-local > /dev/null 2>&1; do sleep 1; done
+	@until docker exec postra-postgres pg_isready -U postra-local -d postra-db-local > /dev/null 2>&1; do sleep 1; done
 	pnpm prisma-db-push
 
 # Seed admin user + org (idempotent)
 db-seed:
 	@echo "Waiting for Postgres..."
-	@until docker exec postiz-postgres pg_isready -U postiz-local -d postiz-db-local > /dev/null 2>&1; do sleep 1; done
+	@until docker exec postra-postgres pg_isready -U postra-local -d postra-db-local > /dev/null 2>&1; do sleep 1; done
 	pnpm db:seed
 
 # ── App ──────────────────────────────────────────────────────────

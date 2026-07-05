@@ -2,29 +2,29 @@
 
 ## Introduction
 
-The Postiz app is committed to ensuring the security and integrity of our users' data. This security policy outlines our procedures for handling security vulnerabilities and our disclosure policy.
+The Postra app is committed to ensuring the security and integrity of our users' data. This security policy outlines our procedures for handling security vulnerabilities and our disclosure policy.
 
 ## Scope
 
-We, at Postiz (gitroomhq), cover the following scopes for vulnerability disclosures:
+We, at Postra (Postra-app), cover the following scopes for vulnerability disclosures:
 
-- The core repository for `postiz-app` (github.com/gitroomhq/postiz-app)
-- All `gitroomhq` repositories that are official components, tooling, or integrations of Postiz
-- Official Postiz container images published under `gitroomhq` on GHCR
-- Official Postiz CLI tools and NPM packages (NPM org: @postiz)
-- Postiz-Cloud related infrastructure & services. (API, Frontend, Configurations etc.)
-- Plugins for Postiz maintained within the `gitroomhq` organization
+- The core repository for `postra-app` (github.com/Postra-app/Postra-app)
+- All `Postra-app` repositories that are official components, tooling, or integrations of Postra
+- Official Postra container images published under `Postra-app` on GHCR
+- Official Postra CLI tools and NPM packages (NPM org: @postra)
+- Postra-Cloud related infrastructure & services. (API, Frontend, Configurations etc.)
+- Plugins for Postra maintained within the `Postra-app` organization
 
 Vulnerabilities in third-party dependencies or user-hosted infrastructure are outside of this scope.
 
 ## Supported Versions
 
-This project currently only supports the latest release. We recommend that users always use the latest version of the Postiz app to ensure they have the latest security patches.
+This project currently only supports the latest release. We recommend that users always use the latest version of the Postra app to ensure they have the latest security patches.
 *CVE IDs will only be assigned to vulnerabilities affecting currently supported versions.*
 
 ## Reporting Security Vulnerabilities
 
-If you discover a security vulnerability in the Postiz app, please report it through the [GitHub Security Advisory system](https://github.com/gitroomhq/postiz-app/security/advisories/new).
+If you discover a security vulnerability in the Postra app, please report it through the [GitHub Security Advisory system](https://github.com/Postra-app/Postra-app/security/advisories/new).
 
 When reporting a security vulnerability, please provide as much detail as possible, including:
 

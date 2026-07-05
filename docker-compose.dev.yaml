@@ -6,29 +6,29 @@
 
 services:
   # ── Core (always started) ──────────────────────────────────────
-  postiz-postgres:
+  postra-postgres:
     image: postgres:17-alpine
-    container_name: postiz-postgres
+    container_name: postra-postgres
     restart: always
     environment:
-      POSTGRES_PASSWORD: postiz-local-pwd
-      POSTGRES_USER: postiz-local
-      POSTGRES_DB: postiz-db-local
+      POSTGRES_PASSWORD: postra-local-pwd
+      POSTGRES_USER: postra-local
+      POSTGRES_DB: postra-db-local
     volumes:
       - postgres-volume:/var/lib/postgresql/data
     ports:
       - 5432:5432
     healthcheck:
-      test: pg_isready -U postiz-local -d postiz-db-local
+      test: pg_isready -U postra-local -d postra-db-local
       interval: 5s
       timeout: 3s
       retries: 5
     networks:
-      - postiz-network
+      - postra-network
 
-  postiz-redis:
+  postra-redis:
     image: redis:7-alpine
-    container_name: postiz-redis
+    container_name: postra-redis
     restart: always
     ports:
       - 6379:6379
@@ -38,12 +38,12 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - postiz-network
+      - postra-network
 
   # ── Tools (profile: tools) ────────────────────────────────────
-  postiz-pg-admin:
+  postra-pg-admin:
     image: dpage/pgadmin4:latest
-    container_name: postiz-pg-admin
+    container_name: postra-pg-admin
     restart: always
     profiles: [tools]
     ports:
@@ -52,21 +52,21 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin
     networks:
-      - postiz-network
+      - postra-network
 
-  postiz-redisinsight:
+  postra-redisinsight:
     image: redis/redisinsight:latest
-    container_name: postiz-redisinsight
+    container_name: postra-redisinsight
     restart: always
     profiles: [tools]
     links:
-      - postiz-redis
+      - postra-redis
     ports:
       - 5540:5540
     volumes:
       - redisinsight:/data
     networks:
-      - postiz-network
+      - postra-network
 
   # ── Temporal (profile: temporal) ──────────────────────────────
   temporal-elasticsearch:
@@ -161,7 +161,7 @@ volumes:
     external: false
 
 networks:
-  postiz-network:
+  postra-network:
     external: false
   temporal-network:
     driver: bridge
