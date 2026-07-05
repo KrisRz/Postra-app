@@ -181,9 +181,22 @@ export const AiVideo: FC<{
   const modals = useModals();
 
   const loadVideoList = useCallback(async () => {
-    return (await (await fetch('/media/video-options')).json()).filter(
-      (f: any) => f.placement === 'text-to-image'
-    );
+    // /media/video-options can come back with an empty body (no options
+    // configured). Guard the parse so it resolves to [] instead of throwing —
+    // an unguarded .json() on an empty response rejects the SWR fetcher, which
+    // fires the global "something went wrong" toast on every composer open.
+    const response = await fetch('/media/video-options');
+    if (!response.ok) {
+      return [];
+    }
+    const text = await response.text();
+    if (!text) {
+      return [];
+    }
+    const list = JSON.parse(text);
+    return Array.isArray(list)
+      ? list.filter((f: any) => f.placement === 'text-to-image')
+      : [];
   }, []);
 
   const { isLoading, data } = useSWR('load-videos-ai', loadVideoList, {
