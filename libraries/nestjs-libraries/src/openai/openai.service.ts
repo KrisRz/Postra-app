@@ -347,6 +347,48 @@ ${brandHint}`,
     throw new Error('Failed to generate post design after 3 attempts');
   }
 
+  async generateCaption(
+    topic: string,
+    platform: string,
+    brandKit?: {
+      colors?: { primary?: string; secondary?: string; text?: string };
+      font?: string;
+      tone?: string;
+    }
+  ): Promise<string> {
+    const CaptionSchema = z.object({ caption: z.string() });
+    const toneHint = brandKit?.tone
+      ? `Brand tone of voice: ${brandKit.tone}. Write the caption in that voice.`
+      : '';
+
+    const parsed = (
+      await this.parseChat({
+        model: 'gpt-4.1',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a senior social media copywriter writing the caption for a ${platform} post.
+
+LANGUAGE: detect the language of the topic and write the caption in that SAME language.
+
+RULES:
+- Write the POST caption (the body text), NOT the on-image graphic text. Open with a hook line, then 1-3 short sentences, end with a light call to action.
+- Fit the platform: punchy for X/Instagram/Threads, a little more context for LinkedIn/Facebook.
+- Sound like a person. Ban AI clichés ("Unlock", "Elevate", "Discover the power of", "Take it to the next level", "Game-changer", "In today's fast-paced world").
+- No hashtags unless they genuinely help — at most 2-3, at the very end.
+- No emoji unless they fit the brand tone.
+
+${toneHint}`,
+          },
+          { role: 'user', content: topic },
+        ],
+        response_format: zodResponseFormat(CaptionSchema, 'caption'),
+      })
+    ).choices[0].message.parsed;
+
+    return parsed?.caption?.trim() || topic;
+  }
+
   async generatePostCarousel(
     prompt: string,
     platform: string,
