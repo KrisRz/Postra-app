@@ -30,6 +30,13 @@ export const GlobalErrorLogger = (): null => {
 
     const onRejection = (event: PromiseRejectionEvent): void => {
       const reason: any = event.reason;
+      // A 402/406 is handled globally by the trial/payment dialog; customFetch
+      // rejects with this marker so callers can unwind. It is not a crash —
+      // swallow it instead of reporting a scary unhandled rejection.
+      if (reason?.name === 'FetchHandledError') {
+        event.preventDefault();
+        return;
+      }
       console.error('[Postra:unhandled-rejection]', {
         message: reason?.message ?? String(reason),
         url: window.location.href,
