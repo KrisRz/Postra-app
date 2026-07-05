@@ -190,6 +190,10 @@ export const useMenuItem = () => {
         </svg>
       ),
       path: '/third-party',
+      // Only HeyGen + Reel.Farm register here — upstream UGC-video integrations
+      // Postra doesn't offer. Hide the tab (and its "Add" cards for services we
+      // don't provide) until we actually ship a third-party integration.
+      hide: true,
     },
   ] satisfies MenuItemInterface[] as MenuItemInterface[];
 
