@@ -63,23 +63,23 @@ export class OpenaiService {
     _isUrl: boolean,
     isVertical = false
   ): Promise<string | undefined> {
-    // Model = 'gpt-image-1'. It is retired by OpenAI 2026-10-23, so we must move
-    // to 'gpt-image-2' before then. That swap failed once (#102), but the visible
+    // Model = 'gpt-image-2', the successor to 'gpt-image-1' (which OpenAI retires
+    // 2026-10-23). The earlier swap looked like it failed (#102), but the visible
     // "Unsupported file type" was a SEPARATE upload bug in generate.image.tool —
-    // NOT gpt-image-2 — so gpt-image-2 is worth re-testing now that this path
-    // surfaces the real error (see the guard below). Do NOT use
+    // NOT the model. With that fixed (#108) and the guard below surfacing any real
+    // error, we move to the successor now rather than at the deadline. Do NOT use
     // 'chatgpt-image-latest' (ChatGPT's internal alias, not callable by our key);
     // 'dall-e-3' is retired. An upstream sync keeps re-clobbering this line; if
     // image generation breaks after a merge, check here first. gpt-image models
     // return b64 only and reject response_format.
-    const model = 'gpt-image-1';
+    const model = 'gpt-image-2';
     const generate = (
       await imageGenLimit(() =>
         openai.images.generate({
           prompt,
           model,
           size: isVertical ? '1024x1536' : '1024x1024',
-          // 'medium' is ~4x cheaper than gpt-image-1's default ('high'/'auto')
+          // 'medium' is ~4x cheaper than the default ('high'/'auto')
           // with quality good enough for social graphics — keeps unit cost sane.
           quality: 'medium',
         })
