@@ -17,6 +17,8 @@ import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { CopilotTextarea } from '@copilotkit/react-textarea';
 import { Slider } from '@gitroom/react/form/slider';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import Spinner from '@gitroom/frontend/components/layout/loading';
+import { EmptyState } from '@gitroom/frontend/components/ui/empty-state';
 export const Autopost: FC = () => {
   const fetch = useFetch();
   const t = useT();
@@ -25,7 +27,7 @@ export const Autopost: FC = () => {
   const list = useCallback(async () => {
     return (await fetch('/autopost')).json();
   }, []);
-  const { data, mutate } = useSWR('autopost', list);
+  const { data, isLoading, mutate } = useSWR('autopost', list);
   const addWebhook = useCallback(
     (data?: any) => () => {
       modal.openModal({
@@ -79,7 +81,20 @@ export const Autopost: FC = () => {
       </div>
       <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 items-center border rounded-[16px] p-[24px] flex gap-[24px]">
         <div className="flex flex-col w-full">
-          {!!data?.length && (
+          {isLoading ? (
+            <div className="flex justify-center py-[16px]">
+              <Spinner width={40} height={40} />
+            </div>
+          ) : !data?.length ? (
+            <EmptyState
+              title={t('no_autoposts_yet', 'No autoposts yet')}
+              description={t(
+                'no_autoposts_description',
+                'Add an RSS feed and Postra will automatically post new items to your channels.'
+              )}
+              className="py-[12px]"
+            />
+          ) : (
             <div className="grid grid-cols-[1fr,1fr,1fr,1fr,1fr] w-full gap-y-[10px]">
               <div>{t('title', 'Title')}</div>
               <div>{t('url', 'URL')}</div>
