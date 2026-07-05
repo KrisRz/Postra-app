@@ -11,6 +11,7 @@ export const AfterActivate = () => {
   const fetch = useFetch();
   const params = useParams();
   const [showLoader, setShowLoader] = useState(true);
+  const [failed, setFailed] = useState(false);
   const run = useRef(false);
   const t = useT();
   const [datafast_visitor_id] = useCookie('datafast_visitor_id');
@@ -23,8 +24,8 @@ export const AfterActivate = () => {
   }, []);
   const loadCode = useCallback(async () => {
     if (params.code) {
-      const { can } = await (
-        await fetch(`/auth/activate`, {
+      try {
+        const response = await fetch(`/auth/activate`, {
           method: 'POST',
           body: JSON.stringify({
             code: params.code,
@@ -33,9 +34,22 @@ export const AfterActivate = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-        })
-      ).json();
-      if (!can) {
+        });
+        // A bad/expired code never resolves to `can` — don't mislead the
+        // user into thinking the account is "already activated".
+        if (!response.ok) {
+          console.error('[Postra:auth] activate failed', response.status);
+          setFailed(true);
+          setShowLoader(false);
+          return;
+        }
+        const { can } = await response.json();
+        if (!can) {
+          setShowLoader(false);
+        }
+      } catch (e) {
+        console.error('[Postra:auth] activate failed', e);
+        setFailed(true);
         setShowLoader(false);
       }
     }
@@ -46,7 +60,12 @@ export const AfterActivate = () => {
         <LoadingComponent />
       ) : (
         <div className="rounded-[16px] border border-white/8 bg-white/[0.03] p-[18px] text-textColor/78">
-          This user is already activated,
+          {failed
+            ? t(
+                'activation_link_invalid',
+                'This activation link is invalid or has expired.'
+              )
+            : t('user_already_activated', 'This user is already activated')}
           <br />
           <Link href="/auth/login" className="underline underline-offset-4 hover:text-[#38bdf8]">
             {t(

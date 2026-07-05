@@ -3,6 +3,7 @@
 import { Button } from '@gitroom/frontend/components/ui/button';
 import { Card } from '@gitroom/frontend/components/ui/card';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import useSWR from 'swr';
 import React, { useCallback, useMemo } from 'react';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
@@ -51,20 +52,37 @@ export const AddMember = () => {
   });
   const submit = useCallback(
     async (values: { email: string; role: string; sendEmail: boolean }) => {
-      const { url } = await (
-        await fetch('/settings/team', {
+      try {
+        const response = await fetch('/settings/team', {
           method: 'POST',
           body: JSON.stringify(values),
-        })
-      ).json();
-      if (values.sendEmail) {
+        });
+        if (!response.ok) {
+          toast.show(
+            `${t(
+              'team_invite_failed',
+              'Could not create the invitation'
+            )}: ${await readResponseError(response)}`,
+            'warning'
+          );
+          return;
+        }
+        const { url } = await response.json();
+        if (values.sendEmail) {
+          modals.closeAll();
+          toast.show(t('invitation_link_sent', 'Invitation link sent'));
+          return;
+        }
+        copy(url);
         modals.closeAll();
-        toast.show(t('invitation_link_sent', 'Invitation link sent'));
-        return;
+        toast.show(t('link_copied_to_clipboard', 'Link copied to clipboard'));
+      } catch (e) {
+        console.error('[Postra:teams] invite failed', e);
+        toast.show(
+          t('team_invite_failed', 'Could not create the invitation'),
+          'warning'
+        );
       }
-      copy(url);
-      modals.closeAll();
-      toast.show(t('link_copied_to_clipboard', 'Link copied to clipboard'));
     },
     []
   );
@@ -110,6 +128,7 @@ export const TeamsComponent = () => {
   const fetch = useFetch();
   const user = useUser();
   const modals = useModals();
+  const toast = useToaster();
   const t = useT();
   const myLevel = user?.role === 'USER' ? 0 : user?.role === 'ADMIN' ? 1 : 2;
   const getLevel = useCallback(
@@ -156,10 +175,28 @@ export const TeamsComponent = () => {
         ) {
           return;
         }
-        await fetch(`/settings/team/${toRemove.user.id}`, {
-          method: 'DELETE',
-        });
-        await mutate();
+        try {
+          const response = await fetch(`/settings/team/${toRemove.user.id}`, {
+            method: 'DELETE',
+          });
+          if (!response.ok) {
+            toast.show(
+              `${t(
+                'team_remove_failed',
+                'Could not remove the team member'
+              )}: ${await readResponseError(response)}`,
+              'warning'
+            );
+            return;
+          }
+          await mutate();
+        } catch (e) {
+          console.error('[Postra:teams] remove failed', e);
+          toast.show(
+            t('team_remove_failed', 'Could not remove the team member'),
+            'warning'
+          );
+        }
       },
     [t]
   );

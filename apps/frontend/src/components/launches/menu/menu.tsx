@@ -12,6 +12,7 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
@@ -131,15 +132,33 @@ export const Menu: FC<{
     ) {
       return;
     }
-    await fetch('/integrations/disable', {
-      method: 'POST',
-      body: JSON.stringify({
-        id,
-      }),
-    });
-    toast.show(t('channel_disabled', 'Channel Disabled'), 'success');
-    setShow(false);
-    onChange(false);
+    try {
+      const response = await fetch('/integrations/disable', {
+        method: 'POST',
+        body: JSON.stringify({
+          id,
+        }),
+      });
+      if (!response.ok) {
+        toast.show(
+          `${t(
+            'channel_disable_failed',
+            'Could not disable the channel'
+          )}: ${await readResponseError(response)}`,
+          'warning'
+        );
+        return;
+      }
+      toast.show(t('channel_disabled', 'Channel Disabled'), 'success');
+      setShow(false);
+      onChange(false);
+    } catch (e) {
+      console.error('[Postra:channels] disable failed', e);
+      toast.show(
+        t('channel_disable_failed', 'Could not disable the channel'),
+        'warning'
+      );
+    }
   }, [t]);
   const deleteChannel = useCallback(async () => {
     if (
@@ -150,50 +169,86 @@ export const Menu: FC<{
     ) {
       return;
     }
-    const deleteIntegration = await fetch('/integrations', {
-      method: 'DELETE',
-      body: JSON.stringify({
-        id,
-      }),
-    });
-    if (deleteIntegration.status === 406) {
+    try {
+      const deleteIntegration = await fetch('/integrations', {
+        method: 'DELETE',
+        body: JSON.stringify({
+          id,
+        }),
+      });
+      if (deleteIntegration.status === 406) {
+        toast.show(
+          t('delete_posts_before_channel', 'You have to delete all the posts associated with this channel before deleting it'),
+          'warning'
+        );
+        return;
+      }
+      if (!deleteIntegration.ok) {
+        toast.show(
+          `${t(
+            'channel_delete_failed',
+            'Could not delete the channel'
+          )}: ${await readResponseError(deleteIntegration)}`,
+          'warning'
+        );
+        return;
+      }
+      // Clean up extension refresh token if applicable
+      if (
+        extensionId &&
+        typeof chrome !== 'undefined' &&
+        chrome?.runtime?.sendMessage
+      ) {
+        try {
+          chrome.runtime.sendMessage(
+            extensionId,
+            { type: 'REMOVE_REFRESH_TOKEN', integrationId: id },
+            () => {}
+          );
+        } catch {
+          // Silently ignore
+        }
+      }
+      toast.show(t('channel_deleted', 'Channel Deleted'), 'success');
+      setShow(false);
+      onChange(true);
+    } catch (e) {
+      console.error('[Postra:channels] delete failed', e);
       toast.show(
-        t('delete_posts_before_channel', 'You have to delete all the posts associated with this channel before deleting it'),
+        t('channel_delete_failed', 'Could not delete the channel'),
         'warning'
       );
-      return;
     }
-    // Clean up extension refresh token if applicable
-    if (
-      extensionId &&
-      typeof chrome !== 'undefined' &&
-      chrome?.runtime?.sendMessage
-    ) {
-      try {
-        chrome.runtime.sendMessage(
-          extensionId,
-          { type: 'REMOVE_REFRESH_TOKEN', integrationId: id },
-          () => {}
-        );
-      } catch {
-        // Silently ignore
-      }
-    }
-    toast.show(t('channel_deleted', 'Channel Deleted'), 'success');
-    setShow(false);
-    onChange(true);
   }, [t, extensionId, id]);
 
   const enableChannel = useCallback(async () => {
-    await fetch('/integrations/enable', {
-      method: 'POST',
-      body: JSON.stringify({
-        id,
-      }),
-    });
-    toast.show(t('channel_enabled', 'Channel Enabled'), 'success');
-    setShow(false);
-    onChange(false);
+    try {
+      const response = await fetch('/integrations/enable', {
+        method: 'POST',
+        body: JSON.stringify({
+          id,
+        }),
+      });
+      if (!response.ok) {
+        toast.show(
+          `${t(
+            'channel_enable_failed',
+            'Could not enable the channel'
+          )}: ${await readResponseError(response)}`,
+          'warning'
+        );
+        return;
+      }
+      toast.show(t('channel_enabled', 'Channel Enabled'), 'success');
+      setShow(false);
+      onChange(false);
+    } catch (e) {
+      console.error('[Postra:channels] enable failed', e);
+      toast.show(
+        t('channel_enable_failed', 'Could not enable the channel'),
+        'warning'
+      );
+    }
   }, [t]);
 
   const editTimeTable = useCallback(() => {

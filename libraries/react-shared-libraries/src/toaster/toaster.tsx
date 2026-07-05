@@ -11,20 +11,24 @@ export const Toaster = () => {
     ''
   );
   useEffect(() => {
-    toaster.on(
-      'show',
-      (params: { text: string; type?: 'success' | 'warning' }) => {
-        const { text, type } = params;
-        setToasterText(text);
-        setToasterType(type || 'success');
-        setShowToaster(true);
-        setTimeout(() => {
-          setShowToaster(false);
-        }, 4200);
-      }
-    );
+    // Named handler so cleanup removes only THIS instance's listener. The
+    // Toaster is mounted more than once (app shell + preview); the old
+    // removeAllListeners() tore down the other instance's listener too.
+    const handler = (params: {
+      text: string;
+      type?: 'success' | 'warning';
+    }) => {
+      const { text, type } = params;
+      setToasterText(text);
+      setToasterType(type || 'success');
+      setShowToaster(true);
+      setTimeout(() => {
+        setShowToaster(false);
+      }, 4200);
+    };
+    toaster.on('show', handler);
     return () => {
-      toaster.removeAllListeners();
+      toaster.off('show', handler);
     };
   }, []);
   if (!showToaster) {

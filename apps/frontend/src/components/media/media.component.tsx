@@ -14,6 +14,7 @@ import React, {
 import { Button } from '@gitroom/frontend/components/ui/button';
 import useSWR from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import { Media } from '@prisma/client';
 import { useMediaDirectory } from '@gitroom/react/helpers/use.media.directory';
 import { useSettings } from '@gitroom/frontend/components/launches/helpers/use.values';
@@ -391,12 +392,30 @@ export const MediaBox: FC<{
       ) {
         return;
       }
-      await fetch(`/media/${media.id}`, {
-        method: 'DELETE',
-      });
-      mutate();
+      try {
+        const response = await fetch(`/media/${media.id}`, {
+          method: 'DELETE',
+        });
+        if (!response.ok) {
+          toaster.show(
+            `${t(
+              'media_delete_failed',
+              'Could not delete the image'
+            )}: ${await readResponseError(response)}`,
+            'warning'
+          );
+          return;
+        }
+        mutate();
+      } catch (e) {
+        console.error('[Postra:media] delete failed', e);
+        toaster.show(
+          t('media_delete_failed', 'Could not delete the image'),
+          'warning'
+        );
+      }
     },
-    [mutate]
+    [mutate, toaster, t]
   );
 
   const btn = useMemo(() => {

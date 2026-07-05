@@ -34,6 +34,7 @@ import { HtmlComponent } from '@gitroom/frontend/components/layout/html.componen
 import Script from 'next/script';
 import { ChangeDirClient } from '@gitroom/frontend/components/new-layout/change.dir.client';
 import { GlobalErrorLogger } from '@gitroom/frontend/components/layout/global-error-logger.client';
+import { SwrProvider } from '@gitroom/frontend/components/layout/swr.provider';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
@@ -85,7 +86,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           dub={!!process.env.STRIPE_PUBLISHABLE_KEY}
           facebookPixel={process.env.NEXT_PUBLIC_FACEBOOK_PIXEL!}
           telegramBotName={process.env.TELEGRAM_BOT_NAME!}
-          neynarClientId={process.env.NEYNAR_CLIENT_ID!}
           isSecured={!process.env.NOT_SECURED}
           disableImageCompression={!!process.env.DISABLE_IMAGE_COMPRESSION}
           disableXAnalytics={!!process.env.DISABLE_X_ANALYTICS}
@@ -119,7 +119,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               >
                 <LayoutContext>
                   <UtmSaver />
-                  {children}
+                  <SwrProvider>{children}</SwrProvider>
                 </LayoutContext>
               </PHProvider>
             </Plausible>
