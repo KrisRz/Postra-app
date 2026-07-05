@@ -25,6 +25,7 @@ import { TagsComponent } from '@gitroom/frontend/components/launches/tags.compon
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { capitalize } from 'lodash';
@@ -43,21 +44,6 @@ import { useHasScroll } from '@gitroom/frontend/components/ui/is.scroll.hook';
 import { useShortlinkPreference } from '@gitroom/frontend/components/settings/shortlink-preference.component';
 import dayjs from 'dayjs';
 import { Button } from '@gitroom/frontend/components/ui/button';
-
-const readResponseError = async (response: Response) => {
-  try {
-    const body = await response.clone().json();
-    if (typeof body?.message === 'string') return body.message;
-    if (Array.isArray(body?.message)) return body.message.join(', ');
-  } catch {
-    /* not JSON — fall through to text */
-  }
-  try {
-    return await response.text();
-  } catch {
-    return '';
-  }
-};
 
 export const ManageModal: FC<AddEditModalProps> = (props) => {
   const t = useT();

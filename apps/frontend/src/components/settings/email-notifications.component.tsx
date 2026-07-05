@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import useSWR from 'swr';
 import { Slider } from '@gitroom/react/form/slider';
 import { Card } from '@gitroom/frontend/components/ui/card';
@@ -57,21 +58,43 @@ const EmailNotificationsComponent = () => {
   const updateSetting = useCallback(
     async (key: keyof EmailNotifications, value: boolean) => {
       // Use ref to get the latest state
-      const currentSettings = settingsRef.current;
+      const previousSettings = settingsRef.current;
       const newData = {
-        ...currentSettings,
+        ...previousSettings,
         [key]: value,
       };
 
-      // Update local state immediately
+      // Update local state immediately (optimistic)
       setLocalSettings(newData);
 
-      await fetch('/user/email-notifications', {
-        method: 'POST',
-        body: JSON.stringify(newData),
-      });
-
-      toaster.show(t('settings_updated', 'Settings updated'), 'success');
+      try {
+        const response = await fetch('/user/email-notifications', {
+          method: 'POST',
+          body: JSON.stringify(newData),
+        });
+        if (!response.ok) {
+          setLocalSettings(previousSettings); // roll back the toggle
+          toaster.show(
+            `${t(
+              'settings_update_failed',
+              'Could not update settings'
+            )}: ${await readResponseError(response)}`,
+            'warning'
+          );
+          return;
+        }
+        toaster.show(t('settings_updated', 'Settings updated'), 'success');
+      } catch (e) {
+        setLocalSettings(previousSettings); // roll back the toggle
+        console.error(
+          '[Postra:settings] email-notifications update failed',
+          e
+        );
+        toaster.show(
+          t('settings_update_failed', 'Could not update settings'),
+          'warning'
+        );
+      }
     },
     []
   );

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import useSWR from 'swr';
 import { Select } from '@gitroom/react/form/select';
 import { Card } from '@gitroom/frontend/components/ui/card';
@@ -49,19 +50,39 @@ const ShortlinkPreferenceComponent = () => {
   const handleChange = useCallback(
     async (event: React.ChangeEvent<HTMLSelectElement>) => {
       const newValue = event.target.value as ShortLinkPreference;
+      const previousValue = localValue;
 
-      // Update local state immediately
+      // Update local state immediately (optimistic)
       setLocalValue(newValue);
 
-      await fetch('/settings/shortlink', {
-        method: 'POST',
-        body: JSON.stringify({ shortlink: newValue }),
-      });
-
-      mutate({ shortlink: newValue });
-      toaster.show(t('settings_updated', 'Settings updated'), 'success');
+      try {
+        const response = await fetch('/settings/shortlink', {
+          method: 'POST',
+          body: JSON.stringify({ shortlink: newValue }),
+        });
+        if (!response.ok) {
+          setLocalValue(previousValue); // roll back the select
+          toaster.show(
+            `${t(
+              'settings_update_failed',
+              'Could not update settings'
+            )}: ${await readResponseError(response)}`,
+            'warning'
+          );
+          return;
+        }
+        mutate({ shortlink: newValue });
+        toaster.show(t('settings_updated', 'Settings updated'), 'success');
+      } catch (e) {
+        setLocalValue(previousValue); // roll back the select
+        console.error('[Postra:settings] shortlink update failed', e);
+        toaster.show(
+          t('settings_update_failed', 'Could not update settings'),
+          'warning'
+        );
+      }
     },
-    [fetch, mutate, toaster, t]
+    [fetch, mutate, toaster, t, localValue]
   );
 
   if (isLoading) {

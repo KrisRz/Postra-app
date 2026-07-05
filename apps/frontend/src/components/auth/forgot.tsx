@@ -2,6 +2,7 @@
 
 import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import Link from 'next/link';
 import { Button } from '@gitroom/frontend/components/ui/button';
 import { Input } from '@gitroom/react/form/input';
@@ -25,15 +26,42 @@ export function Forgot() {
   const fetchData = useFetch();
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
     setLoading(true);
-    await fetchData('/auth/forgot', {
-      method: 'POST',
-      body: JSON.stringify({
-        ...data,
-        provider: 'LOCAL',
-      }),
-    });
-    setState(true);
-    setLoading(false);
+    try {
+      const response = await fetchData('/auth/forgot', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...data,
+          provider: 'LOCAL',
+        }),
+      });
+      if (!response.ok) {
+        form.setError('email', {
+          message:
+            response.status === 429
+              ? t(
+                  'forgot_too_many_attempts',
+                  'Too many attempts — please wait a few minutes and try again.'
+                )
+              : (await readResponseError(response)) ||
+                t(
+                  'forgot_password_failed',
+                  'Could not send the reset email. Please try again.'
+                ),
+        });
+        return;
+      }
+      setState(true);
+    } catch (e) {
+      console.error('[Postra:auth] forgot-password failed', e);
+      form.setError('email', {
+        message: t(
+          'forgot_password_failed',
+          'Could not send the reset email. Please try again.'
+        ),
+      });
+    } finally {
+      setLoading(false);
+    }
   };
   return (
     <div className="flex flex-1 flex-col">
