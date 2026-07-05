@@ -68,7 +68,6 @@ export const useThirdPartyFunctionSWR = (
   return useSWR<any>(
     `function-${thirdParty.id}-${functionName}`,
     () => {
-      // @ts-ignore
       return callBack(functionName, { ...data });
     },
     {

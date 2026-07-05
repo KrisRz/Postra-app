@@ -30,7 +30,6 @@ const store = createStore({
   showCredit: false,
 });
 
-// @ts-ignore
 const CloseContext = createContext({
   close: {} as any,
   setMedia: {} as any,

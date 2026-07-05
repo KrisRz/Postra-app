@@ -162,7 +162,7 @@ export const MenuGroupComponent: FC<
   return (
     <div
       className="gap-[16px] flex flex-col relative"
-      // @ts-ignore
+      // @ts-expect-error
       ref={drop}
     >
       {collectedProps.isOver && (
@@ -244,7 +244,7 @@ export const MenuComponent: FC<
   }));
   return (
     <div
-      // @ts-ignore
+      // @ts-expect-error
       ref={dragPreview}
       {...(integration.refreshNeeded && {
         onClick: refreshChannel(integration),
@@ -318,7 +318,7 @@ export const MenuComponent: FC<
         </div>
       </div>
       <div
-        // @ts-ignore
+        // @ts-expect-error
         ref={drag}
         {...(integration.disabled &&
         totalNonDisabledChannels === user?.totalChannels
@@ -518,7 +518,6 @@ export const LaunchesComponent = () => {
     return <CalendarSkeleton />;
   }
 
-  // @ts-ignore
   return (
     <DNDProvider>
       <Onboarding />

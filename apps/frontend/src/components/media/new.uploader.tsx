@@ -1,7 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-// @ts-ignore
 import Uppy, { BasePlugin, UploadResult, UppyFile } from '@uppy/core';
-// @ts-ignore
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { getUppyUploadPlugin } from '@gitroom/react/helpers/uppy.upload';
 import { Dashboard, FileInput, ProgressBar } from '@uppy/react';
@@ -36,7 +34,7 @@ export class CompressionWrapper<M = any, B = any> extends Compressor<any, any> {
 }
 
 export function useUppyUploader(props: {
-  // @ts-ignore
+  // @ts-expect-error
   onUploadSuccess: (result: UploadResult) => void;
   onStart: () => void;
   onEnd: () => void;
@@ -224,7 +222,7 @@ export function useUppyUploader(props: {
         }
 
         if (transloadit.length > 0) {
-          // @ts-ignore
+          // @ts-expect-error
           const allRes = result.transloadit?.[0]?.results;
           if (!allRes) {
             throw new Error('empty transloadit assembly result');
@@ -234,7 +232,7 @@ export function useUppyUploader(props: {
             originalName: string;
             order: number;
           }>(
-            // @ts-ignore
+            // @ts-expect-error
             Object.values(allRes).flatMap((p: any[]) => {
               return p.flatMap((item) => ({
                 name: item.url.split('/').pop(),
@@ -287,11 +285,8 @@ export function useUppyUploader(props: {
       }
     });
     uppy2.on('upload-success', (file, response) => {
-      // @ts-ignore
       uppy2.setFileState(file.id, {
-        // @ts-ignore
         progress: uppy2.getState().files[file.id].progress,
-        // @ts-ignore
         uploadURL: response.body.Location,
         response: response,
         isPaused: false,

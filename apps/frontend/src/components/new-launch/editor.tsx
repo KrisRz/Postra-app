@@ -626,14 +626,13 @@ export const Editor: FC<{
       if (num > 0 && comments === 'no-media') {
         return;
       }
-      // @ts-ignore
+      // @ts-expect-error
       const clipboardItems = event.clipboardData?.items;
       if (!clipboardItems) {
         return;
       }
 
       const files: File[] = [];
-      // @ts-ignore
       for (const item of clipboardItems) {
         if (item.kind === 'file') {
           const file = item.getAsFile();
@@ -1053,7 +1052,7 @@ export const OnlyEditor = forwardRef<
     content: value || '',
     shouldRerenderOnTransaction: true,
     immediatelyRender: false,
-    // @ts-ignore
+    // @ts-expect-error
     onPaste: paste,
     onUpdate: (innerProps) => {
       onChange?.(innerProps.editor.getHTML());

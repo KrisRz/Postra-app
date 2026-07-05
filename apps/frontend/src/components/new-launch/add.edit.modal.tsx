@@ -138,7 +138,7 @@ export const AddEditModalInnerInner: FC<AddEditModalProps> = (props) => {
         setRepeater(existingData.posts[0].intervalInDays);
       }
       setTags(
-        // @ts-ignore
+        // @ts-expect-error
         existingData?.posts?.[0]?.tags?.map((p: any) => ({
           label: p.tag.name,
           value: p.tag.name,
@@ -157,7 +157,7 @@ export const AddEditModalInnerInner: FC<AddEditModalProps> = (props) => {
                   .map((line: string) => `<p>${line}</p>`)
                   .join(''),
           id: post.id,
-          // @ts-ignore
+          // @ts-expect-error
           media: post.image as any[],
         }))
       );
@@ -194,7 +194,6 @@ export const AddEditModalInnerInner: FC<AddEditModalProps> = (props) => {
                     .split('\n')
                     .map((line: string) => `<p>${line}</p>`)
                     .join(''),
-            // @ts-ignore
             media: p.media,
           }))
         : [

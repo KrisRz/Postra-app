@@ -53,11 +53,11 @@ export const Chart: FC<{
         datasets: [
           {
             borderColor: '#fff',
-            // @ts-ignore
+            // @ts-expect-error
             label: list?.[0]?.totalForks ? 'Forks by date' : 'Stars by date',
             backgroundColor: gradient,
             fill: true,
-            // @ts-ignore
+            // @ts-expect-error
             data: list.map((row) => row.totalForks || row.totalStars),
           },
         ],

@@ -43,9 +43,8 @@ export const BottomNav: FC = () => {
   const t = useT();
 
   if (
-    // @ts-ignore
     !user?.orgId ||
-    // @ts-ignore
+    // @ts-expect-error
     (user?.tier === 'FREE' && isGeneral && billingEnabled)
   ) {
     return null;
@@ -191,9 +190,8 @@ const MobileDrawerMenu: FC = () => {
     <>
       <div className="flex flex-col gap-[4px]">
         {
-          // @ts-ignore
           user?.orgId &&
-            // @ts-ignore
+            // @ts-expect-error
             (user.tier !== 'FREE' || !isGeneral || !billingEnabled) &&
             firstMenu
               .filter(filter)

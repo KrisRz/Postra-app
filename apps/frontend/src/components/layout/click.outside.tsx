@@ -15,12 +15,12 @@ export const useClickOutside = (callback: () => Promise<void>) => {
   useEffect(() => {
     document
       .querySelector('.mantine-Modal-root')
-      // @ts-ignore
+      // @ts-expect-error
       ?.addEventListener('click', handleClick);
     return () => {
       document
         .querySelector('.mantine-Modal-root')
-        // @ts-ignore
+        // @ts-expect-error
         ?.removeEventListener('click', handleClick);
     };
   });

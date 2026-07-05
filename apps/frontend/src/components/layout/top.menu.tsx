@@ -296,9 +296,8 @@ export const TopMenu: FC = () => {
     <>
       <div className="flex flex-1 flex-col minCustom:gap-[16px] blurMe w-full items-center">
         {
-          // @ts-ignore
           user?.orgId &&
-            // @ts-ignore
+            // @ts-expect-error
             (user.tier !== 'FREE' || !isGeneral || !billingEnabled) &&
             firstMenu
               .filter((f) => {
