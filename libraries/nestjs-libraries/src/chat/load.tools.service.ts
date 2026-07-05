@@ -107,7 +107,10 @@ ${brandKit}
       )}
 `;
       },
-      model: openai('gpt-5.2'),
+      // gpt-5.5 is the official successor to gpt-5.2 (retired from ChatGPT
+      // 2026-06-12, API snapshot shutdown ~2026-08-10). gpt-5.4-mini is a
+      // cheaper lever if agent cost climbs.
+      model: openai('gpt-5.5'),
       tools,
       memory: new Memory({
         storage: pStore,
