@@ -24,6 +24,20 @@ COPY . /app
 COPY var/docker/nginx.conf /etc/nginx/nginx.conf
 
 RUN pnpm install
+
+# Install the Geist brand font into fontconfig so the server-side design
+# renderer (sharp/librsvg, DESIGN_TEXT_FONT = 'Geist, sans-serif') draws post
+# text in Geist instead of a fallback sans. The `geist` npm package (a frontend
+# dep) ships the .ttf files; copy from wherever pnpm resolved them.
+RUN apt-get update && apt-get install -y --no-install-recommends fontconfig \
+ && mkdir -p /usr/share/fonts/truetype/geist \
+ && for d in $(find /app -type d -path '*/geist/dist/fonts/geist-sans'); do \
+      cp "$d"/*.ttf /usr/share/fonts/truetype/geist/ || true; \
+    done \
+ && fc-cache -f \
+ && fc-list | grep -i geist || echo "WARN: Geist not registered in fontconfig" \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm run build
 
 RUN chown -R www:www /app
