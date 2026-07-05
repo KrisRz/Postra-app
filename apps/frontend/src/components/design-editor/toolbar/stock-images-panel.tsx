@@ -21,7 +21,7 @@ interface Props {
 
 // Free stock photos from Pixabay, imported to the media library on click
 // (Pixabay TOS forbids hotlinking) and dropped onto the canvas. Saves an AI
-// credit every time a stock photo does the job instead of gpt-image-1.
+// credit every time a stock photo does the job instead of generating one.
 export const StockImagesPanel: FC<Props> = ({ canvas }) => {
   const fetch = useFetch();
   const toaster = useToaster();
