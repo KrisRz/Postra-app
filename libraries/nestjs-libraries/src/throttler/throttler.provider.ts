@@ -2,6 +2,10 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Request } from 'express';
 
+// Copy of @nestjs/throttler's THROTTLER_LIMIT constant (not exported from the
+// package root); @Throttle() stores metadata under `${THROTTLER_LIMIT}${name}`.
+const THROTTLER_LIMIT_DEFAULT = 'THROTTLER:LIMITdefault';
+
 @Injectable()
 export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
   public override async canActivate(
@@ -19,6 +23,18 @@ export class ThrottlerBehindProxyGuard extends ThrottlerGuard {
     // /auth POSTs fall back to the global default limit. These are
     // unauthenticated, so getTracker buckets them by client IP.
     if (method === 'POST' && url.includes('/auth/')) {
+      return super.canActivate(context);
+    }
+
+    // Routes carrying an explicit @Throttle() — the expensive AI/media/render
+    // endpoints — are enforced with their own limit+ttl (the decorator
+    // overrides the global default per route).
+    const hasExplicitThrottle =
+      this.reflector.getAllAndOverride<number | undefined>(
+        THROTTLER_LIMIT_DEFAULT,
+        [context.getHandler(), context.getClass()]
+      ) !== undefined;
+    if (hasExplicitThrottle) {
       return super.canActivate(context);
     }
 

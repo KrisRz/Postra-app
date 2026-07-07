@@ -1,4 +1,8 @@
 import { Injectable } from '@nestjs/common';
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { fetch } from 'undici';
+import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
+import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
 import { AutopostRepository } from '@gitroom/nestjs-libraries/database/prisma/autopost/autopost.repository';
 import { AutopostDto } from '@gitroom/nestjs-libraries/dtos/autopost/autopost.dto';
 import dayjs from 'dayjs';
@@ -190,6 +194,9 @@ export class AutopostService {
 
   async loadXML(url: string) {
     try {
+      if (!(await isSafePublicHttpsUrl(url))) {
+        return { success: false };
+      }
       const { items } = await parser.parseURL(url);
       if (!items?.length) {
         return { success: false };
@@ -255,6 +262,9 @@ export class AutopostService {
     max = AutopostService.MAX_ITEMS_PER_RUN
   ) {
     try {
+      if (!(await isSafePublicHttpsUrl(url))) {
+        return [];
+      }
       const { items } = await parser.parseURL(url);
       const valid = (items || []).filter((i: any) => i?.link);
       if (!valid.length) {
@@ -320,7 +330,19 @@ export class AutopostService {
 
   async loadUrl(url: string) {
     try {
-      const loadDom = new JSDOM(await (await fetch(url)).text());
+      // Feed-item links are attacker-controllable (hostile/compromised RSS
+      // feed) — pin DNS and refuse private ranges, and never hang the workflow.
+      if (!(await isSafePublicHttpsUrl(url))) {
+        return '';
+      }
+      const loadDom = new JSDOM(
+        await (
+          await fetch(url, {
+            dispatcher: ssrfSafeDispatcher,
+            signal: AbortSignal.timeout(10000),
+          })
+        ).text()
+      );
       loadDom.window.document
         .querySelectorAll('script')
         .forEach((s) => s.remove());
@@ -400,7 +422,9 @@ export class AutopostService {
 
   private async extractOgImage(url: string): Promise<string | null> {
     try {
+      if (!(await isSafePublicHttpsUrl(url))) return null;
       const response = await fetch(url, {
+        dispatcher: ssrfSafeDispatcher,
         headers: { 'User-Agent': 'PostraBot/1.0' },
         signal: AbortSignal.timeout(5000),
       });
@@ -489,7 +513,9 @@ export class AutopostService {
         if (!parsed) return urlOrData;
         buf = parsed.buffer;
       } else {
+        if (!(await isSafePublicHttpsUrl(urlOrData))) return urlOrData;
         const res = await fetch(urlOrData, {
+          dispatcher: ssrfSafeDispatcher,
           headers: { 'User-Agent': 'PostraBot/1.0' },
           signal: AbortSignal.timeout(15000),
         });

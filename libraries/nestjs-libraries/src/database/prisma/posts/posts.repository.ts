@@ -141,9 +141,15 @@ export class PostsRepository {
   }
 
   async getPosts(orgId: string, query: GetPostsDto) {
-    // Use the provided start and end dates directly
+    // Clamp the window: an arbitrary client-supplied range would fetch the
+    // whole table and drive the recurrence expansion below unbounded. 370
+    // days covers every calendar view (day/week/month/year).
     const startDate = dayjs.utc(query.startDate).toDate();
-    const endDate = dayjs.utc(query.endDate).toDate();
+    const requestedEnd = dayjs.utc(query.endDate);
+    const maxEnd = dayjs.utc(query.startDate).add(370, 'day');
+    const endDate = (
+      requestedEnd.isAfter(maxEnd) ? maxEnd : requestedEnd
+    ).toDate();
 
     const list = await this._post.model.post.findMany({
       where: {
@@ -217,17 +223,25 @@ export class PostsRepository {
       }
 
       const addMorePosts = [];
+      const interval = Math.max(1, post.intervalInDays);
+      const windowStart = dayjs.utc(startDate);
       let startingDate = dayjs.utc(post.publishDate);
+      // Fast-forward to the first occurrence inside the window instead of
+      // materializing every occurrence since the post was created.
+      if (startingDate.isBefore(windowStart)) {
+        const skipped = Math.ceil(
+          windowStart.diff(startingDate, 'day', true) / interval
+        );
+        startingDate = startingDate.add(skipped * interval, 'days');
+      }
       while (dayjs.utc(endDate).isSameOrAfter(startingDate)) {
-        if (dayjs(startingDate).isSameOrAfter(dayjs.utc(post.publishDate))) {
-          addMorePosts.push({
-            ...post,
-            publishDate: startingDate.toDate(),
-            actualDate: post.publishDate,
-          });
-        }
+        addMorePosts.push({
+          ...post,
+          publishDate: startingDate.toDate(),
+          actualDate: post.publishDate,
+        });
 
-        startingDate = startingDate.add(post.intervalInDays, 'days');
+        startingDate = startingDate.add(interval, 'days');
       }
 
       return [...all, ...addMorePosts];
@@ -586,6 +600,7 @@ export class PostsRepository {
         await this._post.model.post.upsert({
           where: {
             id: value.id || uuidv4(),
+            organizationId: orgId,
           },
           create: { ...updateData('create') },
           update: {
@@ -644,6 +659,7 @@ export class PostsRepository {
           await this._post.model.post.findFirst({
             where: {
               group: body.group,
+              organizationId: orgId,
               deletedAt: null,
               parentPostId: null,
             },
@@ -658,6 +674,7 @@ export class PostsRepository {
       await this._post.model.post.updateMany({
         where: {
           group: body.group,
+          organizationId: orgId,
           deletedAt: null,
         },
         data: {
@@ -845,6 +862,7 @@ export class PostsRepository {
     return this._tags.model.tags.update({
       where: {
         id,
+        orgId,
       },
       data: {
         name: body.name,

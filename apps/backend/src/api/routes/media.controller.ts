@@ -1,3 +1,4 @@
+import { Throttle } from '@nestjs/throttler';
 import {
   Body,
   Controller,
@@ -61,6 +62,7 @@ export class MediaController {
   }
 
   @Post('/generate-video')
+  @Throttle({ default: { ttl: 300000, limit: 10 } })
   @UseGuards(AccountAgeGuard)
   generateVideo(
     @GetOrgFromRequest() org: Organization,
@@ -70,6 +72,7 @@ export class MediaController {
   }
 
   @Post('/generate-image')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   @UseGuards(AccountAgeGuard)
   async generateImage(
     @GetOrgFromRequest() org: Organization,
@@ -90,6 +93,7 @@ export class MediaController {
   }
 
   @Post('/generate-image-with-prompt')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   @UseGuards(AccountAgeGuard)
   async generateImageFromText(
     @GetOrgFromRequest() org: Organization,
@@ -115,6 +119,7 @@ export class MediaController {
   }
 
   @Post('/generate-post-design')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   @UseGuards(AccountAgeGuard)
   generatePostDesign(
     @GetOrgFromRequest() org: Organization,
@@ -124,6 +129,7 @@ export class MediaController {
   }
 
   @Post('/generate-carousel-design')
+  @Throttle({ default: { ttl: 300000, limit: 15 } })
   @UseGuards(AccountAgeGuard)
   generateCarouselDesign(
     @GetOrgFromRequest() org: Organization,
@@ -227,6 +233,7 @@ export class MediaController {
   }
 
   @Post('/:id/auto-caption')
+  @Throttle({ default: { ttl: 300000, limit: 5 } })
   async autoCaption(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,
@@ -241,6 +248,7 @@ export class MediaController {
   }
 
   @Post('/:id/burn-captions')
+  @Throttle({ default: { ttl: 300000, limit: 5 } })
   async burnCaptions(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,
@@ -258,6 +266,7 @@ export class MediaController {
   }
 
   @Post('/pixabay-videos/import')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   async pixabayVideosImport(
     @GetOrgFromRequest() org: Organization,
     @Body() body: { url: string; sourceId?: number }
@@ -270,6 +279,7 @@ export class MediaController {
   }
 
   @Post('/pixabay-images/import')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   async pixabayImagesImport(
     @GetOrgFromRequest() org: Organization,
     @Body() body: { url: string; sourceId?: number }
@@ -282,6 +292,7 @@ export class MediaController {
   }
 
   @Post('/refine-design')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   @UseGuards(AccountAgeGuard)
   refineDesign(
     @GetOrgFromRequest() org: Organization,
@@ -291,6 +302,7 @@ export class MediaController {
   }
 
   @Post('/generate-variants')
+  @Throttle({ default: { ttl: 300000, limit: 15 } })
   @UseGuards(AccountAgeGuard)
   generateVariants(
     @GetOrgFromRequest() org: Organization,
@@ -300,6 +312,7 @@ export class MediaController {
   }
 
   @Post('/brand-voice-check')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   @UseGuards(AccountAgeGuard)
   brandVoiceCheck(
     @GetOrgFromRequest() org: Organization,
@@ -309,6 +322,7 @@ export class MediaController {
   }
 
   @Post('/ai-edit')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   @UseGuards(AccountAgeGuard)
   aiEdit(
     @GetOrgFromRequest() org: Organization,
@@ -318,6 +332,7 @@ export class MediaController {
   }
 
   @Post('/decompose-image')
+  @Throttle({ default: { ttl: 300000, limit: 15 } })
   @UseGuards(AccountAgeGuard)
   decomposeImage(
     @GetOrgFromRequest() org: Organization,
@@ -327,6 +342,7 @@ export class MediaController {
   }
 
   @Post('/search-templates')
+  @Throttle({ default: { ttl: 300000, limit: 60 } })
   searchTemplates(@Body() body: TemplateSearchDto) {
     return this._mediaService.searchTemplates(body);
   }

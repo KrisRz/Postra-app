@@ -5,20 +5,38 @@ import { join } from 'path';
 import { writeFile, unlink, readFile } from 'fs/promises';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
+import pLimit from 'p-limit';
+
+// ffmpeg transcodes run inside the HTTP request on a small box — serialize
+// them per process (pm2 runs 3 workers) so concurrent requests can't
+// saturate CPU/RAM, and kill anything that runs away.
+const ffmpegLimit = pLimit(1);
+const FFMPEG_TIMEOUT_MS = 5 * 60 * 1000;
 
 const runFfmpeg = (args: string[]): Promise<void> =>
-  new Promise((resolve, reject) => {
-    const proc = spawn('ffmpeg', args, { stdio: 'pipe' });
-    let stderr = '';
-    proc.stderr.on('data', (chunk) => {
-      stderr += chunk.toString();
-    });
-    proc.on('error', reject);
-    proc.on('close', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`ffmpeg exit ${code}: ${stderr.slice(-500)}`));
-    });
-  });
+  ffmpegLimit(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const proc = spawn('ffmpeg', args, { stdio: 'pipe' });
+        let stderr = '';
+        const timeout = setTimeout(() => {
+          proc.kill('SIGKILL');
+          reject(new Error(`ffmpeg timed out after ${FFMPEG_TIMEOUT_MS}ms`));
+        }, FFMPEG_TIMEOUT_MS);
+        proc.stderr.on('data', (chunk) => {
+          stderr += chunk.toString();
+        });
+        proc.on('error', (err) => {
+          clearTimeout(timeout);
+          reject(err);
+        });
+        proc.on('close', (code) => {
+          clearTimeout(timeout);
+          if (code === 0) resolve();
+          else reject(new Error(`ffmpeg exit ${code}: ${stderr.slice(-500)}`));
+        });
+      })
+  );
 
 @Injectable()
 export class CaptionsService {
@@ -32,7 +50,7 @@ export class CaptionsService {
     const audioPath = join(tmpdir(), `cap-audio-${id}.mp3`);
 
     try {
-      const res = await fetch(videoUrl);
+      const res = await fetch(videoUrl, { signal: AbortSignal.timeout(60_000) });
       if (!res.ok) {
         throw new HttpException(`Failed to download source video (${res.status})`, 502);
       }
@@ -69,7 +87,7 @@ export class CaptionsService {
     const outputPath = join(tmpdir(), `burn-out-${id}.mp4`);
 
     try {
-      const res = await fetch(videoUrl);
+      const res = await fetch(videoUrl, { signal: AbortSignal.timeout(60_000) });
       if (!res.ok) {
         throw new HttpException(`Failed to download source video (${res.status})`, 502);
       }

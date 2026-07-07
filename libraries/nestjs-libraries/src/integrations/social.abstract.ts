@@ -164,7 +164,13 @@ export abstract class SocialAbstract {
     ignoreConcurrency = false,
     message = '',
   ): Promise<Response> {
-    const request = await fetch(url, options);
+    // Social APIs occasionally hang forever; without a signal the fetch pins
+    // the Temporal activity until startToClose. 120s accommodates slow media
+    // uploads while still bounding the call. Callers may pass their own signal.
+    const request = await fetch(url, {
+      ...options,
+      signal: options.signal ?? AbortSignal.timeout(120_000),
+    });
 
     if (request.status === 200 || request.status === 201) {
       return request;

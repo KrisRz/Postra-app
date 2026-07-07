@@ -1,3 +1,4 @@
+import { Throttle } from '@nestjs/throttler';
 import {
   Body,
   Controller,
@@ -224,6 +225,7 @@ export class PostsController {
   }
 
   @Post('/generator/draft')
+  @Throttle({ default: { ttl: 300000, limit: 20 } })
   @CheckPolicies([AuthorizationActions.Create, Sections.POSTS_PER_MONTH])
   generatePostsDraft(
     @GetOrgFromRequest() org: Organization,
@@ -233,6 +235,7 @@ export class PostsController {
   }
 
   @Post('/generator')
+  @Throttle({ default: { ttl: 300000, limit: 10 } })
   @CheckPolicies([AuthorizationActions.Create, Sections.POSTS_PER_MONTH])
   async generatePosts(
     @GetOrgFromRequest() org: Organization,
@@ -266,6 +269,7 @@ export class PostsController {
   }
 
   @Post('/separate-posts')
+  @Throttle({ default: { ttl: 300000, limit: 20 } })
   async separatePosts(
     @GetOrgFromRequest() org: Organization,
     @Body() body: { content: string; len: number }

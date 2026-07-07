@@ -46,7 +46,8 @@ async function start() {
       ],
       origin: [
         process.env.FRONTEND_URL,
-        'http://localhost:6274',
+        // MCP inspector origin — dev only, never in the prod allow-list.
+        ...(process.env.NOT_SECURED ? ['http://localhost:6274'] : []),
         ...(process.env.MAIN_URL ? [process.env.MAIN_URL] : []),
       ],
     },
@@ -77,8 +78,10 @@ async function start() {
       // Studio routes under /media (refine-design, generate-variants,
       // decompose-image, :id/design-spec) carry canvas screenshots and JSON that
       // exceed Express's default ~100kb limit. Multipart /upload-simple is
-      // untouched — json() skips non-application/json bodies.
-      json({ limit: '50mb' })(req, res, next);
+      // untouched — json() skips non-application/json bodies. 25mb bounds a
+      // full-canvas PNG data-URL with headroom while keeping the worst case
+      // (concurrent large bodies x 3 pm2 workers on a 3.7GiB box) survivable.
+      json({ limit: '25mb' })(req, res, next);
     }
   );
 

@@ -467,7 +467,9 @@ export class IntegrationService {
         );
         return loadAnalytics;
       } catch (e) {
-        if (e instanceof RefreshToken) {
+        // Retry once after a token refresh; a second RefreshToken means the
+        // refresh didn't help — recursing again would loop forever.
+        if (e instanceof RefreshToken && !forceRefresh) {
           return this.checkAnalytics(org, integration, date, true);
         }
       }
