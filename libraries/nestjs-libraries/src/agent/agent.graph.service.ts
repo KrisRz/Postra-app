@@ -5,7 +5,7 @@ import {
   ToolMessage,
 } from '@langchain/core/messages';
 import { END, START, StateGraph } from '@langchain/langgraph';
-import { ChatOpenAI, DallEAPIWrapper } from '@langchain/openai';
+import { ChatOpenAI } from '@langchain/openai';
 import { TavilySearch } from '@langchain/tavily';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
@@ -13,6 +13,8 @@ import dayjs from 'dayjs';
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
 import { z } from 'zod';
 import { MediaService } from '@gitroom/nestjs-libraries/database/prisma/media/media.service';
+import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
+import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { GeneratorDto } from '@gitroom/nestjs-libraries/dtos/generator/generator.dto';
 
@@ -25,11 +27,10 @@ const model = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
   model: 'gpt-4.1',
   temperature: 0.7,
-});
-
-const dalle = new DallEAPIWrapper({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
-  model: 'chatgpt-image-latest',
+  // A hung OpenAI call otherwise pins the streaming /posts/generator response
+  // forever (same 90s/2-retries budget as OpenaiService).
+  timeout: 90000,
+  maxRetries: 2,
 });
 
 interface WorkflowChannelsState {
@@ -106,7 +107,9 @@ export class AgentGraphService {
   private storage = UploadFactory.createStorage();
   constructor(
     private _postsService: PostsService,
-    private _mediaService: MediaService
+    private _mediaService: MediaService,
+    private _openaiService: OpenaiService,
+    private _subscriptionService: SubscriptionService
   ) {}
   static state = () =>
     new StateGraph<WorkflowChannelsState>({
@@ -318,9 +321,16 @@ export class AgentGraphService {
       return {};
     }
 
+    // OpenaiService.generateImage = gpt-image-2 (DallEAPIWrapper pointed at
+    // 'chatgpt-image-latest', which our key cannot call), pLimit-bounded, and
+    // metered: each image burns an ai_images credit like every other AI image.
     const newContent = await Promise.all(
       (state.content || []).map(async (p) => {
-        const image = await dalle.invoke(p.prompt!);
+        const image = await this._subscriptionService.useCreditByOrgId(
+          state.orgId,
+          'ai_images',
+          () => this._openaiService.generateImage(p.prompt!, true)
+        );
         return {
           ...p,
           image,
