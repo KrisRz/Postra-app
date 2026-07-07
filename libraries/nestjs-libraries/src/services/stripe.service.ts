@@ -615,7 +615,10 @@ export class StripeService {
       ).data.find((f) => f.status === 'active' || f.status === 'trialing'),
     };
 
-    if (!currentUserSubscription) {
+    // Guard the inner value, not the always-truthy wrapper object — otherwise
+    // no-active-subscription falls through and applyDiscount later dereferences
+    // `.data.id` (500).
+    if (!currentUserSubscription.data) {
       return false;
     }
 
@@ -645,6 +648,10 @@ export class StripeService {
         })
       ).data.find((f) => f.status === 'active' || f.status === 'trialing'),
     };
+
+    if (!currentUserSubscription.data) {
+      return false;
+    }
 
     await stripe.subscriptions.update(currentUserSubscription.data.id, {
       discounts: [

@@ -359,6 +359,7 @@ export class MediaController {
   }
 
   @Post('/upload-server')
+  @Throttle({ default: { ttl: 300000, limit: 60 } })
   @UseInterceptors(FileInterceptor('file'))
   @UsePipes(new CustomFileValidationPipe())
   async uploadServer(
@@ -376,6 +377,7 @@ export class MediaController {
   }
 
   @Post('/save-media')
+  @Throttle({ default: { ttl: 300000, limit: 60 } })
   async saveMedia(
     @GetOrgFromRequest() org: Organization,
     @Req() req: Request,
@@ -402,6 +404,7 @@ export class MediaController {
   }
 
   @Post('/upload-simple')
+  @Throttle({ default: { ttl: 300000, limit: 60 } })
   @UseInterceptors(FileInterceptor('file'))
   @UsePipes(new CustomFileValidationPipe())
   async uploadSimple(

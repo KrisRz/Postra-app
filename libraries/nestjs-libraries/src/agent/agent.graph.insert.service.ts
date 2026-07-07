@@ -12,6 +12,10 @@ const model = new ChatOpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
   model: 'gpt-4o-2024-08-06',
   temperature: 0,
+  // Bound the external call like the sibling graphs — the SDK default is a
+  // 10-minute open await.
+  timeout: 90000,
+  maxRetries: 2,
 });
 
 interface WorkflowChannelsState {

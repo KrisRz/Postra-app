@@ -13,6 +13,7 @@ import {
   UsePipes,
 } from '@nestjs/common';
 import { CustomFileValidationPipe } from '@gitroom/nestjs-libraries/upload/custom.upload.validation';
+import { Throttle } from '@nestjs/throttler';
 import { ApiTags } from '@nestjs/swagger';
 import { GetOrgFromRequest } from '@gitroom/nestjs-libraries/user/org.from.request';
 import { Organization } from '@prisma/client';
@@ -78,6 +79,7 @@ export class PublicIntegrationsController {
   ) {}
 
   @Post('/upload')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   @UseInterceptors(FileInterceptor('file'))
   @UsePipes(new CustomFileValidationPipe())
   async uploadSimple(
@@ -98,6 +100,7 @@ export class PublicIntegrationsController {
   }
 
   @Post('/upload-from-url')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   async uploadsFromUrl(
     @GetOrgFromRequest() org: Organization,
     @Body() body: UploadDto
@@ -344,6 +347,7 @@ export class PublicIntegrationsController {
   }
 
   @Post('/generate-video')
+  @Throttle({ default: { ttl: 300000, limit: 5 } })
   generateVideo(
     @GetOrgFromRequest() org: Organization,
     @Body() body: VideoDto
@@ -353,6 +357,7 @@ export class PublicIntegrationsController {
   }
 
   @Post('/video/function')
+  @Throttle({ default: { ttl: 300000, limit: 5 } })
   videoFunction(@Body() body: VideoFunctionDto) {
     Sentry.metrics.count('public_api-request', 1);
     return this._mediaService.videoFunction(
@@ -474,6 +479,7 @@ export class PublicIntegrationsController {
   }
 
   @Post('/integration-trigger/:id')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   async triggerIntegrationTool(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,
