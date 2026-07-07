@@ -29,7 +29,16 @@ import { CustomVariables } from '@gitroom/frontend/components/launches/add.provi
 import { useRouter } from 'next/navigation';
 import { useVariables } from '@gitroom/react/helpers/variable.context';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-import { AddEditModal } from '@gitroom/frontend/components/new-launch/add.edit.modal';
+import dynamic from 'next/dynamic';
+// Composer pulls ~13 @tiptap packages + Uppy + CopilotPopup — load it only
+// when the modal actually opens instead of shipping it with the page bundle.
+const AddEditModal = dynamic(
+  () =>
+    import('@gitroom/frontend/components/new-launch/add.edit.modal').then(
+      (mod) => mod.AddEditModal
+    ),
+  { ssr: false }
+);
 import dayjs from 'dayjs';
 import { ModalWrapperComponent } from '@gitroom/frontend/components/new-launch/modal.wrapper.component';
 import copy from 'copy-to-clipboard';

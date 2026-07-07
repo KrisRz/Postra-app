@@ -101,18 +101,18 @@ export const Plugs = () => {
         <div className="text-[48px]">
           {t(
             'there_are_not_plugs_matching_your_channels',
-            'Brak wtyczek pasujących do Twoich kanałów'
+            'No plugs matching your channels'
           )}
           <br />
           {t(
             'you_have_to_add_x_or_linkedin_or_threads',
-            'Dodaj kanał X, LinkedIn lub Threads, aby tu zacząć'
+            'Add an X, LinkedIn or Threads channel to get started here'
           )}
         </div>
         <Button onClick={() => router.push('/launches')}>
           {t(
             'go_to_the_calendar_to_add_channels',
-            'Przejdź do kalendarza i dodaj kanały'
+            'Go to the calendar to add channels'
           )}
         </Button>
       </div>

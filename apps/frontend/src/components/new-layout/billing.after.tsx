@@ -23,12 +23,12 @@ export const BillingAfter = () => {
         <h1 className="text-3xl [@media(max-width:1024px)]:text-xl">
           {t(
             'join_10000_entrepreneurs_who_use_postra',
-            'Dołącz do ponad 10 000 przedsiębiorców korzystających z Postra'
+            'Join 10,000+ entrepreneurs who use Postra'
           )}
           <br />
           {t(
             'to_manage_all_your_social_media_channels',
-            'i zarządzaj wszystkimi swoimi kanałami social media'
+            'to manage all your social media channels'
           )}
         </h1>
         <br />
@@ -49,7 +49,7 @@ export const BillingAfter = () => {
                   />
                 </svg>
               </div>
-              <div>{t('100_no_risk_trial', '100% bezpieczny okres próbny')}</div>
+              <div>{t('100_no_risk_trial', '100% no-risk trial')}</div>
             </div>
             <div className="flex gap-[5px] items-center">
               <div>
@@ -69,7 +69,7 @@ export const BillingAfter = () => {
               <div>
                 {t(
                   'pay_nothing_for_the_first_7_days',
-                  'Przez pierwsze 7 dni nie płacisz nic'
+                  'Pay nothing for the first 7 days'
                 )}
               </div>
             </div>
@@ -89,7 +89,7 @@ export const BillingAfter = () => {
                 </svg>
               </div>
               <div>
-                {t('cancel_anytime_hassle_free', 'Możesz anulować w dowolnym momencie w ustawieniach')}
+                {t('cancel_anytime_hassle_free', 'Cancel anytime from your settings, hassle-free')}
               </div>
             </div>
           </div>

@@ -23,7 +23,7 @@ export const GlobalSettings = () => {
         {t('global_settings', 'Global Settings')}
       </h3>
       <p className="text-[12.5px] text-newTextColor/55 mt-[3px]">
-        {t('global_settings_sub', 'Preferencje konta, powiadomień i linków')}
+        {t('global_settings_sub', 'Account, notification and link preferences')}
       </p>
       <LanguagePreferenceComponent />
       <MetricComponent />

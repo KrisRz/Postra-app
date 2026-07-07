@@ -49,7 +49,11 @@ export const OrganizationSelector: FC<{ asOpenSelect?: boolean }> = ({
             <div className="bg-btnPrimary !flex !relative max-w-[500px] mx-auto py-[12px] px-[12px]">Select Organization</div>
           )}
           {!asOpenSelect && (
-            <div className="flex items-center">
+            <div
+              className="flex items-center"
+              role="button"
+              aria-label="Select organization"
+            >
               <svg
                 className={user?.tier.current === 'FREE' ? 'animate-bounce drop-shadow-glow': ''}
                 width="24"

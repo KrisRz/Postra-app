@@ -939,7 +939,7 @@ export const MultiMediaComponent: FC<{
               <div
                 onClick={openStudio}
                 className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors phone:hidden"
-                title={t('studio_hint', 'Twórz grafiki i klipy wideo — prosto do posta')}
+                title={t('studio_hint', 'Create graphics and video clips — straight into your post')}
               >
                 <div className="flex gap-[5px] items-center">
                   <div>

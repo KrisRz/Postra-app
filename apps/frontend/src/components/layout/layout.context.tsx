@@ -48,13 +48,17 @@ function LayoutContextInner(params: { children: ReactNode }) {
         response?.headers?.get('Impersonate');
       const logout =
         response?.headers?.get('logout') || response?.headers?.get('Logout');
-      if (headerAuth) {
+      // JS-written cookies are only for NOT_SECURED (local dev): in prod the
+      // proxy sets httpOnly cookies and a JS-readable copy would hand the
+      // session to any XSS. The backend only exposes these headers when
+      // NOT_SECURED — this gate is defense-in-depth.
+      if (headerAuth && !isSecured) {
         setCookie('auth', headerAuth, 365);
       }
-      if (showOrg) {
+      if (showOrg && !isSecured) {
         setCookie('showorg', showOrg, 365);
       }
-      if (impersonate) {
+      if (impersonate && !isSecured) {
         setCookie('impersonate', impersonate, 365);
       }
       if (logout && !isSecured) {
@@ -135,7 +139,9 @@ function LayoutContextInner(params: { children: ReactNode }) {
             'warning'
           );
         }
-        return true;
+        // false -> FetchHandledError: callers must not .json() a 429 body and
+        // render garbage / throw into the error boundary.
+        return false;
       }
       return true;
     },

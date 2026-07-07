@@ -90,7 +90,7 @@ const ChargesModal: FC<{ close: () => void }> = ({ close }) => {
       !(await deleteDialog(
         t(
           'cancel_subscription_confirm',
-          'Spowoduje to natychmiastowe anulowanie subskrypcji. Użytkownik zostanie przeniesiony na plan FREE. Tej operacji nie można cofnąć.'
+          'This will immediately cancel the subscription. The user will be moved to the FREE plan. This action cannot be undone.'
         ),
         t('yes_cancel_subscription', 'Yes, cancel subscription'),
         t('cancel_subscription_title', 'Cancel Subscription?'),
@@ -354,7 +354,7 @@ const AddAnnouncementModal: FC<{ close: () => void }> = ({ close }) => {
           onChange={(e) => setDescription(e.target.value)}
           placeholder={t(
             'announcement_description_placeholder',
-            'Opis ogłoszenia'
+            'Announcement description'
           )}
         />
       </div>

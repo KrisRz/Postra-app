@@ -13,10 +13,14 @@ acceptLanguage.languages(languages);
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
   const nextUrl = request.nextUrl;
+  // ?loggedAuth= (mobile-WebView bridge) is honored only on /provider/ pages
+  // — see custom.fetch.func.ts for the rationale.
   const authCookie =
     request.cookies.get('auth') ||
     request.headers.get('auth') ||
-    nextUrl.searchParams.get('loggedAuth');
+    (nextUrl.pathname.startsWith('/provider/')
+      ? nextUrl.searchParams.get('loggedAuth')
+      : null);
   const lng = request.cookies.has(cookieName)
     ? acceptLanguage.get(request.cookies.get(cookieName).value)
     : acceptLanguage.get(

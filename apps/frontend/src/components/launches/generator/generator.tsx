@@ -20,7 +20,16 @@ import {
 import dayjs from 'dayjs';
 import { Select } from '@gitroom/react/form/select';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-import { AddEditModal } from '@gitroom/frontend/components/new-launch/add.edit.modal';
+import dynamic from 'next/dynamic';
+// Composer pulls ~13 @tiptap packages + Uppy + CopilotPopup — load it only
+// when the modal actually opens instead of shipping it with the page bundle.
+const AddEditModal = dynamic(
+  () =>
+    import('@gitroom/frontend/components/new-launch/add.edit.modal').then(
+      (mod) => mod.AddEditModal
+    ),
+  { ssr: false }
+);
 import { useToaster } from '@gitroom/react/toaster/toaster';
 
 const FirstStep: FC = (props) => {

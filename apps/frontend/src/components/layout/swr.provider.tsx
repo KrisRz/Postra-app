@@ -43,5 +43,18 @@ export const SwrProvider = ({ children }: { children: ReactNode }) => {
     [toaster, t]
   );
 
-  return <SWRConfig value={{ onError }}>{children}</SWRConfig>;
+  return (
+    <SWRConfig
+      value={{
+        onError,
+        // During a backend incident the default is unbounded exponential
+        // retries from every mounted hook in every tab — cap it.
+        errorRetryCount: 3,
+        focusThrottleInterval: 30_000,
+        dedupingInterval: 5_000,
+      }}
+    >
+      {children}
+    </SWRConfig>
+  );
 };

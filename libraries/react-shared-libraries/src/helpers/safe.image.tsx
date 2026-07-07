@@ -22,6 +22,8 @@ const SafeImage: FC<SafeImageProps> = ({
     <img
       src={src}
       alt={alt?.toString() || ''}
+      loading="lazy"
+      decoding="async"
       width={typeof width === 'number' ? width : undefined}
       height={typeof height === 'number' ? height : undefined}
       className={className}

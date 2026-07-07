@@ -91,7 +91,7 @@ export const AgentChat: FC = () => {
           <CopilotChat
             className="w-full h-full"
             labels={{
-              title: t('your_assistant', 'Twój Asystent'),
+              title: t('your_assistant', 'Your Assistant'),
               initial: t(
                 'agent_welcome_message',
                 `Hi! I'm your Postra agent 🙌🏻 Tell me what you want to publish — I'll schedule posts across multiple channels and generate images and videos.`
@@ -178,7 +178,7 @@ const NewInput: FC<InputProps> = (props) => {
         {...props}
         placeholder={t(
           'write_your_post_placeholder',
-          'Napisz swoją wiadomość...'
+          'Write your message...'
         )}
         onChange={setValue}
         onSend={(text) => {

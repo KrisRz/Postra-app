@@ -14,7 +14,12 @@ import { PickPlatforms } from '@gitroom/frontend/components/launches/helpers/pic
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import clsx from 'clsx';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
-import { CopilotTextarea } from '@copilotkit/react-textarea';
+import dynamic from 'next/dynamic';
+const CopilotTextarea = dynamic(
+  () =>
+    import('@copilotkit/react-textarea').then((mod) => mod.CopilotTextarea),
+  { ssr: false }
+);
 import { Slider } from '@gitroom/react/form/slider';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import Spinner from '@gitroom/frontend/components/layout/loading';
@@ -31,7 +36,7 @@ export const Autopost: FC = () => {
   const addWebhook = useCallback(
     (data?: any) => () => {
       modal.openModal({
-        title: data ? t('edit_autopost', 'Edytuj Autopost') : t('add_autopost_title', 'Dodaj Autopost'),
+        title: data ? t('edit_autopost', 'Edit Autopost') : t('add_autopost_title', 'Add Autopost'),
         withCloseButton: true,
         children: <AddOrEditWebhook data={data} reload={mutate} />,
       });
@@ -76,7 +81,7 @@ export const Autopost: FC = () => {
       <div className="text-newTextColor/55 mt-[4px]">
         {t(
           'autopost_can_automatically_posts_your_rss_new_items_to_social_media',
-          'Autopost automatycznie publikuje nowe wpisy z RSS do social mediów'
+          'Autopost automatically publishes new RSS items to your social media'
         )}
       </div>
       <div className="my-[16px] mt-[16px] bg-white/[0.03] border-white/10 items-center border rounded-[16px] p-[24px] flex gap-[24px]">
@@ -135,7 +140,7 @@ export const Autopost: FC = () => {
               onClick={addWebhook()}
               className={clsx((data?.length || 0) > 0 && 'my-[16px]')}
             >
-              {t('add_an_autopost', 'Dodaj autopost')}
+              {t('add_an_autopost', 'Add an autopost')}
             </Button>
           </div>
         </div>
