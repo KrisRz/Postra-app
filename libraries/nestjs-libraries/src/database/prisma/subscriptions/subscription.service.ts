@@ -6,13 +6,15 @@ import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/o
 import { Organization } from '@prisma/client';
 import dayjs from 'dayjs';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
+import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 
 @Injectable()
 export class SubscriptionService {
   constructor(
     private readonly _subscriptionRepository: SubscriptionRepository,
     private readonly _integrationService: IntegrationService,
-    private readonly _organizationService: OrganizationService
+    private readonly _organizationService: OrganizationService,
+    private readonly _auditService: AuditService
   ) {}
 
   getSubscriptionByOrganizationId(organizationId: string) {
@@ -39,6 +41,10 @@ export class SubscriptionService {
       pricing.FREE.channel || 0,
       'FREE'
     );
+    this._auditService.record({
+      action: 'subscription.delete',
+      metadata: { customerId },
+    });
     return this._subscriptionRepository.deleteSubscriptionByCustomerId(
       customerId
     );
@@ -195,6 +201,11 @@ export class SubscriptionService {
         return {};
       }
     }
+    this._auditService.record({
+      action: 'subscription.change',
+      organizationId: org,
+      metadata: { customerId, billing, period, totalChannels, isTrailing },
+    });
     return this._subscriptionRepository.createOrUpdateSubscription(
       isTrailing,
       identifier,

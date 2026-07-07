@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 import { IntegrationRepository } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.repository';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import {
@@ -39,7 +40,8 @@ export class IntegrationService {
     private _notificationService: NotificationService,
     @Inject(forwardRef(() => RefreshIntegrationService))
     private _refreshIntegrationService: RefreshIntegrationService,
-    private _temporalService: TemporalService
+    private _temporalService: TemporalService,
+    private _auditService: AuditService
   ) {}
 
   async changeActiveCron(orgId: string) {
@@ -145,6 +147,12 @@ export class IntegrationService {
       }
     }
 
+    this._auditService.record({
+      action: 'integration.connect',
+      organizationId: org,
+      metadata: { provider, internalId, name },
+    });
+
     return this._integrationRepository.createOrUpdateIntegration(
       additionalSettings,
       oneTimeToken,
@@ -214,6 +222,14 @@ export class IntegrationService {
   }
 
   async disconnectChannel(orgId: string, integration: Integration) {
+    this._auditService.record({
+      action: 'integration.disconnect',
+      organizationId: orgId,
+      metadata: {
+        integrationId: integration.id,
+        provider: integration.providerIdentifier,
+      },
+    });
     await this._integrationRepository.disconnectChannel(orgId, integration.id);
     await this.informAboutRefreshError(orgId, integration);
   }
@@ -342,6 +358,11 @@ export class IntegrationService {
   }
 
   async deleteChannel(org: string, id: string) {
+    this._auditService.record({
+      action: 'integration.disconnect',
+      organizationId: org,
+      metadata: { integrationId: id, deleted: true },
+    });
     return this._integrationRepository.deleteChannel(org, id);
   }
 

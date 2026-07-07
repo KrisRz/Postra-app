@@ -1,4 +1,11 @@
-import { Body, Controller, Param, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  NotFoundException,
+  Param,
+  Post,
+  Res,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
@@ -6,6 +13,12 @@ import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integ
 import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/organizations/organization.service';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
+
+// Postiz SaaS-mode integration surface: unauthenticated routes that trust a
+// JWT signed with the shared JWT_SECRET to provision SUPERADMIN users and
+// mutate channels. Postra doesn't use this mode — nothing in the repo calls
+// these routes — so they stay disabled unless explicitly enabled.
+const saasModeEnabled = () => !!process.env.ENABLE_SAAS_INTEGRATION_ROUTES;
 
 @ApiTags('Enterprise')
 @Controller('/enterprise')
@@ -19,6 +32,10 @@ export class EnterpriseController {
 
   @Post('/create-user')
   async createUser(@Body('params') params: string) {
+    if (!saasModeEnabled()) {
+      throw new NotFoundException();
+    }
+
     try {
       const { id, name, saasName, email } = AuthService.verifyJWT(params) as {
         id: string;
@@ -44,6 +61,10 @@ export class EnterpriseController {
 
   @Post('/url')
   async redirectParams(@Body('params') params: string) {
+    if (!saasModeEnabled()) {
+      throw new NotFoundException();
+    }
+
     try {
       const load = AuthService.verifyJWT(params) as {
         redirectUrl: string;
@@ -93,6 +114,10 @@ export class EnterpriseController {
 
   @Post('/delete-channel')
   async deleteChannel(@Body('params') params: string) {
+    if (!saasModeEnabled()) {
+      throw new NotFoundException();
+    }
+
     try {
       const load = AuthService.verifyJWT(params) as {
         apiKey: string;

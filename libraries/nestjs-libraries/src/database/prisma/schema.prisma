@@ -1009,3 +1009,21 @@ model MobilePushToken {
   @@index([organizationId])
   @@index([userId])
 }
+
+// Append-only security audit trail (O5): login/impersonation/password/token/
+// subscription events. Scalar ids (no relations) so rows survive user/org
+// deletion — the trail must outlive its subjects.
+model AuditLog {
+  id             String   @id @default(uuid())
+  organizationId String?
+  userId         String?
+  action         String
+  ip             String?
+  userAgent      String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}
