@@ -367,7 +367,12 @@ export class PostsService {
     );
   }
 
-  async updateMedia(id: string, imagesList: any[], convertToJPEG = false) {
+  async updateMedia(
+    orgId: string,
+    id: string,
+    imagesList: any[],
+    convertToJPEG = false
+  ) {
     try {
       let imageUpdateNeeded = false;
       const getImageList = await Promise.all(
@@ -376,13 +381,17 @@ export class PostsService {
             (imagesList || []).map(async (p: any) => {
               if (!p.path && p.id) {
                 imageUpdateNeeded = true;
-                return this._mediaService.getMediaById(p.id);
+                // Org-scoped: a post's stored image list is client-controlled,
+                // so a foreign media id must never resolve to another org's
+                // asset/URL.
+                return this._mediaService.getMediaByIdOrg(orgId, p.id);
               }
 
               return p;
             })
           )
         )
+          .filter((m: any) => m && m.path)
           .map((m) => {
             return {
               ...m,
@@ -543,6 +552,7 @@ export class PostsService {
         (posts || []).map(async (post) => ({
           ...this.stripIntegrationSecrets(post),
           image: await this.updateMedia(
+            orgId,
             post.id,
             JSON.parse(post.image || '[]'),
             convertToJPEG
@@ -581,6 +591,7 @@ export class PostsService {
         (posts || []).map(async (post) => ({
           ...this.stripIntegrationSecrets(post),
           image: await this.updateMedia(
+            orgId,
             post.id,
             JSON.parse(post.image || '[]'),
             convertToJPEG
@@ -1213,12 +1224,19 @@ export class PostsService {
     return this._postRepository.deleteTag(id, orgId);
   }
 
-  createComment(
+  async createComment(
     orgId: string,
     userId: string,
     postId: string,
     comment: string
   ) {
+    // The post must belong to the caller's org — otherwise a user could
+    // inject comments onto another org's post (they surface on that org's
+    // shared preview).
+    const post = await this._postRepository.getPostById(postId, orgId);
+    if (!post) {
+      throw new Error('Post not found');
+    }
     return this._postRepository.createComment(orgId, userId, postId, comment);
   }
 }

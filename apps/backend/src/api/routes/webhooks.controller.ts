@@ -17,6 +17,10 @@ import {
   OnlyURL, UpdateDto, WebhooksDto
 } from '@gitroom/nestjs-libraries/dtos/webhooks/webhooks.dto';
 import { AuthorizationActions, Sections } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { fetch } from 'undici';
+import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
+import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
 
 @ApiTags('Webhooks')
 @Controller('/webhooks')
@@ -55,11 +59,19 @@ export class WebhookController {
 
   @Post('/send')
   async sendWebhook(@Body() body: any, @Query() query: OnlyURL) {
+    // User-supplied URL — pin DNS + refuse private ranges so this test call
+    // can't be turned into an SSRF probe of the VPC/IMDS.
+    if (!(await isSafePublicHttpsUrl(query.url))) {
+      return { send: false };
+    }
     try {
       await fetch(query.url, {
         method: 'POST',
         body: JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
+        dispatcher: ssrfSafeDispatcher,
+        redirect: 'error',
+        signal: AbortSignal.timeout(5000),
       });
     } catch (err) {
       /** sent **/

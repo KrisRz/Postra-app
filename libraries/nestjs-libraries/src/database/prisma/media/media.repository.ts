@@ -47,6 +47,14 @@ export class MediaRepository {
     });
   }
 
+  // Full row, org-scoped — for post-media resolution where the caller must
+  // never reach another org's asset by id.
+  getMediaByIdOrg(org: string, id: string) {
+    return this._media.model.media.findFirst({
+      where: { id, organizationId: org },
+    });
+  }
+
   saveDesignSpec(org: string, id: string, spec: StudioSpec) {
     return this._media.model.media.update({
       where: { id, organizationId: org },

@@ -144,13 +144,11 @@ model User {
 
 model UsedCodes {
   id           String       @id @default(uuid())
-  code         String
+  code         String       @unique
   orgId        String
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-
-  @@index([code])
 }
 
 model UserOrganization {
