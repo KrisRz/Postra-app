@@ -7,7 +7,16 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { SetSelectionModal } from '@gitroom/frontend/components/launches/calendar';
-import { AddEditModal } from '@gitroom/frontend/components/new-launch/add.edit.modal';
+import dynamic from 'next/dynamic';
+// Composer pulls ~13 @tiptap packages + Uppy + CopilotPopup — load it only
+// when the modal actually opens instead of shipping it with the page bundle.
+const AddEditModal = dynamic(
+  () =>
+    import('@gitroom/frontend/components/new-launch/add.edit.modal').then(
+      (mod) => mod.AddEditModal
+    ),
+  { ssr: false }
+);
 import { ModalWrapperComponent } from '@gitroom/frontend/components/new-launch/modal.wrapper.component';
 
 // NewPost mounts twice on /launches (sidebar + mobile header) and React
@@ -127,7 +136,7 @@ export const NewPost = () => {
         />
       </svg>
       <div className="flex-1 phone:flex-none phone:text-center text-[14px] font-[700] group-[.sidebar]:hidden">
-        {t('create_new_post', 'Utwórz post')}
+        {t('create_new_post', 'Create post')}
       </div>
     </button>
   );

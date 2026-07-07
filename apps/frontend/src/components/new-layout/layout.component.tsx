@@ -18,7 +18,15 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { CheckPayment } from '@gitroom/frontend/components/layout/check.payment';
 import { ToolTip } from '@gitroom/frontend/components/layout/top.tip';
-import { ShowMediaBoxModal } from '@gitroom/frontend/components/media/media.component';
+// media.component drags the whole Uppy suite — keep it out of the app-shell
+// bundle; the modal mounts lazily.
+const ShowMediaBoxModal = dynamic(
+  () =>
+    import('@gitroom/frontend/components/media/media.component').then(
+      (mod) => mod.ShowMediaBoxModal
+    ),
+  { ssr: false }
+);
 import { ShowLinkedinCompany } from '@gitroom/frontend/components/launches/helpers/linkedin.component';
 import { MediaSettingsLayout } from '@gitroom/frontend/components/launches/helpers/media.settings.component';
 import { Toaster } from '@gitroom/react/toaster/toaster';

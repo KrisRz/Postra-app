@@ -35,9 +35,9 @@ export const AgentHistoryMobile: FC = () => {
       <div
         onClick={() => setOpen(true)}
         className="hidden phone:flex cursor-pointer w-[34px] h-[34px] items-center justify-center rounded-[10px] hover:text-newTextColor transition-colors"
-        aria-label={t('chat_history', 'Historia rozmów')}
+        aria-label={t('chat_history', 'Chat history')}
         data-tooltip-id="tooltip"
-        data-tooltip-content={t('chat_history', 'Historia rozmów')}
+        data-tooltip-content={t('chat_history', 'Chat history')}
       >
         <svg
           width="20"
@@ -67,7 +67,7 @@ export const AgentHistoryMobile: FC = () => {
           <div className="relative w-full max-h-[72vh] flex flex-col rounded-t-[20px] border-t border-white/10 bg-[rgba(15,23,42,0.96)] backdrop-blur-xl shadow-[0_-20px_60px_rgba(2,6,23,0.6)] pb-[env(safe-area-inset-bottom)]">
             <div className="flex items-center px-[20px] pt-[16px] pb-[12px] border-b border-white/10">
               <div className="flex-1 text-[18px] font-[600]">
-                {t('chat_history', 'Historia rozmów')}
+                {t('chat_history', 'Chat history')}
               </div>
               <div
                 onClick={close}
@@ -82,7 +82,7 @@ export const AgentHistoryMobile: FC = () => {
                 onClick={close}
                 className="flex items-center justify-center gap-[6px] min-h-[44px] rounded-[12px] bg-[linear-gradient(135deg,#38bdf8,#a78bfa)] text-slate-950 font-[700] text-[15px]"
               >
-                + {t('start_a_new_chat', 'Nowa rozmowa')}
+                + {t('start_a_new_chat', 'New chat')}
               </Link>
               {data?.threads?.length ? (
                 data.threads.map((p: any) => (
@@ -102,7 +102,7 @@ export const AgentHistoryMobile: FC = () => {
                 ))
               ) : (
                 <div className="text-center text-textColor/50 text-[14px] py-[20px]">
-                  {t('no_previous_chats', 'Brak wcześniejszych rozmów')}
+                  {t('no_previous_chats', 'No previous chats')}
                 </div>
               )}
             </div>

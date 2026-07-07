@@ -35,11 +35,11 @@ export const LifetimeDeal = () => {
     ).json();
     if (success) {
       mutate('/user/self');
-      toast.show(t('code_claimed', 'Kod aktywowany pomyślnie'));
+      toast.show(t('code_claimed', 'Code claimed successfully'));
       fireEvents('lifetime_claimed');
     } else {
       toast.show(
-        t('code_invalid', 'Kod już wykorzystany lub nieprawidłowy'),
+        t('code_invalid', 'Code already used or invalid'),
         'warning'
       );
     }
@@ -141,7 +141,7 @@ export const LifetimeDeal = () => {
 
       <Card className="p-[24px] flex flex-col gap-[20px] flex-1">
         <div className="text-[30px]">
-          {t('next_package', 'Następny pakiet:')}
+          {t('next_package', 'Next package:')}
           {user?.tier?.current === 'PRO'
             ? 'EXTRA'
             : !user?.tier?.current
@@ -178,8 +178,8 @@ export const LifetimeDeal = () => {
           <div className="mt-[20px] flex items-center gap-[10px]">
             <div className="flex-1">
               <Input
-                label={t('code', 'Kod')}
-                placeholder={t('enter_your_code', 'Wpisz swój kod')}
+                label={t('code', 'Code')}
+                placeholder={t('enter_your_code', 'Enter your code')}
                 disableForm={true}
                 name="code"
                 value={code}

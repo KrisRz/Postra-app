@@ -252,7 +252,7 @@ export const StarsTableComponent = () => {
           <div className="py-[24px] px-[16px]">
             {t(
               'load_your_github_repository_from_settings_to_see_analytics',
-              'Wczytaj repozytorium GitHub z ustawień, aby zobaczyć analitykę'
+              'Load your GitHub repository from settings to see analytics'
             )}
           </div>
         )}

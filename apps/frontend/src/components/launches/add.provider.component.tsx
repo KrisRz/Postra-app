@@ -70,7 +70,7 @@ export const AddProviderButton: FC<{
           </svg>
         </div>
         <div className="text-start text-[14px] group-[.sidebar]:hidden">
-          {t('add_channel', 'Dodaj kanał')}
+          {t('add_channel', 'Add channel')}
         </div>
       </button>
       <button
@@ -78,7 +78,7 @@ export const AddProviderButton: FC<{
         data-tooltip-id="tooltip"
         data-tooltip-content={t(
           'invite_link',
-          'Wyślij klientowi link zaproszenia do dodania kanału'
+          'Send your client an invite link to add a channel'
         )}
         className="group-[.sidebar]:hidden min-h-[44px] min-w-[44px] bg-btnSimple justify-center items-center flex rounded-[8px] cursor-pointer"
       >
@@ -154,7 +154,7 @@ export const UrlModal: FC<{
             <Input label="URL" name="url" />
           </div>
           <div>
-            <Button type="submit">{t('connect', 'Połącz')}</Button>
+            <Button type="submit">{t('connect', 'Connect')}</Button>
           </div>
         </form>
       </FormProvider>
@@ -247,7 +247,7 @@ export const CustomVariables: FC<{
             </div>
           ))}
           <div>
-            <Button type="submit">{t('connect', 'Połącz')}</Button>
+            <Button type="submit">{t('connect', 'Connect')}</Button>
           </div>
         </form>
       </FormProvider>
@@ -285,7 +285,7 @@ const ExtensionNotFound: FC = () => {
           className="flex-1 !bg-transparent border border-tableBorder text-textColor"
           onClick={() => modals.closeCurrent()}
         >
-          {t('cancel', 'Anuluj')}
+          {t('cancel', 'Cancel')}
         </Button>
       </div>
     </div>
@@ -303,26 +303,26 @@ const ChromeExtensionWarning: FC<{
       <p className="text-[14px] text-textColor/80">
         {t(
           'chrome_extension_warning_intro',
-          'Ten kanał łączy się przez rozszerzenie przeglądarki. Pamiętaj o poniższych kwestiach:'
+          'This channel connects through a browser extension. Keep the following in mind:'
         )}
       </p>
       <ul className="flex flex-col gap-[8px] list-disc ps-[20px] text-[14px] text-textColor/80">
         <li>
           {t(
             'chrome_extension_warning_tos',
-            'Korzystanie z rozszerzenia przeglądarki do łączenia się z platformą może naruszać jej regulamin i może skutkować zawieszeniem albo zablokowaniem konta.'
+            'Using a browser extension to connect to the platform may violate its terms of service and could result in your account being suspended or banned.'
           )}
         </li>
         <li>
           {t(
             'chrome_extension_warning_unstable',
-            'Ta metoda nie jest tak stabilna jak natywne integracje i może powodować losowe rozłączenia.'
+            'This method is not as stable as native integrations and may cause random disconnections.'
           )}
         </li>
         <li>
           {t(
             'chrome_extension_warning_reconnect',
-            'Jeśli sesja wygaśnie, może być konieczne ponowne połączenie.'
+            'If the session expires, you may need to reconnect.'
           )}
         </li>
         <li>
@@ -351,7 +351,7 @@ const ChromeExtensionWarning: FC<{
             onCancel();
           }}
         >
-          {t('cancel', 'Anuluj')}
+          {t('cancel', 'Cancel')}
         </Button>
       </div>
     </div>
@@ -468,7 +468,7 @@ export const AddProviderComponent: FC<{
             toaster.show(
               t(
                 'could_not_connect_to_platform',
-                'Nie udało się połączyć z platformą'
+                'Could not connect to the platform'
               ),
               'warning'
             );
@@ -511,7 +511,7 @@ export const AddProviderComponent: FC<{
         if (isChromeExtension) {
           const confirmed = await new Promise<boolean>((resolve) => {
             modal.openModal({
-              title: t('chrome_extension_notice', 'Informacja o rozszerzeniu przeglądarki'),
+              title: t('chrome_extension_notice', 'Browser extension notice'),
               withCloseButton: true,
               onClose: () => resolve(false),
               children: (
@@ -622,7 +622,7 @@ export const AddProviderComponent: FC<{
         }
         if (customFields) {
           modal.openModal({
-            title: t('add_provider_title', 'Dodaj kanał'),
+            title: t('add_provider_title', 'Add channel'),
             withCloseButton: true,
             ...(isMobile ? { removeLayout: true, fullScreen: true } : {}),
             classNames: {
@@ -712,7 +712,7 @@ export const AddProviderComponent: FC<{
                         'data-tooltip-id': 'tooltip',
                         'data-tooltip-content': t(
                           'coming_soon',
-                          'Wkrótce dostępne'
+                          'Coming soon'
                         ),
                       }
                     : {})}
@@ -750,7 +750,7 @@ export const AddProviderComponent: FC<{
                     {item.name}
                     {!isEnabled && !isMobile && (
                       <div className="text-[10px] text-textColor/20 mt-[2px]">
-                        {t('coming_soon_short', 'Wkrótce')}
+                        {t('coming_soon_short', 'Soon')}
                       </div>
                     )}
                     {!!item.toolTip && isEnabled && !isMobile && (

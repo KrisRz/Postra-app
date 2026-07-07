@@ -9,7 +9,12 @@ import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.titl
 import { array, boolean, object, string } from 'yup';
 import { FormProvider, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { CopilotTextarea } from '@copilotkit/react-textarea';
+import dynamic from 'next/dynamic';
+const CopilotTextarea = dynamic(
+  () =>
+    import('@copilotkit/react-textarea').then((mod) => mod.CopilotTextarea),
+  { ssr: false }
+);
 import { Select } from '@gitroom/react/form/select';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -29,8 +34,8 @@ export const SignaturesComponent: FC<{
     (data?: any) => () => {
       modal.openModal({
         title: data
-          ? t('edit_signature', 'Edytuj podpis')
-          : t('add_signature', 'Dodaj podpis'),
+          ? t('edit_signature', 'Edit signature')
+          : t('add_signature', 'Add signature'),
         withCloseButton: true,
         children: <AddOrRemoveSignature data={data} reload={mutate} />,
       });
@@ -53,7 +58,7 @@ export const SignaturesComponent: FC<{
           method: 'DELETE',
         });
         mutate();
-        toaster.show(t('signature_deleted', 'Podpis usunięty'), 'success');
+        toaster.show(t('signature_deleted', 'Signature deleted'), 'success');
       }
     },
     []
@@ -218,7 +223,7 @@ const AddOrRemoveSignature: FC<{
               onChange={(e) => {
                 form.setValue('content', e.target.value);
               }}
-              placeholder={t('write_your_signature', 'Napisz swój podpis...')}
+              placeholder={t('write_your_signature', 'Write your signature...')}
               autosuggestionsConfig={{
                 textareaPurpose: `Assist me in writing social media signature`,
                 chatApiConfigs: {},

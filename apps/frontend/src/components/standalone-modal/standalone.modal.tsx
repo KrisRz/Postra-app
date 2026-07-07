@@ -6,7 +6,16 @@ import useSWR from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import dayjs from 'dayjs';
 import { useParams } from 'next/navigation';
-import { AddEditModal } from '@gitroom/frontend/components/new-launch/add.edit.modal';
+import dynamic from 'next/dynamic';
+// Composer pulls ~13 @tiptap packages + Uppy + CopilotPopup — load it only
+// when the modal actually opens instead of shipping it with the page bundle.
+const AddEditModal = dynamic(
+  () =>
+    import('@gitroom/frontend/components/new-launch/add.edit.modal').then(
+      (mod) => mod.AddEditModal
+    ),
+  { ssr: false }
+);
 import { newDayjs } from '@gitroom/frontend/components/layout/set.timezone';
 export const StandaloneModal: FC = () => {
   const fetch = useFetch();
