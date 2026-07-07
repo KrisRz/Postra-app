@@ -423,7 +423,10 @@ export class MediaService {
       'ai_videos'
     );
 
-    if (totalCredits.credits <= 0) {
+    // Align with the image paths: with billing off (no publishable key) the
+    // credit ledger is advisory — an org without a subscription row would
+    // otherwise resolve FREE = 0 credits and video would be blocked for all.
+    if (process.env.STRIPE_PUBLISHABLE_KEY && totalCredits.credits <= 0) {
       throw new SubscriptionException({
         action: AuthorizationActions.Create,
         section: Sections.VIDEOS_PER_MONTH,

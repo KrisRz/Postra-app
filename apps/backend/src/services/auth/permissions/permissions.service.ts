@@ -26,7 +26,10 @@ export class PermissionsService {
 
     const tier =
       subscription?.subscriptionTier ||
-      (!process.env.STRIPE_PUBLISHABLE_KEY ? 'PRO' : 'FREE');
+      // billing off => everyone is ULTIMATE (users.controller reports the
+      // same); the check() short-circuit usually fires first, this aligns
+      // getPackageOptions for the rare direct callers
+      (!process.env.STRIPE_PUBLISHABLE_KEY ? 'ULTIMATE' : 'FREE');
 
     const { channel, ...all } = pricing[tier];
     return {
