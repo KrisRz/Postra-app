@@ -397,6 +397,12 @@ export class IntegrationRepository {
         deletedAt: null,
         refreshNeeded: false,
       },
+      // Bounded batch, soonest-expiring first — the cron used to hydrate and
+      // decrypt every expiring integration in one pass.
+      orderBy: {
+        tokenExpiration: 'asc',
+      },
+      take: 100,
     });
 
     return list.map((integration) =>
@@ -438,12 +444,31 @@ export class IntegrationRepository {
     });
   }
 
+  // Batched, token-free lookup for post validation paths (avoids one
+  // decrypting getIntegrationById per post per request).
+  getIntegrationsByIds(org: string, ids: string[]) {
+    return this._integration.model.integration.findMany({
+      where: {
+        organizationId: org,
+        id: { in: ids },
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        providerIdentifier: true,
+        additionalSettings: true,
+      },
+    });
+  }
+
   async getIntegrationById(org: string, id: string) {
     return this.decryptIntegrationTokens(
       await this._integration.model.integration.findFirst({
         where: {
           organizationId: org,
           id,
+          deletedAt: null,
         },
       })
     );
@@ -492,6 +517,7 @@ export class IntegrationRepository {
           where: {
             orgId: org,
             name,
+            deletedAt: null,
           },
         })) ||
         (await this._customers.model.customer.create({
@@ -640,16 +666,16 @@ export class IntegrationRepository {
       },
     });
 
-    for (const channel of getChannels) {
-      await this._integration.model.integration.update({
-        where: {
-          id: channel.id,
+    await this._integration.model.integration.updateMany({
+      where: {
+        id: {
+          in: getChannels.map((channel) => channel.id),
         },
-        data: {
-          disabled: true,
-        },
-      });
-    }
+      },
+      data: {
+        disabled: true,
+      },
+    });
   }
 
   getPlugsByIntegrationId(org: string, id: string) {
