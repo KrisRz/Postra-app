@@ -177,21 +177,21 @@ export const PlatformAnalytics = () => {
           <img src="/wtyczki1.webp" className="w-full max-w-[420px] h-auto" />
         </div>
         <div className="text-[48px]">
-          {t('can_t_show_analytics_yet', 'Nie możemy jeszcze pokazać analityki')}
+          {t('can_t_show_analytics_yet', "We can't show analytics yet")}
           <br />
           {t(
             'you_have_to_add_social_media_channels',
-            'Najpierw dodaj kanały social media'
+            'First, add your social media channels'
           )}
         </div>
         <div className="text-[20px]">
-          {t('supported', 'Obsługiwane kanały:')}
+          {t('supported', 'Supported channels:')}
           {allowedIntegrations.map((p) => capitalize(p)).join(', ')}
         </div>
         <Button onClick={() => router.push('/launches')}>
           {t(
             'go_to_the_calendar_to_add_channels',
-            'Przejdź do kalendarza i dodaj kanały'
+            'Go to the calendar to add channels'
           )}
         </Button>
       </div>
@@ -241,7 +241,7 @@ export const PlatformAnalytics = () => {
               onClick={() => {
                 if (integration.refreshNeeded) {
                   toaster.show(
-                    t('refresh_integration_from_calendar', 'Odśwież integrację z poziomu kalendarza'),
+                    t('refresh_integration_from_calendar', 'Refresh the integration from the calendar'),
                     'warning'
                   );
                   return;

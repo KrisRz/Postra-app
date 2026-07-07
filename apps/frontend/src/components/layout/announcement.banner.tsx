@@ -50,7 +50,7 @@ const AnnouncementDetailModal: FC<{
       !(await deleteDialog(
         t(
           'delete_announcement_confirm',
-          'Czy na pewno chcesz usunąć to ogłoszenie?'
+          'Are you sure you want to delete this announcement?'
         ),
         t('yes_delete', 'Yes, delete'),
         t('confirm_delete', 'Confirm Delete'),

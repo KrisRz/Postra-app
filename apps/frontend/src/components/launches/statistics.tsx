@@ -2,7 +2,14 @@ import React, { FC, Fragment, useCallback, useMemo, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-import { ChartSocial } from '@gitroom/frontend/components/analytics/chart-social';
+import dynamic from 'next/dynamic';
+const ChartSocial = dynamic(
+  () =>
+    import('@gitroom/frontend/components/analytics/chart-social').then(
+      (mod) => mod.ChartSocial
+    ),
+  { ssr: false }
+);
 import { Select } from '@gitroom/react/form/select';
 import { LoadingComponent } from '@gitroom/frontend/components/layout/loading';
 import { MissingReleaseModal } from '@gitroom/frontend/components/launches/missing-release.modal';

@@ -182,15 +182,15 @@ const Accept: FC<{ resolve: (res: boolean) => void }> = ({ resolve }) => {
       <div className="mb-[20px]">
         {t(
           'accept_discount_q',
-          'Może zamiast tego przyjmiesz 50% zniżki na 3 miesiące? 🙏🏻'
+          'How about 50% off for 3 months instead? 🙏🏻'
         )}
       </div>
       <div className="flex gap-[10px]">
         <Button loading={loading} onClick={apply}>
-          {t('apply_discount', 'Zastosuj 50% zniżki na 3 miesiące')}
+          {t('apply_discount', 'Apply 50% off for 3 months')}
         </Button>
         <Button variant="danger" onClick={() => resolve(false)}>
-          {t('cancel_my_subscription', 'Anuluj moją subskrypcję')}
+          {t('cancel_my_subscription', 'Cancel my subscription')}
         </Button>
       </div>
     </div>
@@ -633,7 +633,7 @@ export const MainBillingComponent: FC<{
                             .utc(subscription?.cancelAt)
                             .local()
                             .format('D MMM, YYYY')}`
-                        : t('cancel_subscription', 'Anuluj subskrypcję')
+                        : t('cancel_subscription', 'Cancel subscription')
                       : // @ts-expect-error user.tier is typed as PricingInnerInterface, compared to a string literal
                       (user?.tier === 'FREE' ||
                           user?.tier?.current === 'FREE') &&

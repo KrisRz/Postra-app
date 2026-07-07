@@ -18,7 +18,12 @@ import {
   useFormContext,
 } from 'react-hook-form';
 import { Input } from '@gitroom/react/form/input';
-import { CopilotTextarea } from '@copilotkit/react-textarea';
+import dynamic from 'next/dynamic';
+const CopilotTextarea = dynamic(
+  () =>
+    import('@copilotkit/react-textarea').then((mod) => mod.CopilotTextarea),
+  { ssr: false }
+);
 import clsx from 'clsx';
 import { string, object } from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';

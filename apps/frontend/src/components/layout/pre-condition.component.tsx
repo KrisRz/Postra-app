@@ -13,7 +13,7 @@ export const PreConditionComponentModal: FC = () => {
         {'\n'}
         To continue, fast-forward your trial with an immediate payment.{'\n'}
         {'\n'}
-        ** Uwaga: konto nie będzie kwalifikować się do zwrotu,
+        ** Note: the account will not be eligible for a refund,
         and the charge is final.
       </div>
       <div className="flex gap-[2px] justify-center">
@@ -22,7 +22,7 @@ export const PreConditionComponentModal: FC = () => {
         >
           Fast-forward — charge me now
         </Button>
-        <Button onClick={modal.closeCurrent} secondary={true}>Anuluj</Button>
+        <Button onClick={modal.closeCurrent} secondary={true}>Cancel</Button>
       </div>
     </div>
   );

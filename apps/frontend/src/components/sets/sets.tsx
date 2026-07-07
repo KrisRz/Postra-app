@@ -37,12 +37,12 @@ const SaveSetModal: FC<{
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div>
         <Input
-          label={t('set_name', 'Nazwa zestawu')}
+          label={t('set_name', 'Set name')}
           name="setName"
           value={name}
           disableForm={true}
           onChange={(e) => setName(e.target.value)}
-          placeholder={t('enter_set_name', 'Wpisz nazwę tego zestawu')}
+          placeholder={t('enter_set_name', 'Enter a name for this set')}
           autoFocus
         />
       </div>
@@ -113,7 +113,7 @@ export const Sets: FC = () => {
             {...(params?.id ? { set: safeJsonParse<any>(params.content, undefined) } : {})}
             addEditSets={(data) => {
               modal.openModal({
-                title: t('save_as_set', 'Zapisz jako zestaw'),
+                title: t('save_as_set', 'Save as set'),
                 children: (
                   <SaveSetModal
                     initialValue={params?.name || ''}
@@ -130,10 +130,10 @@ export const Sets: FC = () => {
                         });
                         modal.closeAll();
                         mutate();
-                        toaster.show(t('set_saved', 'Zestaw zapisany'), 'success');
+                        toaster.show(t('set_saved', 'Set saved'), 'success');
                       } catch (error) {
                         toaster.show(
-                          t('set_save_failed', 'Nie udało się zapisać zestawu'),
+                          t('set_save_failed', 'Could not save the set'),
                           'warning'
                         );
                       }
@@ -159,7 +159,7 @@ export const Sets: FC = () => {
     (data: any) => async () => {
       if (
         await deleteDialog(
-          t('are_you_sure_you_want_to_delete', 'Czy na pewno chcesz usunąć?', {
+          t('are_you_sure_you_want_to_delete', 'Are you sure you want to delete?', {
             name: data.name,
           })
         )
@@ -168,7 +168,7 @@ export const Sets: FC = () => {
           method: 'DELETE',
         });
         mutate();
-        toaster.show(t('set_deleted', 'Zestaw usunięty'), 'success');
+        toaster.show(t('set_deleted', 'Set deleted'), 'success');
       }
     },
     []
@@ -177,12 +177,12 @@ export const Sets: FC = () => {
   return (
     <div className="flex flex-col">
       <h3 className="text-[22px] font-[650] tracking-[-0.2px] text-newTextColor">
-        {t('sets', 'Zestawy')} ({data?.length || 0})
+        {t('sets', 'Sets')} ({data?.length || 0})
       </h3>
       <div className="text-[12.5px] text-newTextColor/55 mt-[3px]">
         {t(
           'sets_description',
-          'Zarządzaj zestawami treści do łatwego ponownego użycia w postach.'
+          'Manage content sets for easy reuse across your posts.'
         )}
       </div>
       <Card className="my-[16px] items-center p-[24px] flex gap-[24px]">
@@ -218,7 +218,7 @@ export const Sets: FC = () => {
               onClick={addSet()}
               className={clsx((data?.length || 0) > 0 && 'my-[16px]')}
             >
-              {t('add_a_set', 'Dodaj zestaw')}
+              {t('add_a_set', 'Add a set')}
             </Button>
           </div>
         </div>

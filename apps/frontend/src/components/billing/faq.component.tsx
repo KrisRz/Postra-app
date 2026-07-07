@@ -1,4 +1,5 @@
 'use client';
+import { sanitizePostContent } from '@gitroom/helpers/utils/sanitize.post.content';
 
 import { FC, useCallback, useState } from 'react';
 import clsx from 'clsx';
@@ -115,7 +116,7 @@ export const FAQSection: FC<{
           }}
           className={`mt-[16px] w-full text-wrap font-[400] text-[16px] text-newTextColor/70 select-text max-w-[450px]`}
           dangerouslySetInnerHTML={{
-            __html: description,
+            __html: sanitizePostContent(description),
           }}
         />
       </div>

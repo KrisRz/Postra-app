@@ -110,6 +110,7 @@ export const NotificationOpenComponent = () => {
 };
 const NotificationComponent = () => {
   const fetch = useFetch();
+  const t = useT();
   const [show, setShow] = useState(false);
   const loadNotifications = useCallback(async () => {
     return await (await fetch('/notifications')).json();
@@ -130,7 +131,12 @@ const NotificationComponent = () => {
   const ref = useClickAway<HTMLDivElement>(() => setShow(false));
   return (
     <div className="relative cursor-pointer select-none" ref={ref}>
-      <div onClick={changeShow}>
+      <div
+        onClick={changeShow}
+        role="button"
+        aria-label={t('notifications', 'Notifications')}
+        aria-expanded={show}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"

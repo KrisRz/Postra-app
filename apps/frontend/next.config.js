@@ -5,7 +5,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   experimental: {
     proxyTimeout: 90_000,
-    optimizePackageImports: ['@mantine/core', '@mantine/hooks', 'lodash', 'dayjs'],
+    optimizePackageImports: ['@mantine/core', '@mantine/hooks', '@mantine/dates', '@mantine/modals', 'lodash', 'dayjs'],
     // We have multiple root layouts (route groups, no shared app/layout.tsx),
     // so a plain app/not-found.tsx can't compose a global 404. This enables the
     // app/global-not-found.tsx convention for truly-unmatched URLs.

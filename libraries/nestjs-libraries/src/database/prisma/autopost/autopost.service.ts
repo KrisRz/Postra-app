@@ -10,7 +10,7 @@ import { END, START, StateGraph } from '@langchain/langgraph';
 import { AutoPost, Integration } from '@prisma/client';
 import { BaseMessage } from '@langchain/core/messages';
 import striptags from 'striptags';
-import { ChatOpenAI, DallEAPIWrapper } from '@langchain/openai';
+import { ChatOpenAI } from '@langchain/openai';
 import { JSDOM } from 'jsdom';
 import { z } from 'zod';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
@@ -18,6 +18,8 @@ import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/po
 import Parser from 'rss-parser';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
 import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/notifications/notification.service';
+import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
+import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import { parseDataUrl } from '@gitroom/nestjs-libraries/upload/data.url';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
@@ -58,11 +60,10 @@ const model = new ChatOpenAI({
   // short social captions generated from an article (no complex reasoning).
   model: 'gpt-4.1-mini',
   temperature: 0.7,
-});
-
-const dalle = new DallEAPIWrapper({
-  apiKey: process.env.OPENAI_API_KEY || 'sk-proj-',
-  model: 'chatgpt-image-latest',
+  // A hung OpenAI call otherwise pins the Temporal activity until its
+  // startToClose timeout (same 90s/2-retries budget as OpenaiService).
+  timeout: 90000,
+  maxRetries: 2,
 });
 
 // Reuse the same storage backend as the rest of the app (local / cloudflare / s3).
@@ -99,7 +100,9 @@ export class AutopostService {
     private _temporalService: TemporalService,
     private _integrationService: IntegrationService,
     private _postsService: PostsService,
-    private _notificationService: NotificationService
+    private _notificationService: NotificationService,
+    private _openaiService: OpenaiService,
+    private _subscriptionService: SubscriptionService
   ) {}
 
   // Autopost produces text + (optional) image. Skip platforms that can't accept
@@ -472,9 +475,22 @@ export class AutopostService {
           content: state.load.description || state.description,
         });
 
-    const image = await dalle.invoke(generatedTextToBeSentToDallE);
+    // OpenaiService.generateImage = gpt-image-2 (DallEAPIWrapper pointed at
+    // 'chatgpt-image-latest', which our key cannot call), pLimit-bounded and
+    // metered. Out of credits / generation failure degrades to a text-only
+    // post — an autopost must never die on the image step.
+    let image = '';
+    try {
+      image = await this._subscriptionService.useCreditByOrgId(
+        state.body.organizationId,
+        'ai_images',
+        () => this._openaiService.generateImage(generatedTextToBeSentToDallE, true)
+      ) || '';
+    } catch {
+      image = '';
+    }
 
-    return { ...state, image: await this.persistImage(image) };
+    return { ...state, image: image ? await this.persistImage(image) : '' };
   }
 
   // Persist an OG/AI image into our own storage. OG images hotlink a third-party

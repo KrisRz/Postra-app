@@ -270,32 +270,35 @@ export class PostsService {
       throw new BadRequestException('All posts must have an integration id');
     }
 
+    const integrationsById = new Map(
+      (
+        await this._integrationService.getIntegrationsByIds(organization, [
+          ...new Set(body.posts.map((post) => post.integration.id)),
+        ])
+      ).map((integration) => [integration.id, integration])
+    );
+
     const mappedValues = {
       ...body,
       type: replaceDraft ? 'schedule' : body.type,
-      posts: await Promise.all(
-        body.posts.map(async (post) => {
-          const integration = await this._integrationService.getIntegrationById(
-            organization,
-            post.integration.id
+      posts: body.posts.map((post) => {
+        const integration = integrationsById.get(post.integration.id);
+
+        if (!integration) {
+          throw new BadRequestException(
+            `Integration with id ${post.integration.id} not found`
           );
+        }
 
-          if (!integration) {
-            throw new BadRequestException(
-              `Integration with id ${post.integration.id} not found`
-            );
-          }
-
-          return {
-            type: replaceDraft ? 'schedule' : body.type,
-            ...post,
-            settings: {
-              ...(post.settings || ({} as any)),
-              __type: integration.providerIdentifier,
-            },
-          };
-        })
-      ),
+        return {
+          type: replaceDraft ? 'schedule' : body.type,
+          ...post,
+          settings: {
+            ...(post.settings || ({} as any)),
+            __type: integration.providerIdentifier,
+          },
+        };
+      }),
     };
 
     const validationPipe = new ValidationPipe({
@@ -329,17 +332,23 @@ export class PostsService {
       return [];
     }
 
-    return [
-      post!,
-      ...(post?.childrenPost?.length
-        ? await this.getPostsRecursively(
-            post?.childrenPost?.[0]?.id,
-            false,
-            orgId,
-            false
-          )
-        : []),
-    ];
+    if (!post.childrenPost?.length) {
+      return [post];
+    }
+
+    // Fetch the rest of the thread with one query and follow parentPostId in
+    // memory (previously one query per thread part).
+    const chain = await this._postRepository.getPostsChain(post.group, orgId);
+    const byParent = new Map(
+      chain.map((p) => [p.parentPostId, p] as const)
+    );
+    const result: PostWithConditionals[] = [post];
+    let next = byParent.get(post.id);
+    while (next) {
+      result.push(next as PostWithConditionals);
+      next = byParent.get(next.id);
+    }
+    return result;
   }
 
   async getPosts(orgId: string, query: GetPostsDto) {
@@ -506,6 +515,23 @@ export class PostsService {
     };
   }
 
+  // The repository includes the full Integration row (publishing needs the
+  // token); the editor API response must not carry credential material.
+  private stripIntegrationSecrets<T extends { integration?: any }>(
+    post: T
+  ): T {
+    if (!post?.integration) {
+      return post;
+    }
+    const {
+      token,
+      refreshToken,
+      customInstanceDetails,
+      ...integration
+    } = post.integration;
+    return { ...post, integration };
+  }
+
   async getPostsByGroup(orgId: string, group: string) {
     const convertToJPEG = false;
     const loadAll = await this._postRepository.getPostsByGroup(orgId, group);
@@ -515,7 +541,7 @@ export class PostsService {
       group: posts?.[0]?.group,
       posts: await Promise.all(
         (posts || []).map(async (post) => ({
-          ...post,
+          ...this.stripIntegrationSecrets(post),
           image: await this.updateMedia(
             post.id,
             JSON.parse(post.image || '[]'),
@@ -553,7 +579,7 @@ export class PostsService {
       group: posts?.[0]?.group,
       posts: await Promise.all(
         (posts || []).map(async (post) => ({
-          ...post,
+          ...this.stripIntegrationSecrets(post),
           image: await this.updateMedia(
             post.id,
             JSON.parse(post.image || '[]'),
@@ -789,12 +815,19 @@ export class PostsService {
       settings?: any;
     }>
   ) {
+    const integrationsById = new Map(
+      (
+        await this._integrationService.getIntegrationsByIds(orgId, [
+          ...new Set(
+            (posts || []).map((post) => post?.integration?.id).filter(Boolean)
+          ),
+        ])
+      ).map((integration) => [integration.id, integration])
+    );
+
     return Promise.all(
       (posts || []).map(async (post) => {
-        const integration = await this._integrationService.getIntegrationById(
-          orgId,
-          post?.integration?.id
-        );
+        const integration = integrationsById.get(post?.integration?.id);
 
         if (!integration) {
           throw new BadRequestException(

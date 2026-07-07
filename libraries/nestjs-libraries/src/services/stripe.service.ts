@@ -109,6 +109,13 @@ export class StripeService {
       uniqueId: string;
     };
 
+    // A subscription created by hand in the Stripe dashboard can carry
+    // service metadata with a missing/invalid billing tier — indexing
+    // pricing[billing] would 500 and Stripe would retry the event forever.
+    if (!billing || !pricing[billing]) {
+      return { ok: false };
+    }
+
     try {
       const check = await this.checkValidCard(event);
       if (!check) {
@@ -138,6 +145,13 @@ export class StripeService {
       period: 'MONTHLY' | 'YEARLY';
       uniqueId: string;
     };
+
+    // A subscription created by hand in the Stripe dashboard can carry
+    // service metadata with a missing/invalid billing tier — indexing
+    // pricing[billing] would 500 and Stripe would retry the event forever.
+    if (!billing || !pricing[billing]) {
+      return { ok: false };
+    }
 
     const check = await this.checkValidCard(event);
     if (!check) {
@@ -250,6 +264,7 @@ export class StripeService {
     const findPrice =
       pricesList.data.find(
         (p) =>
+          p?.currency === 'gbp' &&
           p?.recurring?.interval?.toLowerCase() ===
             (body.period === 'MONTHLY' ? 'month' : 'year') &&
           p?.nickname === body.billing + ' ' + body.period &&
@@ -703,6 +718,9 @@ export class StripeService {
     const findPrice =
       pricesList.data.find(
         (p) =>
+          // stale USD prices exist in the account — a $29 price must not
+          // match PRO £29 and check out in the wrong currency
+          p?.currency === 'gbp' &&
           p?.recurring?.interval?.toLowerCase() ===
             (body.period === 'MONTHLY' ? 'month' : 'year') &&
           p?.unit_amount ===
@@ -769,6 +787,9 @@ export class StripeService {
     const findPrice =
       pricesList.data.find(
         (p) =>
+          // stale USD prices exist in the account — a $29 price must not
+          // match PRO £29 and check out in the wrong currency
+          p?.currency === 'gbp' &&
           p?.recurring?.interval?.toLowerCase() ===
             (body.period === 'MONTHLY' ? 'month' : 'year') &&
           p?.unit_amount ===

@@ -1,6 +1,9 @@
 import { internalFetch } from '@gitroom/helpers/utils/internal.fetch';
 import { sanitizePostContent } from '@gitroom/helpers/utils/sanitize.post.content';
 import { safeJsonParse } from '@gitroom/helpers/utils/safe.json.parse';
+// NOTE: stays force-dynamic — internalFetch reads cookies(), which forbids
+// ISR. If a preview link ever goes viral, add Redis caching on the backend
+// /public/posts/:id route instead.
 export const dynamic = 'force-dynamic';
 import { Metadata } from 'next';
 import { isGeneralServerSide } from '@gitroom/helpers/utils/is.general.server.side';
