@@ -28,7 +28,40 @@ export class SubscriptionService {
     type = 'ai_images',
     func: () => Promise<T>
   ): Promise<T> {
-    return this._subscriptionRepository.useCredit(organization, type, func);
+    return this._subscriptionRepository.useCredit(
+      organization,
+      type,
+      func,
+      this.getCreditEnforcement(organization, type)
+    );
+  }
+
+  // Atomic counterpart of checkCredits (which stays advisory/UI-only): when
+  // billing is on, useCredit re-verifies the cap inside the insert
+  // transaction so parallel requests can't overshoot the plan limit.
+  private getCreditEnforcement(
+    organization: Organization,
+    checkType: string
+  ): { limit: number; cycleStart: Date } | undefined {
+    if (!process.env.STRIPE_PUBLISHABLE_KEY) {
+      return undefined;
+    }
+    // @ts-ignore
+    const tier = organization?.subscription?.subscriptionTier || 'FREE';
+    if (tier === 'FREE') {
+      return { limit: 0, cycleStart: new Date(0) };
+    }
+    // @ts-ignore
+    let date = dayjs(organization.subscription.createdAt);
+    while (date.isBefore(dayjs())) {
+      date = date.add(1, 'month');
+    }
+    const cycleStart = date.subtract(1, 'month');
+    const limit =
+      checkType === 'ai_images'
+        ? pricing[tier as keyof typeof pricing].image_generation_count
+        : pricing[tier as keyof typeof pricing].generate_videos;
+    return { limit: limit || 0, cycleStart: cycleStart.toDate() };
   }
 
   getCode(code: string) {

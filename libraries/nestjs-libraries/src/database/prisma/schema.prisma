@@ -302,6 +302,7 @@ model Credits {
 
   @@index([organizationId])
   @@index([createdAt])
+  @@index([organizationId, type, createdAt])
 }
 
 model Subscription {
@@ -377,6 +378,7 @@ model Integration {
   @@index([inBetweenSteps])
   @@index([refreshNeeded])
   @@index([disabled])
+  @@index([tokenExpiration])
 }
 
 model Signatures {
@@ -467,6 +469,7 @@ model Post {
   @@index([updatedAt])
   @@index([releaseURL])
   @@index([integrationId])
+  @@index([organizationId, publishDate])
 }
 
 model Notifications {
@@ -482,6 +485,7 @@ model Notifications {
   @@index([createdAt])
   @@index([organizationId])
   @@index([deletedAt])
+  @@index([organizationId, createdAt])
 }
 
 model MessagesGroup {
@@ -652,6 +656,7 @@ model AutoPost {
   organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([deletedAt])
+  @@index([organizationId])
 }
 
 model Sets {
@@ -697,6 +702,7 @@ model Errors {
 
   @@index([organizationId])
   @@index([createdAt])
+  @@index([postId])
 }
 
 model Mentions {
@@ -709,6 +715,7 @@ model Mentions {
 
   @@id([name, username, platform, image])
   @@index([createdAt])
+  @@index([platform])
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

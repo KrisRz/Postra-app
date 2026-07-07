@@ -49,6 +49,7 @@ export class NotificationsRepository {
     return this._notifications.model.notifications.findMany({
       where: {
         organizationId,
+        deletedAt: null,
         createdAt: {
           gte: new Date(since),
         },
@@ -115,6 +116,7 @@ export class NotificationsRepository {
         take: 10,
         where: {
           organizationId,
+          deletedAt: null,
         },
         select: {
           createdAt: true,

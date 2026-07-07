@@ -1,4 +1,7 @@
-import { PrismaRepository } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
+import {
+  PrismaRepository,
+  PrismaTransaction,
+} from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Post as PostBody } from '@gitroom/nestjs-libraries/dtos/posts/create.post.dto';
 import {
@@ -30,7 +33,8 @@ export class PostsRepository {
     private _comments: PrismaRepository<'comments'>,
     private _tags: PrismaRepository<'tags'>,
     private _tagsPosts: PrismaRepository<'tagsPosts'>,
-    private _errors: PrismaRepository<'errors'>
+    private _errors: PrismaRepository<'errors'>,
+    private _prismaTransaction: PrismaTransaction
   ) {}
 
   async getRecentPostBodies(orgId: string, take: number): Promise<string[]> {
@@ -95,6 +99,9 @@ export class PostsRepository {
       orderBy: {
         publishDate: 'desc',
       },
+      // Bounded: an org with years of autoposts would otherwise get a
+      // full-table-slice JSON response.
+      take: 200,
       select: {
         id: true,
         content: true,
@@ -389,6 +396,21 @@ export class PostsRepository {
     });
   }
 
+  // One query for a whole thread chain (getPostsRecursively used to issue one
+  // getPost per part). Children never need the integration relation.
+  getPostsChain(group: string, orgId?: string) {
+    return this._post.model.post.findMany({
+      where: {
+        group,
+        deletedAt: null,
+        ...(orgId ? { organizationId: orgId } : {}),
+      },
+      include: {
+        childrenPost: true,
+      },
+    });
+  }
+
   getPost(
     id: string,
     includeIntegration = false,
@@ -548,6 +570,10 @@ export class PostsRepository {
     creationMethod: CreationMethod,
     inter?: number
   ) {
+    // Creating a thread is a multi-step write (per-part upserts, tag rewrite,
+    // soft-delete of the previous group). A failure mid-way used to leave a
+    // half-created thread with the old group still live — all-or-nothing now.
+    return this._prismaTransaction.model.$transaction(async (tx) => {
     const posts: Post[] = [];
     const uuid = uuidv4();
 
@@ -597,7 +623,7 @@ export class PostsRepository {
       });
 
       posts.push(
-        await this._post.model.post.upsert({
+        await tx.post.upsert({
           where: {
             id: value.id || uuidv4(),
             organizationId: orgId,
@@ -616,7 +642,7 @@ export class PostsRepository {
       );
 
       if (posts.length === 1) {
-        await this._tagsPosts.model.tagsPosts.deleteMany({
+        await tx.tagsPosts.deleteMany({
           where: {
             post: {
               id: posts[0].id,
@@ -625,7 +651,7 @@ export class PostsRepository {
         });
 
         if (tags.length) {
-          const tagsList = await this._tags.model.tags.findMany({
+          const tagsList = await tx.tags.findMany({
             where: {
               orgId: orgId,
               name: {
@@ -635,7 +661,7 @@ export class PostsRepository {
           });
 
           if (tagsList.length) {
-            await this._post.model.post.update({
+            await tx.post.update({
               where: {
                 id: posts[posts.length - 1].id,
               },
@@ -656,7 +682,7 @@ export class PostsRepository {
 
     const previousPost = body.group
       ? (
-          await this._post.model.post.findFirst({
+          await tx.post.findFirst({
             where: {
               group: body.group,
               organizationId: orgId,
@@ -671,7 +697,7 @@ export class PostsRepository {
       : undefined;
 
     if (body.group) {
-      await this._post.model.post.updateMany({
+      await tx.post.updateMany({
         where: {
           group: body.group,
           organizationId: orgId,
@@ -685,6 +711,7 @@ export class PostsRepository {
     }
 
     return { previousPost, posts };
+    });
   }
 
   async submit(id: string, order: string, buyerOrganizationId: string) {
@@ -724,6 +751,7 @@ export class PostsRepository {
     return this._post.model.post.findUnique({
       where: {
         id,
+        deletedAt: null,
         ...(org ? { organizationId: org } : {}),
       },
       include: {
@@ -832,6 +860,7 @@ export class PostsRepository {
     return this._comments.model.comments.findMany({
       where: {
         postId,
+        deletedAt: null,
       },
       orderBy: {
         createdAt: 'asc',

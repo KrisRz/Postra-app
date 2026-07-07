@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import {
   PrismaRepository,
   PrismaTransaction,
@@ -13,7 +13,8 @@ export class SubscriptionRepository {
     private readonly _organization: PrismaRepository<'organization'>,
     private readonly _user: PrismaRepository<'user'>,
     private readonly _credits: PrismaRepository<'credits'>,
-    private _usedCodes: PrismaRepository<'usedCodes'>
+    private _usedCodes: PrismaRepository<'usedCodes'>,
+    private readonly _prismaTransaction: PrismaTransaction
   ) {}
 
   getUserAccount(userId: string) {
@@ -136,6 +137,7 @@ export class SubscriptionRepository {
     return this._subscription.model.subscription.findFirst({
       where: {
         organizationId: orgId,
+        deletedAt: null,
       },
     });
   }
@@ -143,6 +145,7 @@ export class SubscriptionRepository {
   async getSubscriptionByCustomerId(customerId: string) {
     return this._subscription.model.subscription.findFirst({
       where: {
+        deletedAt: null,
         organization: {
           paymentId: customerId,
         },
@@ -176,7 +179,9 @@ export class SubscriptionRepository {
       return;
     }
 
-    await this._subscription.model.subscription.upsert({
+    const writes: any[] = [];
+    writes.push(
+      this._subscription.model.subscription.upsert({
       where: {
         organizationId: findOrg.id,
         ...(!code
@@ -206,26 +211,35 @@ export class SubscriptionRepository {
         identifier,
         deletedAt: null,
       },
-    });
+      })
+    );
 
-    await this._organization.model.organization.update({
-      where: {
-        id: findOrg.id,
-      },
-      data: {
-        isTrailing,
-        allowTrial: false,
-      },
-    });
+    writes.push(
+      this._organization.model.organization.update({
+        where: {
+          id: findOrg.id,
+        },
+        data: {
+          isTrailing,
+          allowTrial: false,
+        },
+      })
+    );
 
     if (code) {
-      await this._usedCodes.model.usedCodes.create({
-        data: {
-          code,
-          orgId: findOrg.id,
-        },
-      });
+      writes.push(
+        this._usedCodes.model.usedCodes.create({
+          data: {
+            code,
+            orgId: findOrg.id,
+          },
+        })
+      );
     }
+
+    // A Stripe webhook write must be all-or-nothing: a crash between the
+    // subscription upsert and the org update left paying orgs marked trialing.
+    await this._prismaTransaction.model.$transaction(writes);
   }
 
   getSubscriptionByIdentifier(identifier: string) {
@@ -274,15 +288,44 @@ export class SubscriptionRepository {
   async useCredit<T>(
     org: Organization,
     type = 'ai_images',
-    func: () => Promise<T>
+    func: () => Promise<T>,
+    enforce?: { limit: number; cycleStart: Date }
   ) {
-    const data = await this._credits.model.credits.create({
-      data: {
-        organizationId: org.id,
-        credits: 1,
-        type,
-      },
-    });
+    // Reserve-then-verify: check-then-insert (checkCredits -> useCredit as two
+    // awaits) lets N parallel requests at limit-1 all pass. Inserting the
+    // usage row and counting inside one transaction makes the loser roll back.
+    const data = enforce
+      ? await this._prismaTransaction.model.$transaction(async (tx) => {
+          const row = await tx.credits.create({
+            data: {
+              organizationId: org.id,
+              credits: 1,
+              type,
+            },
+          });
+          const used = await tx.credits.aggregate({
+            _sum: { credits: true },
+            where: {
+              organizationId: org.id,
+              type,
+              createdAt: { gte: enforce.cycleStart },
+            },
+          });
+          if ((used._sum.credits ?? 0) > enforce.limit) {
+            throw new HttpException(
+              'No generation credits remaining for this billing cycle',
+              402
+            );
+          }
+          return row;
+        })
+      : await this._credits.model.credits.create({
+          data: {
+            organizationId: org.id,
+            credits: 1,
+            type,
+          },
+        });
 
     try {
       return await func();
