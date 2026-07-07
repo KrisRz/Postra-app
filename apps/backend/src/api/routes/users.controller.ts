@@ -33,6 +33,7 @@ import { TrackService } from '@gitroom/nestjs-libraries/track/track.service';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { AuthorizationActions, Sections } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
 import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mobile-push/mobile.push.service';
+import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 
 @ApiTags('User')
 @Controller('/user')
@@ -44,7 +45,8 @@ export class UsersController {
     private _orgService: OrganizationService,
     private _userService: UsersService,
     private _trackService: TrackService,
-    private _mobilePush: MobilePushService
+    private _mobilePush: MobilePushService,
+    private _auditService: AuditService
   ) {}
 
   // Register/refresh an Expo push token for the Postra Mobile app.
@@ -144,6 +146,12 @@ export class UsersController {
     if (!user.isSuperAdmin) {
       throw new HttpException('Unauthorized', 400);
     }
+
+    this._auditService.record({
+      action: 'admin.impersonate',
+      userId: user.id,
+      metadata: { impersonatedUserOrg: id },
+    });
 
     response.cookie('impersonate', id, {
       domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),

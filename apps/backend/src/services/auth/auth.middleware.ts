@@ -7,6 +7,15 @@ import { UsersService } from '@gitroom/nestjs-libraries/database/prisma/users/us
 import { getCookieUrlFromDomain } from '@gitroom/helpers/subdomain/subdomain.management';
 import { HttpForbiddenException } from '@gitroom/nestjs-libraries/services/exception.filter';
 import { MastraService } from '@gitroom/nestjs-libraries/chat/mastra.service';
+import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+
+// user+orgs resolution runs on EVERY authenticated request (two joined
+// queries); cache briefly per user. 30s bounds staleness of permission
+// changes (disabled member, revoked org) to a window we accept pre-launch.
+const AUTH_CACHE_TTL_SECONDS = 30;
+export const authContextCacheKey = (userId: string) => `authctx:${userId}`;
+export const bustAuthContextCache = (userId: string) =>
+  ioRedis.del(authContextCacheKey(userId)).catch(() => {});
 
 export const removeAuth = (res: Response) => {
   res.cookie('auth', '', {
@@ -46,7 +55,22 @@ export class AuthMiddleware implements NestMiddleware {
         throw new HttpForbiddenException();
       }
 
-      let user = (await this._userService.getUserById(payload.id)) as User | null;
+      const cacheKey = authContextCacheKey(payload.id);
+      const cached = await ioRedis.get(cacheKey).catch(() => null);
+      let user: User | null = null;
+      let organization: any[] | null = null;
+      if (cached) {
+        try {
+          ({ user, organization } = JSON.parse(cached));
+        } catch {
+          user = null;
+          organization = null;
+        }
+      }
+
+      if (!user) {
+        user = (await this._userService.getUserById(payload.id)) as User | null;
+      }
 
       if (!user) {
         throw new HttpForbiddenException();
@@ -85,9 +109,18 @@ export class AuthMiddleware implements NestMiddleware {
       }
 
       delete user.password;
-      const organization = (
-        await this._organizationService.getOrgsByUserId(user.id)
-      ).filter((f) => !f.users[0].disabled);
+      if (!organization) {
+        organization = await this._organizationService.getOrgsByUserId(user.id);
+        await ioRedis
+          .set(
+            cacheKey,
+            JSON.stringify({ user, organization }),
+            'EX',
+            AUTH_CACHE_TTL_SECONDS
+          )
+          .catch(() => {});
+      }
+      organization = organization.filter((f: any) => !f.users[0].disabled);
       const setOrg =
         organization.find((org) => org.id === orgHeader) || organization[0];
 
@@ -97,6 +130,8 @@ export class AuthMiddleware implements NestMiddleware {
 
       if (!setOrg.apiKey) {
         await this._organizationService.updateApiKey(setOrg.id);
+        // Next request must see the generated key, not the cached null.
+        await bustAuthContextCache(user.id);
       }
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

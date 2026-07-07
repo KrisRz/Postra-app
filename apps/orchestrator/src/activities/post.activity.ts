@@ -29,6 +29,9 @@ import {
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+// eslint-disable-next-line @nx/enforce-module-boundaries
+import { fetch } from 'undici';
+import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
 
 function isPrivateIp(ip: string): boolean {
   if (ip.includes(':')) {
@@ -58,7 +61,9 @@ function isPrivateIp(ip: string): boolean {
 // request proxy.
 async function assertPublicWebhookUrl(raw: string) {
   const url = new URL(raw);
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+  // https only: an http webhook can be MITM'd and the DTO validator
+  // (IsSafeWebhookUrl) never allowed it in the first place.
+  if (url.protocol !== 'https:') {
     throw new Error(`webhook protocol not allowed: ${url.protocol}`);
   }
   const address = isIP(url.hostname)
@@ -405,12 +410,16 @@ export class PostActivity {
       webhooks.map(async (webhook) => {
         try {
           await assertPublicWebhookUrl(webhook.url);
+          // ssrfSafeDispatcher pins DNS (TOCTOU/rebinding) and redirect:
+          // 'error' stops a 302 from bouncing the request into the VPC/IMDS.
           await fetch(webhook.url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify(post),
+            dispatcher: ssrfSafeDispatcher,
+            redirect: 'error',
             signal: AbortSignal.timeout(5000),
           });
         } catch (e) {

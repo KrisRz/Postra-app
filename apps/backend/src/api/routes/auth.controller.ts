@@ -26,13 +26,15 @@ import { UserAgent } from '@gitroom/nestjs-libraries/user/user.agent';
 import { Provider } from '@prisma/client';
 import * as Sentry from '@sentry/nestjs';
 import { pickEmailLang } from '@gitroom/backend/services/auth/auth.emails';
+import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 
 @ApiTags('Auth')
 @Controller('/auth')
 export class AuthController {
   constructor(
     private _authService: AuthService,
-    private _emailService: EmailService
+    private _emailService: EmailService,
+    private _auditService: AuditService
   ) {}
 
   @Get('/can-register')
@@ -64,6 +66,13 @@ export class AuthController {
         getOrgFromCookie,
         pickEmailLang(req)
       );
+
+      this._auditService.record({
+        action: 'auth.register',
+        ip,
+        userAgent,
+        metadata: { email: body.email, provider: body.provider },
+      });
 
       const activationRequired =
         body.provider === 'LOCAL' && this._emailService.hasProvider();
@@ -151,6 +160,13 @@ export class AuthController {
         pickEmailLang(req)
       );
 
+      this._auditService.record({
+        action: 'auth.login',
+        ip,
+        userAgent,
+        metadata: { email: body.email, provider: body.provider },
+      });
+
       response.cookie('auth', jwt, {
         domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
         ...(!process.env.NOT_SECURED
@@ -200,6 +216,12 @@ export class AuthController {
           : {}),
       });
     } catch (e: any) {
+      this._auditService.record({
+        action: 'auth.login.failed',
+        ip,
+        userAgent,
+        metadata: { email: body.email, reason: e.message?.slice(0, 200) },
+      });
       response.status(400).send(e.message);
     }
   }
@@ -223,6 +245,9 @@ export class AuthController {
   async forgotReturn(@Body() body: ForgotReturnPasswordDto) {
     try {
       const reset = await this._authService.forgotReturn(body);
+      if (reset) {
+        this._auditService.record({ action: 'auth.password.reset' });
+      }
       return {
         reset: !!reset,
       };

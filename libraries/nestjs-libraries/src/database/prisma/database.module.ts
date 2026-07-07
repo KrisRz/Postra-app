@@ -49,6 +49,7 @@ import { DesignRenderService } from '@gitroom/nestjs-libraries/studio/design-ren
 import { AdminStatsRepository } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.repository';
 import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.service';
 import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mobile-push/mobile.push.service';
+import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 
 @Global()
 @Module({
@@ -107,6 +108,7 @@ import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mob
     AdminStatsRepository,
     AdminStatsService,
     MobilePushService,
+    AuditService,
   ],
   get exports() {
     return this.providers;

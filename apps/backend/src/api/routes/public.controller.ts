@@ -8,6 +8,7 @@ import {
   Req,
   Res,
   StreamableFile,
+  NotFoundException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
@@ -133,6 +134,12 @@ export class PublicController {
 
   @Post('/modify-subscription')
   async modifySubscription(@Body('params') params: string) {
+    // Postiz SaaS-mode leftover: a leaked/forged JWT_SECRET-signed token can
+    // set any org to any tier. Postra doesn't use SaaS mode — disabled unless
+    // explicitly enabled.
+    if (!process.env.ENABLE_SAAS_INTEGRATION_ROUTES) {
+      throw new NotFoundException();
+    }
     try {
       const load = AuthService.verifyJWT(params) as {
         orgId: string;

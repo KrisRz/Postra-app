@@ -239,11 +239,15 @@ export class DesignRenderService {
     try {
       const targetWidth = Math.round(size.width * 0.12);
       const padding = Math.round(size.width * 0.04);
-      const resized = await sharp(buffer)
+      // Brand-kit logos are user-uploaded — same decompression-bomb cap as
+      // the background path above.
+      const resized = await sharp(buffer, { limitInputPixels: 30_000_000 })
         .resize({ width: targetWidth })
         .png()
         .toBuffer();
-      const meta = await sharp(resized).metadata();
+      const meta = await sharp(resized, {
+        limitInputPixels: 30_000_000,
+      }).metadata();
       const logoHeight = meta.height ?? targetWidth;
       return {
         input: resized,

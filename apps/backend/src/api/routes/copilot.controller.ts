@@ -1,3 +1,4 @@
+import { Throttle } from '@nestjs/throttler';
 import {
   Logger,
   Controller,
@@ -40,6 +41,7 @@ export class CopilotController {
     private _brandKitService: BrandKitService
   ) {}
   @Post('/chat')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
   chatAgent(@Req() req: Request, @Res() res: Response) {
     if (
       process.env.OPENAI_API_KEY === undefined ||
@@ -61,6 +63,7 @@ export class CopilotController {
   }
 
   @Post('/agent')
+  @Throttle({ default: { ttl: 300000, limit: 60 } })
   @CheckPolicies([AuthorizationActions.Create, Sections.AI])
   async agent(
     @Req() req: Request,
