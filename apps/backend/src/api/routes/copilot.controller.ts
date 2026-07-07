@@ -42,6 +42,7 @@ export class CopilotController {
   ) {}
   @Post('/chat')
   @Throttle({ default: { ttl: 300000, limit: 30 } })
+  @CheckPolicies([AuthorizationActions.Create, Sections.AI])
   chatAgent(@Req() req: Request, @Res() res: Response) {
     if (
       process.env.OPENAI_API_KEY === undefined ||

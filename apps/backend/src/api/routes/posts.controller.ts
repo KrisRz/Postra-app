@@ -1,4 +1,5 @@
 import { Throttle } from '@nestjs/throttler';
+import { AccountAgeGuard } from '@gitroom/backend/services/auth/account-age.guard';
 import {
   Body,
   Controller,
@@ -10,6 +11,7 @@ import {
   Put,
   Query,
   Res,
+  UseGuards,
 } from '@nestjs/common';
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
 import { GetOrgFromRequest } from '@gitroom/nestjs-libraries/user/org.from.request';
@@ -236,6 +238,7 @@ export class PostsController {
 
   @Post('/generator')
   @Throttle({ default: { ttl: 300000, limit: 10 } })
+  @UseGuards(AccountAgeGuard)
   @CheckPolicies([AuthorizationActions.Create, Sections.POSTS_PER_MONTH])
   async generatePosts(
     @GetOrgFromRequest() org: Organization,
@@ -270,6 +273,7 @@ export class PostsController {
 
   @Post('/separate-posts')
   @Throttle({ default: { ttl: 300000, limit: 20 } })
+  @UseGuards(AccountAgeGuard)
   async separatePosts(
     @GetOrgFromRequest() org: Organization,
     @Body() body: { content: string; len: number }

@@ -234,6 +234,7 @@ export class MediaController {
 
   @Post('/:id/auto-caption')
   @Throttle({ default: { ttl: 300000, limit: 5 } })
+  @UseGuards(AccountAgeGuard)
   async autoCaption(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,
@@ -249,6 +250,7 @@ export class MediaController {
 
   @Post('/:id/burn-captions')
   @Throttle({ default: { ttl: 300000, limit: 5 } })
+  @UseGuards(AccountAgeGuard)
   async burnCaptions(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,

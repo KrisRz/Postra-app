@@ -96,7 +96,6 @@ export class MediaService {
       async () => {
         if (generatePromptFirst) {
           prompt = await this._openAi.generatePromptForPicture(prompt);
-          console.log('Prompt:', prompt);
         }
         const dataUrl = await this._openAi.generateImage(
           prompt,

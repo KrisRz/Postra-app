@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto';
 import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/organizations/organization.service';
 import { OAuthService } from '@gitroom/nestjs-libraries/database/prisma/oauth/oauth.service';
 import { runWithContext } from './async.storage';
+import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import { createOAuthMiddleware } from './oauth-middleware';
 const fixAcceptHeader = (req: Request) => {
   const value = 'application/json, text/event-stream';
@@ -22,6 +23,24 @@ export const startMcp = async (app: INestApplication) => {
   const mastraService = app.get(MastraService, { strict: false });
   const organizationService = app.get(OrganizationService, { strict: false });
   const oauthService = app.get(OAuthService, { strict: false });
+
+  // These raw express handlers bypass Nest's ThrottlerGuard entirely — an
+  // API-key holder could loop the full agent toolset unmetered. Redis-count
+  // per org; fail-open on Redis errors (availability over strictness here).
+  const MCP_RATE_LIMIT = 120;
+  const MCP_RATE_WINDOW_SECONDS = 300;
+  const mcpRateLimited = async (orgId: string): Promise<boolean> => {
+    try {
+      const key = `mcp-rate:${orgId}`;
+      const count = await ioRedis.incr(key);
+      if (count === 1) {
+        await ioRedis.expire(key, MCP_RATE_WINDOW_SECONDS);
+      }
+      return count > MCP_RATE_LIMIT;
+    } catch {
+      return false;
+    }
+  };
 
   const resolveAuth = async (token: string) => {
     if (token.startsWith('pos_')) {
@@ -113,6 +132,11 @@ export const startMcp = async (app: INestApplication) => {
       return;
     }
 
+    if (await mcpRateLimited(auth.id)) {
+      res.status(429).send('Too many requests');
+      return;
+    }
+
     fixAcceptHeader(req);
     await runWithContext({ requestId: token!, auth }, async () => {
       await server.startHTTP({
@@ -161,6 +185,12 @@ export const startMcp = async (app: INestApplication) => {
       return;
     }
 
+    // @ts-ignore
+    if (await mcpRateLimited(req.auth.id)) {
+      res.status(429).send('Too many requests');
+      return;
+    }
+
     const url = new URL('/mcp', process.env.NEXT_PUBLIC_BACKEND_URL);
 
     fixAcceptHeader(req);
@@ -198,6 +228,12 @@ export const startMcp = async (app: INestApplication) => {
     // @ts-ignore
     if (!req.auth) {
       res.status(400).send('Invalid API Key');
+      return;
+    }
+
+    // @ts-ignore
+    if (await mcpRateLimited(req.auth.id)) {
+      res.status(429).send('Too many requests');
       return;
     }
 
@@ -244,6 +280,12 @@ export const startMcp = async (app: INestApplication) => {
     // @ts-ignore
     if (!req.auth) {
       res.status(400).send('Invalid API Key');
+      return;
+    }
+
+    // @ts-ignore
+    if (await mcpRateLimited(req.auth.id)) {
+      res.status(429).send('Too many requests');
       return;
     }
 
