@@ -139,6 +139,7 @@ export class MediaController {
   }
 
   @Put('/:id/canvas')
+  @Throttle({ default: { ttl: 300000, limit: 60 } })
   saveCanvasJson(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,
@@ -148,6 +149,7 @@ export class MediaController {
   }
 
   @Put('/:id/template')
+  @Throttle({ default: { ttl: 300000, limit: 60 } })
   setTemplateFlag(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,
@@ -350,6 +352,7 @@ export class MediaController {
   }
 
   @Post('/:id/design-spec')
+  @Throttle({ default: { ttl: 300000, limit: 60 } })
   saveDesignSpec(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,

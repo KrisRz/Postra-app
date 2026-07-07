@@ -101,6 +101,7 @@ export class MediaRepository {
       },
       orderBy: { createdAt: 'desc' },
       select: { id: true, name: true, path: true, createdAt: true },
+      take: 200,
     });
   }
 

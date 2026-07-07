@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
@@ -208,6 +208,13 @@ export class StudioAiService {
     instruction: string,
     screenshotDataUrl?: string
   ): Promise<{ patch: StudioPatch; nextSpec: StudioSpec; explanation: string }> {
+    // The client sends the whole spec, which we inline into the prompt. Bound
+    // it server-side (same 200-layer cap the patch validator enforces) so a
+    // 25mb body of layers can't be repeatedly turned into OpenAI token cost.
+    if (!Array.isArray(spec?.layers) || spec.layers.length > 200) {
+      throw new HttpException('Design spec too large to refine', 400);
+    }
+
     const system = `You edit social-media post designs by emitting JSON patch ops on a StudioSpec.
 
 Rules:

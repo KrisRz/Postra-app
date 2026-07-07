@@ -339,12 +339,33 @@ export class MediaService {
     return this._mediaRepository.getMediaByIdForOrg(org, id);
   }
 
-  async importPixabayVideo(org: string, sourceUrl: string, sourceId?: number) {
-    const res = await fetch(sourceUrl);
+  // Pixabay CDN is host-pinned by the controller regex (not SSRF), but the
+  // download was unbounded: no timeout, no size cap → a slow/huge asset could
+  // pin a worker and buffer freely into the 3.7GiB box. Bound both.
+  private async fetchPixabayAsset(url: string, maxBytes: number) {
+    const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
     if (!res.ok) {
-      throw new HttpException(`Failed to fetch Pixabay video (${res.status})`, 502);
+      return { res, buffer: null as Buffer | null };
+    }
+    const declared = Number(res.headers.get('content-length') || 0);
+    if (declared && declared > maxBytes) {
+      throw new HttpException('Pixabay asset exceeds size limit', 502);
     }
     const buffer = Buffer.from(await res.arrayBuffer());
+    if (buffer.length > maxBytes) {
+      throw new HttpException('Pixabay asset exceeds size limit', 502);
+    }
+    return { res, buffer };
+  }
+
+  async importPixabayVideo(org: string, sourceUrl: string, sourceId?: number) {
+    const { res, buffer } = await this.fetchPixabayAsset(
+      sourceUrl,
+      100 * 1024 * 1024
+    );
+    if (!res.ok || !buffer) {
+      throw new HttpException(`Failed to fetch Pixabay video (${res.status})`, 502);
+    }
     const fakeFile = {
       buffer,
       originalname: `pixabay-${sourceId ?? Date.now()}.mp4`,
@@ -365,17 +386,19 @@ export class MediaService {
     // the _640 suffix can be swapped for _1280 — try the bigger variant first
     // (1080px canvases need it), fall back to the original URL.
     const hiRes = sourceUrl.replace('_640.', '_1280.');
-    let res = hiRes !== sourceUrl ? await fetch(hiRes) : null;
-    if (!res?.ok) {
-      res = await fetch(sourceUrl);
+    const cap = 30 * 1024 * 1024;
+    let attempt =
+      hiRes !== sourceUrl ? await this.fetchPixabayAsset(hiRes, cap) : null;
+    if (!attempt?.res.ok || !attempt.buffer) {
+      attempt = await this.fetchPixabayAsset(sourceUrl, cap);
     }
-    if (!res.ok) {
+    if (!attempt.res.ok || !attempt.buffer) {
       throw new HttpException(
-        `Failed to fetch Pixabay image (${res.status})`,
+        `Failed to fetch Pixabay image (${attempt.res.status})`,
         502
       );
     }
-    const buffer = Buffer.from(await res.arrayBuffer());
+    const buffer = attempt.buffer;
     const isPng = /\.png(\?|$)/.test(sourceUrl);
     const fakeFile = {
       buffer,
