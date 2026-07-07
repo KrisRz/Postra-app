@@ -631,7 +631,7 @@ export class StripeService {
   }
 
   async applyDiscount(customer: string) {
-    const check = this.checkDiscount(customer);
+    const check = await this.checkDiscount(customer);
     if (!check) {
       return false;
     }
@@ -949,6 +949,13 @@ export class StripeService {
 
     for (const chargeId of chargeIds) {
       try {
+        // Never refund a charge that isn't this org's — chargeIds come from
+        // the client and must be bound to the org's Stripe customer.
+        const charge = await stripe.charges.retrieve(chargeId);
+        if (charge.customer !== org.paymentId) {
+          failed.push(chargeId);
+          continue;
+        }
         await stripe.refunds.create({ charge: chargeId });
         refunded.push(chargeId);
       } catch (err) {

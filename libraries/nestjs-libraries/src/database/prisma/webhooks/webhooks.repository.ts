@@ -5,7 +5,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class WebhooksRepository {
-  constructor(private _webhooks: PrismaRepository<'webhooks'>) {}
+  constructor(
+    private _webhooks: PrismaRepository<'webhooks'>,
+    private _integration: PrismaRepository<'integration'>
+  ) {}
 
   getTotal(orgId: string) {
     return this._webhooks.model.webhooks.count({
@@ -67,6 +70,19 @@ export class WebhooksRepository {
       },
     });
 
+    // Only link integrations the org actually owns — a client-supplied
+    // foreign integration id would otherwise leak that channel's name/picture
+    // back through getWebhooks.
+    const ownedIntegrations = await this._integration.model.integration.findMany(
+      {
+        where: {
+          organizationId: orgId,
+          id: { in: (body.integrations || []).map((i) => i.id) },
+        },
+        select: { id: true },
+      }
+    );
+
     await this._webhooks.model.webhooks.update({
       where: {
         id,
@@ -75,7 +91,7 @@ export class WebhooksRepository {
       data: {
         integrations: {
           deleteMany: {},
-          create: body.integrations.map((integration) => ({
+          create: ownedIntegrations.map((integration) => ({
             integrationId: integration.id,
           })),
         },

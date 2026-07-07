@@ -57,6 +57,16 @@ export class PermissionsService {
       !process.env.STRIPE_PUBLISHABLE_KEY
     ) {
       for (const [action, section] of requestedPermission) {
+        // "Billing off ⇒ everyone ULTIMATE" grants FEATURE tiers only. Org
+        // ROLE gates (ADMIN) must stay enforced regardless of billing — a
+        // plain member is not an admin just because we're not charging. Do
+        // NOT conflate feature entitlement with authority.
+        if (
+          section === Sections.ADMIN &&
+          !['ADMIN', 'SUPERADMIN'].includes(permission)
+        ) {
+          continue;
+        }
         can(action, section);
       }
       return build({

@@ -9,6 +9,19 @@ import { GetUserFromRequest } from '@gitroom/nestjs-libraries/user/user.from.req
 import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/notifications/notification.service';
 import { Request } from 'express';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
+import { CheckPolicies } from '@gitroom/backend/services/auth/permissions/permissions.ability';
+import {
+  AuthorizationActions,
+  Sections,
+} from '@gitroom/backend/services/auth/permissions/permission.exception.class';
+
+// Billing mutations change what the org's card is charged — restrict to org
+// admins/owner (ADMIN section = ADMIN/SUPERADMIN role). A regular invited
+// member must not be able to change the tier, cancel, or redeem codes.
+const BILLING_ADMIN = [AuthorizationActions.Create, Sections.ADMIN] as [
+  AuthorizationActions,
+  Sections
+];
 
 @ApiTags('Billing')
 @Controller('/billing')
@@ -39,11 +52,13 @@ export class BillingController {
   }
 
   @Post('/apply-discount')
+  @CheckPolicies(BILLING_ADMIN)
   async applyDiscount(@GetOrgFromRequest() org: Organization) {
     await this._stripeService.applyDiscount(org.paymentId);
   }
 
   @Post('/finish-trial')
+  @CheckPolicies(BILLING_ADMIN)
   async finishTrial(@GetOrgFromRequest() org: Organization) {
     try {
       await this._stripeService.finishTrial(org.paymentId);
@@ -61,6 +76,7 @@ export class BillingController {
   }
 
   @Post('/embedded')
+  @CheckPolicies(BILLING_ADMIN)
   embedded(
     @GetOrgFromRequest() org: Organization,
     @GetUserFromRequest() user: User,
@@ -78,6 +94,7 @@ export class BillingController {
   }
 
   @Post('/subscribe')
+  @CheckPolicies(BILLING_ADMIN)
   subscribe(
     @GetOrgFromRequest() org: Organization,
     @GetUserFromRequest() user: User,
@@ -95,6 +112,7 @@ export class BillingController {
   }
 
   @Get('/portal')
+  @CheckPolicies(BILLING_ADMIN)
   async modifyPayment(@GetOrgFromRequest() org: Organization) {
     const customer = await this._stripeService.getCustomerByOrganizationId(
       org.id
@@ -111,6 +129,7 @@ export class BillingController {
   }
 
   @Post('/cancel')
+  @CheckPolicies(BILLING_ADMIN)
   async cancel(
     @GetOrgFromRequest() org: Organization,
     @GetUserFromRequest() user: User,
@@ -127,6 +146,7 @@ export class BillingController {
   }
 
   @Post('/prorate')
+  @CheckPolicies(BILLING_ADMIN)
   prorate(
     @GetOrgFromRequest() org: Organization,
     @Body() body: BillingSubscribeDto
@@ -135,6 +155,7 @@ export class BillingController {
   }
 
   @Post('/lifetime')
+  @CheckPolicies(BILLING_ADMIN)
   async lifetime(
     @GetOrgFromRequest() org: Organization,
     @Body() body: { code: string }
