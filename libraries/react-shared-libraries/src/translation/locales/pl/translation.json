@@ -1237,5 +1237,7 @@
   "type_to_confirm": "Wpisz",
   "upload_size_limit_exceeded": "Przekroczono limit wgrywania. Maksymalnie 1 GB na sesję.",
   "voice_running": "Sprawdzam ton…",
-  "voice_score": "Ton marki"
+  "voice_score": "Ton marki",
+  "all_your_social_media_one_place": "Wszystkie Twoje kanały social media",
+  "managed_from_one_place": "zarządzane z jednego miejsca"
 }

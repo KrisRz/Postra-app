@@ -1237,5 +1237,7 @@
   "type_to_confirm": "Type",
   "upload_size_limit_exceeded": "Upload size limit exceeded. Maximum 1 GB per upload session.",
   "voice_running": "Checking tone…",
-  "voice_score": "Brand voice"
+  "voice_score": "Brand voice",
+  "all_your_social_media_one_place": "All your social media channels",
+  "managed_from_one_place": "managed from one place"
 }

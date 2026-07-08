@@ -13,6 +13,7 @@ import { array, object, string } from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { Select } from '@gitroom/react/form/select';
 import { PickPlatforms } from '@gitroom/frontend/components/launches/helpers/pick.platform.component';
+import { useIntegrationList } from '@gitroom/frontend/components/launches/helpers/use.integration.list';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import clsx from 'clsx';
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
@@ -150,9 +151,6 @@ export const AddOrEditWebhook: FC<{
     },
   });
   const integrations = form.watch('integrations');
-  const integration = useCallback(async () => {
-    return (await fetch('/integrations/list')).json();
-  }, []);
   const changeIntegration = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const findValue = options.find(
@@ -165,14 +163,10 @@ export const AddOrEditWebhook: FC<{
     },
     []
   );
-  const { data: dataList, isLoading } = useSWR('integrations', integration, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    revalidateIfStale: false,
-    revalidateOnMount: true,
-    refreshWhenHidden: false,
-    refreshWhenOffline: false,
-  });
+  // Shared hook — a bespoke useSWR('integrations') here cached the RAW
+  // {integrations} response under a key other components read as an array,
+  // corrupting each other's data across SPA navigations.
+  const { data: integrationList, isLoading } = useIntegrationList();
   const callBack = useCallback(
     async (values: any) => {
       await fetch('/webhooks', {
@@ -271,9 +265,9 @@ export const AddOrEditWebhook: FC<{
                 </option>
               ))}
             </Select>
-            {allIntegrations.value === 'specific' && dataList && !isLoading && (
+            {allIntegrations.value === 'specific' && !isLoading && (
               <PickPlatforms
-                integrations={dataList.integrations}
+                integrations={integrationList}
                 selectedIntegrations={integrations as any[]}
                 onChange={(e) => form.setValue('integrations', e)}
                 singleSelect={false}

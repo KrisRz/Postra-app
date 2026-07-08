@@ -16,6 +16,7 @@ import { SVGLine } from '@gitroom/frontend/components/launches/launches.componen
 import ImageWithFallback from '@gitroom/react/helpers/image.with.fallback';
 import SafeImage from '@gitroom/react/helpers/safe.image';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { useIntegrationList } from '@gitroom/frontend/components/launches/helpers/use.integration.list';
 import { useWaitForClass } from '@gitroom/helpers/utils/use.wait.for.class';
 import { MultiMediaComponent } from '@gitroom/frontend/components/media/media.component';
 import { Integration } from '@prisma/client';
@@ -63,25 +64,16 @@ export const MediaPortal: FC<{
 export const AgentList: FC<{ onChange: (arr: any[]) => void }> = ({
   onChange,
 }) => {
-  const fetch = useFetch();
   const t = useT();
   const [selected, setSelected] = useState([]);
 
-  const load = useCallback(async () => {
-    return (await (await fetch('/integrations/list')).json()).integrations;
-  }, []);
-
   const [collapseMenu, setCollapseMenu] = useCookie('collapseMenu', '0');
 
-  const { data } = useSWR('integrations', load, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    revalidateIfStale: false,
-    revalidateOnMount: true,
-    refreshWhenHidden: false,
-    refreshWhenOffline: false,
-    fallbackData: [],
-  });
+  // Shared hook (same SWR key as the calendar). The previous bespoke
+  // useSWR('integrations', ...) shared its key with autopost/webhooks whose
+  // fetchers cache the RAW {integrations} response — after an SPA navigation
+  // the colliding cache shape left this panel permanently empty.
+  const { data } = useIntegrationList();
 
   const setIntegration = useCallback(
     (integration: Integration) => () => {

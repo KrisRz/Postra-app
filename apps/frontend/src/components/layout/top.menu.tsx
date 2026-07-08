@@ -310,7 +310,10 @@ export const TopMenu: FC = () => {
                 if (f.requireBilling && !billingEnabled) {
                   return false;
                 }
-                if (f.name === 'Billing' && user?.isLifetime) {
+                // Compare by path, not name — the name is translated (PL:
+                // "Rozliczenia"), so a name check silently stops working
+                // outside the English locale.
+                if (f.path === '/billing' && user?.isLifetime) {
                   return false;
                 }
                 if (f.role) {
@@ -341,7 +344,8 @@ export const TopMenu: FC = () => {
             if (f.requireBilling && !billingEnabled) {
               return false;
             }
-            if (f.name === 'Billing' && user?.isLifetime) {
+            // Path, not translated name — see the firstMenu filter above.
+            if (f.path === '/billing' && user?.isLifetime) {
               return false;
             }
             if (f.role) {
