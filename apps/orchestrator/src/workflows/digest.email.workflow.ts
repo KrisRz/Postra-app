@@ -40,7 +40,9 @@ export async function digestEmailWorkflow({
 
     const org = await getUserOrgs(organizationId);
 
-    for (const user of org.users) {
+    // getUserOrgs uses findUnique — a deleted/missing org returns null, and
+    // org.users would then throw and kill the digest worker.
+    for (const user of org?.users || []) {
       const allowFailure = user.user.sendFailureEmails ? 'fail' : null;
       const allowSuccess = user.user.sendSuccessEmails ? 'success' : null;
 

@@ -6,6 +6,7 @@ import {
 import { timer } from '@gitroom/helpers/utils/timer';
 import { ArrayMaxSize, IsArray, IsString, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+import { fetch } from 'undici';
 
 class Image {
   @IsString()
@@ -41,7 +42,7 @@ export class Veo3 extends VideoAbstract<Veo3Params> {
     output: 'vertical' | 'horizontal',
     customParams: Veo3Params
   ): Promise<URL> {
-    const value = await (
+    const value = (await (
       await fetch('https://api.kie.ai/api/v1/veo/generate', {
         headers: {
           'Content-Type': 'application/json',
@@ -54,8 +55,9 @@ export class Veo3 extends VideoAbstract<Veo3Params> {
           model: 'veo3_fast',
           aspectRatio: output === 'horizontal' ? '16:9' : '9:16',
         }),
+        signal: AbortSignal.timeout(60_000),
       })
-    ).json();
+    ).json()) as any;
 
     if (value.code !== 200 && value.code !== 201) {
       throw new Error(`Failed to generate video`);
@@ -63,9 +65,15 @@ export class Veo3 extends VideoAbstract<Veo3Params> {
 
     const taskId = value.data.taskId;
     let videoUrl = [];
+    // Bound the poll so a stuck generation can't hang the worker forever
+    // (~10 min at 10s intervals).
+    let attempts = 0;
     while (videoUrl.length === 0) {
+      if (attempts++ > 60) {
+        throw new Error(`Timed out waiting for video to be ready`);
+      }
       console.log('waiting for video to be ready');
-      const data = await (
+      const data = (await (
         await fetch(
           'https://api.kie.ai/api/v1/veo/record-info?taskId=' + taskId,
           {
@@ -73,9 +81,10 @@ export class Veo3 extends VideoAbstract<Veo3Params> {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${process.env.KIEAI_API_KEY}`,
             },
+            signal: AbortSignal.timeout(30_000),
           }
         )
-      ).json();
+      ).json()) as any;
 
       if (data.code !== 200 && data.code !== 400) {
         throw new Error(`Failed to get video info`);

@@ -482,10 +482,17 @@ export class MediaController {
   }
 
   @Post('/video/function')
+  @Throttle({ default: { ttl: 300000, limit: 30 } })
+  @UseGuards(AccountAgeGuard)
   videoFunction(
+    @GetOrgFromRequest() org: Organization,
     @Body() body: VideoFunctionDto
   ) {
-    return this._mediaService.videoFunction(body.identifier, body.functionName, body.params);
+    return this._mediaService.videoFunction(
+      body.identifier,
+      body.functionName,
+      body.params
+    );
   }
 
   @Get('/generate-video/:type/allowed')
