@@ -8,9 +8,18 @@ on:
 permissions:
   contents: read
 
+# Merging several PRs back-to-back used to queue one full ~12-min deploy per
+# merge. Each deploy ships whatever is on main at that moment, so an older
+# queued/running deploy is always superseded by a newer one — cancel it and
+# run only the latest. Cancellation almost always lands during the multi-minute
+# build/push phase (merges arrive seconds apart), i.e. before the SSM step, so
+# there's no half-applied box. Caveat: the SSM RunShellScript is detached — if a
+# cancel ever lands *during* the SSM step, that command keeps running on the
+# box; the superseding deploy's `docker compose up --force-recreate` is
+# idempotent and wins, so worst case is a brief overlap, not a broken deploy.
 concurrency:
   group: deploy-dev
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   AWS_REGION: ${{ secrets.AWS_REGION }}
