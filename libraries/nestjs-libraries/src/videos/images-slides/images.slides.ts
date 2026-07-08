@@ -16,6 +16,7 @@ import pLimit from 'p-limit';
 import { FalService } from '@gitroom/nestjs-libraries/openai/fal.service';
 import { IsString } from 'class-validator';
 import { JSONSchema } from 'class-validator-jsonschema';
+import { fetch } from 'undici';
 const limit = pLimit(2);
 
 const transloadit = new Transloadit({
@@ -107,6 +108,7 @@ export class ImagesSlides extends VideoAbstract<ImagesSlidesParams> {
                         text: current.voiceText,
                         model_id: 'eleven_multilingual_v2',
                       }),
+                      signal: AbortSignal.timeout(60_000),
                     }
                   )
                 )
@@ -242,7 +244,7 @@ export class ImagesSlides extends VideoAbstract<ImagesSlidesParams> {
 
   @ExposeVideoFunction()
   async loadVoices(data: any) {
-    const { voices } = await (
+    const { voices } = (await (
       await fetch(
         'https://api.elevenlabs.io/v2/voices?page_size=40&category=premade',
         {
@@ -251,12 +253,13 @@ export class ImagesSlides extends VideoAbstract<ImagesSlidesParams> {
             'Content-Type': 'application/json',
             'xi-api-key': process.env.ELEVENSLABS_API_KEY || '',
           },
+          signal: AbortSignal.timeout(30_000),
         }
       )
-    ).json();
+    ).json()) as { voices?: any[] };
 
     return {
-      voices: voices.map((voice: any) => ({
+      voices: (Array.isArray(voices) ? voices : []).map((voice: any) => ({
         id: voice.voice_id,
         name: voice.name,
         preview_url: voice.preview_url,
