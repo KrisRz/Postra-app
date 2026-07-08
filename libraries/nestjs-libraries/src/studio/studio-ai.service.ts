@@ -13,7 +13,6 @@ import {
   StudioPlatformKey,
   StudioSpec,
   applyPatch,
-  nextStudioId,
   validatePatchAgainstSpec,
 } from './studio-spec';
 
@@ -144,22 +143,6 @@ const RefinePatchSchema = z.object({
   explanation: z.string().max(200),
 });
 
-const SpecSchema = z.object({
-  background: z.string(),
-  layers: z.array(LayerSchema).max(40),
-});
-
-const VariantsSchema = z.object({
-  variants: z
-    .array(
-      z.object({
-        label: z.string().max(40),
-        spec: SpecSchema,
-      })
-    )
-    .length(3),
-});
-
 const VoiceCheckSchema = z.object({
   score: z.number().min(0).max(100),
   feedback: z.string().max(280),
@@ -176,10 +159,6 @@ export interface BrandVoiceResult {
   score: number;
   feedback: string;
   tags: string[];
-}
-
-export interface VariantsResult {
-  variants: { label: string; spec: StudioSpec }[];
 }
 
 export interface SemanticTemplate {
@@ -276,64 +255,6 @@ Rules:
     return { patch, nextSpec: applyPatch(spec, patch), explanation: parsed.explanation };
   }
 
-  /**
-   * Three layout variants from one structured-output call. Each variant
-   * shares the same brand + background image (DALL-E call happens upstream
-   * in MediaService and is reused), only the text and arrangement differ.
-   */
-  async generateVariants(
-    prompt: string,
-    platform: StudioPlatformKey,
-    brand?: StudioBrandRef
-  ): Promise<VariantsResult> {
-    const size = PLATFORM_SIZES[platform];
-    const system = `You design 3 distinct layout variants for a single social media post idea.
-
-Each variant has the same brand colors but different headline phrasing, layout, and font weight emphasis. Variants must feel meaningfully different — not just nudges of the same layout.
-
-Output rules:
-- Canvas is ${size.width}x${size.height}.
-- Each layer needs a unique id within its spec (no cross-variant collisions OK).
-- Text layers use the brand font family.
-- Keep total layers per variant <= 8.
-- Match the user's language (Polish → Polish copy, English → English).`;
-
-    const userText = [
-      `Idea: ${prompt}`,
-      `Brand: ${JSON.stringify(brand ?? null)}.`,
-      `Return 3 variants labelled e.g. "Bold", "Editorial", "Playful" in the user's language.`,
-    ].join('\n');
-
-    const parsed = (
-      await parseChat(openai, {
-        model: MODEL_GPT,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: userText },
-        ],
-        response_format: zodResponseFormat(VariantsSchema, 'variants'),
-      })
-    ).choices[0].message.parsed;
-
-    if (!parsed) throw new Error('AI returned no variants');
-
-    const variants = parsed.variants.map(
-      (v: { label: string; spec: { background: string; layers: unknown[] } }) => ({
-        label: v.label,
-        spec: {
-          version: 1 as const,
-          platform,
-          width: size.width,
-          height: size.height,
-          background: v.spec.background,
-          brand,
-          layers: v.spec.layers.map(toStudioLayer) as StudioLayer[],
-        },
-      })
-    );
-
-    return { variants };
-  }
 
   /**
    * Score a caption against the user's recent posts + brand tone. Used in
@@ -426,79 +347,6 @@ Keep the SAME language as the input. Preserve important facts, @mentions, #hasht
 
     if (!parsed) throw new Error('AI returned no edited text');
     return { text: parsed.text };
-  }
-
-  /**
-   * Decompose an uploaded image into editable Fabric layers. GPT-4o vision
-   * estimates bounding boxes + text content. We deliberately keep the
-   * uploaded image as a single background layer (raster, not vectorised).
-   */
-  async decomposeImage(
-    imageDataUrl: string,
-    platform: StudioPlatformKey,
-    brand?: StudioBrandRef
-  ): Promise<StudioSpec> {
-    const size = PLATFORM_SIZES[platform];
-
-    const DecomposeSchema = z.object({
-      background: z.string().describe('hex color of the dominant background'),
-      hasBackgroundImage: z.boolean(),
-      layers: z.array(LayerSchema).max(12),
-    });
-
-    const system = `You extract editable text and shape layers from a flat social media graphic.
-
-Rules:
-- Output canvas is ${size.width}x${size.height}. Scale layer coords into that range.
-- Detect text blocks. For each: estimate fontSize relative to width (~width * 0.04 to 0.12), pick "fontFamily" from {"Geist","Inter","Bebas Neue","Playfair Display"} based on visual style.
-- Detect simple shape elements (badges, dividers). Skip complex illustrations.
-- If background is a photo, set hasBackgroundImage=true and pick a fallback bg hex from the image's dominant edge color.
-- Reply in the language of any visible text. Layer ids start with "ext_".`;
-
-    const parsed = (
-      await parseChat(openai, {
-        model: MODEL_VISION,
-        messages: [
-          { role: 'system', content: system },
-          {
-            role: 'user',
-            content: [
-              { type: 'text', text: 'Decompose this image.' },
-              { type: 'image_url', image_url: { url: imageDataUrl } },
-            ],
-          },
-        ],
-        response_format: zodResponseFormat(DecomposeSchema, 'decompose'),
-      })
-    ).choices[0].message.parsed;
-
-    if (!parsed) throw new Error('AI returned no decomposition');
-
-    const layers: StudioLayer[] = parsed.layers.map(toStudioLayer) as StudioLayer[];
-
-    if (parsed.hasBackgroundImage) {
-      layers.unshift({
-        id: nextStudioId('bg'),
-        kind: 'image',
-        x: size.width / 2,
-        y: size.height / 2,
-        originX: 'center',
-        originY: 'center',
-        width: size.width,
-        height: size.height,
-        src: imageDataUrl,
-      });
-    }
-
-    return {
-      version: 1,
-      platform,
-      width: size.width,
-      height: size.height,
-      background: parsed.background,
-      brand,
-      layers,
-    };
   }
 
   async embedText(text: string): Promise<number[]> {
