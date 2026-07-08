@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { Organization, ShortLinkPreference } from '@prisma/client';
 import { AutopostService } from '@gitroom/nestjs-libraries/database/prisma/autopost/autopost.service';
+import { bustAuthContextCacheForUsers } from '@gitroom/nestjs-libraries/redis/auth-context.cache';
 
 @Injectable()
 export class OrganizationService {
@@ -113,11 +114,21 @@ export class OrganizationService {
     return this._organizationRepository.deleteTeamMember(org.id, userId);
   }
 
-  disableOrEnableNonSuperAdminUsers(orgId: string, disable: boolean) {
-    return this._organizationRepository.disableOrEnableNonSuperAdminUsers(
-      orgId,
-      disable
-    );
+  async disableOrEnableNonSuperAdminUsers(orgId: string, disable: boolean) {
+    // Capture who's affected BEFORE the toggle (disable flips them all; the
+    // set is the same either way since SUPERADMINs are excluded), so we can
+    // drop their cached auth-context right after.
+    const affectedUserIds =
+      await this._organizationRepository.getNonSuperAdminMemberIds(orgId);
+    const result =
+      await this._organizationRepository.disableOrEnableNonSuperAdminUsers(
+        orgId,
+        disable
+      );
+    // Subscription downgrade/cancel and admin bulk-disable both land here — bust
+    // the members' 30s auth-context cache so the permission change is immediate.
+    await bustAuthContextCacheForUsers(affectedUserIds);
+    return result;
   }
 
   getShortlinkPreference(orgId: string) {

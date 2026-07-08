@@ -8,14 +8,14 @@ import { getCookieUrlFromDomain } from '@gitroom/helpers/subdomain/subdomain.man
 import { HttpForbiddenException } from '@gitroom/nestjs-libraries/services/exception.filter';
 import { MastraService } from '@gitroom/nestjs-libraries/chat/mastra.service';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+import {
+  AUTH_CACHE_TTL_SECONDS,
+  authContextCacheKey,
+  bustAuthContextCache,
+} from '@gitroom/nestjs-libraries/redis/auth-context.cache';
 
-// user+orgs resolution runs on EVERY authenticated request (two joined
-// queries); cache briefly per user. 30s bounds staleness of permission
-// changes (disabled member, revoked org) to a window we accept pre-launch.
-const AUTH_CACHE_TTL_SECONDS = 30;
-export const authContextCacheKey = (userId: string) => `authctx:${userId}`;
-export const bustAuthContextCache = (userId: string) =>
-  ioRedis.del(authContextCacheKey(userId)).catch(() => {});
+// Re-exported so existing callers keep importing the buster from the middleware.
+export { authContextCacheKey, bustAuthContextCache };
 
 export const removeAuth = (res: Response) => {
   res.cookie('auth', '', {
