@@ -401,6 +401,22 @@ export class OrganizationRepository {
     });
   }
 
+  // The user ids the toggle above affects — used to invalidate their cached
+  // auth-context so a disable/enable takes effect immediately, not after the
+  // cache TTL.
+  async getNonSuperAdminMemberIds(orgId: string): Promise<string[]> {
+    const rows = await this._userOrg.model.userOrganization.findMany({
+      where: {
+        organizationId: orgId,
+        role: {
+          not: Role.SUPERADMIN,
+        },
+      },
+      select: { userId: true },
+    });
+    return rows.map((r) => r.userId);
+  }
+
   getShortlinkPreference(orgId: string) {
     return this._organization.model.organization.findUnique({
       where: {
