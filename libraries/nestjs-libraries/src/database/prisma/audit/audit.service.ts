@@ -6,7 +6,6 @@ export type AuditAction =
   | 'auth.login.failed'
   | 'auth.register'
   | 'auth.password.reset'
-  | 'auth.password.change'
   | 'admin.impersonate'
   | 'integration.connect'
   | 'integration.disconnect'
