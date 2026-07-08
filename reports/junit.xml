@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="14" failures="0" errors="0" time="0.157">
-  <testsuite name="customFetch" errors="0" failures="0" skipped="0" timestamp="2026-07-07T23:23:23" time="0.097" tests="6">
+<testsuites name="jest tests" tests="14" failures="0" errors="0" time="0.187">
+  <testsuite name="customFetch" errors="0" failures="0" skipped="0" timestamp="2026-07-08T15:11:55" time="0.116" tests="6">
     <testcase classname="customFetch resolves with the response when there is no afterRequest hook" name="customFetch resolves with the response when there is no afterRequest hook" time="0.002">
     </testcase>
-    <testcase classname="customFetch resolves with the response when afterRequest approves it" name="customFetch resolves with the response when afterRequest approves it" time="0">
+    <testcase classname="customFetch resolves with the response when afterRequest approves it" name="customFetch resolves with the response when afterRequest approves it" time="0.001">
     </testcase>
     <testcase classname="customFetch rejects a globally-handled 406 with FetchHandledError instead of hanging" name="customFetch rejects a globally-handled 406 with FetchHandledError instead of hanging" time="0">
     </testcase>
@@ -11,11 +11,11 @@
     </testcase>
     <testcase classname="customFetch does not impose its own timeout when the caller passes a signal" name="customFetch does not impose its own timeout when the caller passes a signal" time="0">
     </testcase>
-    <testcase classname="customFetch aborts and rejects with FetchTimeoutError after the timeout (no caller signal)" name="customFetch aborts and rejects with FetchTimeoutError after the timeout (no caller signal)" time="0.003">
+    <testcase classname="customFetch aborts and rejects with FetchTimeoutError after the timeout (no caller signal)" name="customFetch aborts and rejects with FetchTimeoutError after the timeout (no caller signal)" time="0.002">
     </testcase>
   </testsuite>
-  <testsuite name="readResponseError" errors="0" failures="0" skipped="0" timestamp="2026-07-07T23:23:23" time="0.01" tests="6">
-    <testcase classname="readResponseError returns a NestJS-style string message" name="readResponseError returns a NestJS-style string message" time="0">
+  <testsuite name="readResponseError" errors="0" failures="0" skipped="0" timestamp="2026-07-08T15:11:55" time="0.012" tests="6">
+    <testcase classname="readResponseError returns a NestJS-style string message" name="readResponseError returns a NestJS-style string message" time="0.001">
     </testcase>
     <testcase classname="readResponseError joins a NestJS-style string[] message" name="readResponseError joins a NestJS-style string[] message" time="0">
     </testcase>
@@ -28,8 +28,8 @@
     <testcase classname="readResponseError never throws, even if reading the text also fails" name="readResponseError never throws, even if reading the text also fails" time="0">
     </testcase>
   </testsuite>
-  <testsuite name="FetchHandledError" errors="0" failures="0" skipped="0" timestamp="2026-07-07T23:23:23" time="0.009" tests="2">
-    <testcase classname="FetchHandledError is an Error that carries the status and a handled marker" name="FetchHandledError is an Error that carries the status and a handled marker" time="0.001">
+  <testsuite name="FetchHandledError" errors="0" failures="0" skipped="0" timestamp="2026-07-08T15:11:55" time="0.009" tests="2">
+    <testcase classname="FetchHandledError is an Error that carries the status and a handled marker" name="FetchHandledError is an Error that carries the status and a handled marker" time="0">
     </testcase>
     <testcase classname="FetchTimeoutError is an Error that names itself and keeps the url" name="FetchTimeoutError is an Error that names itself and keeps the url" time="0">
     </testcase>
