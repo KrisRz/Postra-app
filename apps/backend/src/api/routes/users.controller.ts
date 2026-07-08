@@ -173,10 +173,11 @@ export class UsersController {
 
   @Post('/personal')
   async changePersonal(
+    @GetOrgFromRequest() organization: Organization,
     @GetUserFromRequest() user: User,
     @Body() body: UserDetailDto
   ) {
-    return this._userService.changePersonal(user.id, body);
+    return this._userService.changePersonal(user.id, organization.id, body);
   }
 
   @Get('/email-notifications')

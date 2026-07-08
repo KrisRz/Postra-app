@@ -1,5 +1,5 @@
 import { PrismaRepository } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Provider } from '@prisma/client';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import { UserDetailDto } from '@gitroom/nestjs-libraries/dtos/users/user.details.dto';
@@ -7,7 +7,10 @@ import { EmailNotificationsDto } from '@gitroom/nestjs-libraries/dtos/users/emai
 
 @Injectable()
 export class UsersRepository {
-  constructor(private _user: PrismaRepository<'user'>) {}
+  constructor(
+    private _user: PrismaRepository<'user'>,
+    private _media: PrismaRepository<'media'>
+  ) {}
 
   getImpersonateUser(name: string) {
     return this._user.model.user.findMany({
@@ -137,7 +140,19 @@ export class UsersRepository {
     return user;
   }
 
-  async changePersonal(userId: string, body: UserDetailDto) {
+  async changePersonal(userId: string, orgId: string, body: UserDetailDto) {
+    // Media is connected by id only, so without this check a user could point
+    // their avatar at another org's media row (IDOR). Confirm ownership first.
+    if (body.picture?.id) {
+      const owned = await this._media.model.media.findFirst({
+        where: { id: body.picture.id, organizationId: orgId },
+        select: { id: true },
+      });
+      if (!owned) {
+        throw new ForbiddenException('Picture not found');
+      }
+    }
+
     await this._user.model.user.update({
       where: {
         id: userId,
