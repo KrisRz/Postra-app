@@ -144,11 +144,19 @@ model User {
 
 model UsedCodes {
   id           String       @id @default(uuid())
-  code         String       @unique
+  // NOTE: `code` was briefly `@unique` (double-redeem race guard). Reverted:
+  // boot runs `prisma db push` WITHOUT `--accept-data-loss` (removed on purpose
+  // to prevent silent column drops), and Prisma flags adding a unique
+  // constraint as data-loss — so db push refuses and the app never boots (prod
+  // 502). Re-introduce uniqueness via a proper versioned migration (+ dedupe),
+  // not db push. Double-redeem is still bounded by the getCode pre-check.
+  code         String
   orgId        String
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([code])
 }
 
 model UserOrganization {
