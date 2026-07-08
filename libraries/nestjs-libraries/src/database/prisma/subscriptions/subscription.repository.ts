@@ -301,7 +301,10 @@ export class SubscriptionRepository {
           // row and both pass the limit check (overspend by up to N-1). The
           // advisory xact lock (auto-released on commit/rollback) makes the
           // loser wait, then see the winner's committed row in the aggregate.
-          await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`credits:${org.id}`})::bigint)`;
+          // The ::text cast is load-bearing: pg_advisory_xact_lock returns
+          // void, which Prisma's $queryRaw cannot deserialize (P2010 on every
+          // call — took prod AI down on 2026-07-08).
+          await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`credits:${org.id}`})::bigint)::text`;
           const row = await tx.credits.create({
             data: {
               organizationId: org.id,
