@@ -6,6 +6,8 @@ import { writeFile, unlink, readFile } from 'fs/promises';
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
 import pLimit from 'p-limit';
+import { fetch } from 'undici';
+import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
 
 // ffmpeg transcodes run inside the HTTP request on a small box — serialize
 // them per process (pm2 runs 3 workers) so concurrent requests can't
@@ -50,7 +52,11 @@ export class CaptionsService {
     const audioPath = join(tmpdir(), `cap-audio-${id}.mp3`);
 
     try {
-      const res = await fetch(videoUrl, { signal: AbortSignal.timeout(60_000) });
+      const res = await fetch(videoUrl, {
+        signal: AbortSignal.timeout(60_000),
+        // @ts-ignore — undici option, not in lib.dom fetch types
+        dispatcher: ssrfSafeDispatcher,
+      });
       if (!res.ok) {
         throw new HttpException(`Failed to download source video (${res.status})`, 502);
       }
@@ -87,7 +93,11 @@ export class CaptionsService {
     const outputPath = join(tmpdir(), `burn-out-${id}.mp4`);
 
     try {
-      const res = await fetch(videoUrl, { signal: AbortSignal.timeout(60_000) });
+      const res = await fetch(videoUrl, {
+        signal: AbortSignal.timeout(60_000),
+        // @ts-ignore — undici option, not in lib.dom fetch types
+        dispatcher: ssrfSafeDispatcher,
+      });
       if (!res.ok) {
         throw new HttpException(`Failed to download source video (${res.status})`, 502);
       }
