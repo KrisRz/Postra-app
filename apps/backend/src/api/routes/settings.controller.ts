@@ -7,6 +7,7 @@ import { AddTeamMemberDto } from '@gitroom/nestjs-libraries/dtos/settings/add.te
 import { ShortlinkPreferenceDto } from '@gitroom/nestjs-libraries/dtos/settings/shortlink-preference.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthorizationActions, Sections } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
+import { bustAuthContextCache } from '@gitroom/backend/services/auth/auth.middleware';
 
 @ApiTags('Settings')
 @Controller('/settings')
@@ -41,11 +42,15 @@ export class SettingsController {
     [AuthorizationActions.Create, Sections.TEAM_MEMBERS],
     [AuthorizationActions.Create, Sections.ADMIN]
   )
-  deleteTeamMember(
+  async deleteTeamMember(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string
   ) {
-    return this._organizationService.deleteTeamMember(org, id);
+    const result = await this._organizationService.deleteTeamMember(org, id);
+    // The removed member's org list lives in the 30s auth-context cache — drop
+    // it so they lose access to this org immediately, not up to 30s later.
+    await bustAuthContextCache(id);
+    return result;
   }
 
   @Get('/shortlink')

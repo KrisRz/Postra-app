@@ -46,8 +46,8 @@ export class UsersService {
     return this._usersRepository.getPersonal(userId);
   }
 
-  changePersonal(userId: string, body: UserDetailDto) {
-    return this._usersRepository.changePersonal(userId, body);
+  changePersonal(userId: string, orgId: string, body: UserDetailDto) {
+    return this._usersRepository.changePersonal(userId, orgId, body);
   }
 
   getEmailNotifications(userId: string) {
