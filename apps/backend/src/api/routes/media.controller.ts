@@ -39,9 +39,9 @@ import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import {
   BrandVoiceCheckDto,
   AiEditTextDto,
-  DecomposeImageDto,
-  GenerateVariantsDto,
   RefineDesignDto,
+  SaveCanvasJsonDto,
+  SaveDesignSpecDto,
   TemplateSearchDto,
 } from '@gitroom/nestjs-libraries/studio/studio.dto';
 import { StudioSpec } from '@gitroom/nestjs-libraries/studio/studio-spec';
@@ -143,7 +143,7 @@ export class MediaController {
   saveCanvasJson(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,
-    @Body() body: { canvasJson: string }
+    @Body() body: SaveCanvasJsonDto
   ) {
     return this._mediaService.saveCanvasJson(org.id, id, body.canvasJson);
   }
@@ -305,16 +305,6 @@ export class MediaController {
     return this._mediaService.refineDesign(org, body);
   }
 
-  @Post('/generate-variants')
-  @Throttle({ default: { ttl: 300000, limit: 15 } })
-  @UseGuards(AccountAgeGuard)
-  generateVariants(
-    @GetOrgFromRequest() org: Organization,
-    @Body() body: GenerateVariantsDto
-  ) {
-    return this._mediaService.generateVariants(org, body);
-  }
-
   @Post('/brand-voice-check')
   @Throttle({ default: { ttl: 300000, limit: 30 } })
   @UseGuards(AccountAgeGuard)
@@ -335,16 +325,6 @@ export class MediaController {
     return this._mediaService.aiEditText(org, body);
   }
 
-  @Post('/decompose-image')
-  @Throttle({ default: { ttl: 300000, limit: 15 } })
-  @UseGuards(AccountAgeGuard)
-  decomposeImage(
-    @GetOrgFromRequest() org: Organization,
-    @Body() body: DecomposeImageDto
-  ) {
-    return this._mediaService.decomposeImage(org, body);
-  }
-
   @Post('/search-templates')
   @Throttle({ default: { ttl: 300000, limit: 60 } })
   searchTemplates(@Body() body: TemplateSearchDto) {
@@ -356,9 +336,9 @@ export class MediaController {
   saveDesignSpec(
     @GetOrgFromRequest() org: Organization,
     @Param('id') id: string,
-    @Body() body: { spec: StudioSpec }
+    @Body() body: SaveDesignSpecDto
   ) {
-    return this._mediaService.saveDesignSpec(org.id, id, body.spec);
+    return this._mediaService.saveDesignSpec(org.id, id, body.spec as StudioSpec);
   }
 
   @Post('/upload-server')

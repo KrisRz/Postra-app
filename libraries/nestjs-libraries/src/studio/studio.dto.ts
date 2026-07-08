@@ -10,17 +10,6 @@ import {
   MinLength,
 } from 'class-validator';
 
-const PLATFORMS = [
-  'instagram-feed',
-  'instagram-square',
-  'instagram-story',
-  'facebook',
-  'linkedin',
-  'tiktok',
-  'x',
-  'custom',
-] as const;
-
 export class RefineDesignDto {
   @IsObject()
   @IsDefined()
@@ -36,19 +25,6 @@ export class RefineDesignDto {
   @IsOptional()
   @MaxLength(2_000_000)
   screenshot?: string;
-}
-
-export class GenerateVariantsDto {
-  @IsString()
-  @IsDefined()
-  @MinLength(3)
-  @MaxLength(500)
-  prompt: string;
-
-  @IsString()
-  @IsDefined()
-  @IsIn(PLATFORMS as unknown as string[])
-  platform: string;
 }
 
 export class BrandVoiceCheckDto {
@@ -85,19 +61,24 @@ export class AiEditTextDto {
   platform?: string;
 }
 
-export class DecomposeImageDto {
+// Studio persistence. Both bodies were previously typed as inline object
+// literals, so the global ValidationPipe skipped them and only the 25 MB
+// byte-cap applied. These DTOs give the pipe a class to validate; the
+// canvas-JSON shape (Fabric) and spec shape (StudioSpec) are checked in the
+// service where the parsed value is available.
+export class SaveCanvasJsonDto {
   @IsString()
   @IsDefined()
-  // Magic Layers (frontend) allows up to 4 MB images; base64 inflates ~4/3,
-  // so a 4 MB image is ~5.6M chars. The old 2M cap rejected anything over
-  // ~1.5 MB with a 400. 8M covers the 4 MB frontend cap (body limit is 50mb).
-  @MaxLength(8_000_000)
-  imageDataUrl: string;
+  // Fabric toJSON() for a busy canvas is large but bounded well under the
+  // 25 MB body cap; 24M chars keeps a little headroom.
+  @MaxLength(24_000_000)
+  canvasJson: string;
+}
 
-  @IsString()
+export class SaveDesignSpecDto {
+  @IsObject()
   @IsDefined()
-  @IsIn(PLATFORMS as unknown as string[])
-  platform: string;
+  spec: unknown;
 }
 
 export class TemplateSearchEntryDto {

@@ -19,12 +19,10 @@ import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import {
   StudioAiService,
   BrandVoiceResult,
-  VariantsResult,
   rankBySimilarity,
 } from '@gitroom/nestjs-libraries/studio/studio-ai.service';
 import {
   StudioPatch,
-  StudioPlatformKey,
   StudioSpec,
 } from '@gitroom/nestjs-libraries/studio/studio-spec';
 import { DesignRenderService } from '@gitroom/nestjs-libraries/studio/design-render.service';
@@ -32,8 +30,6 @@ import { platformDesignSize } from '@gitroom/nestjs-libraries/studio/post-design
 import {
   BrandVoiceCheckDto,
   AiEditTextDto,
-  DecomposeImageDto,
-  GenerateVariantsDto,
   RefineDesignDto,
   TemplateSearchDto,
 } from '@gitroom/nestjs-libraries/studio/studio.dto';
@@ -324,6 +320,24 @@ export class MediaService {
   }
 
   async saveCanvasJson(org: string, id: string, canvasJson: string) {
+    // The controller DTO bounds the size; here we confirm it's actually a
+    // Fabric canvas (top-level object with an `objects` array) before storing
+    // it, so a garbage string can't be persisted and then crash the editor on
+    // load.
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(canvasJson);
+    } catch {
+      throw new HttpException('Invalid canvas JSON', 400);
+    }
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      !Array.isArray((parsed as { objects?: unknown }).objects)
+    ) {
+      throw new HttpException('Invalid canvas JSON', 400);
+    }
+
     return this._mediaRepository.saveCanvasJson(org, id, canvasJson);
   }
 
@@ -527,56 +541,6 @@ export class MediaService {
     });
   }
 
-  async generateVariants(
-    org: Organization,
-    body: GenerateVariantsDto
-  ): Promise<VariantsResult & { backgroundUrl: string | null; cacheHit: boolean }> {
-    await this.requireAiImageCredit(org);
-    const brandKit = (await this._brandKitService.getNormalized(org.id)) ?? undefined;
-    const brand = brandKit
-      ? {
-          primary: brandKit.colors.primary,
-          secondary: brandKit.colors.secondary,
-          text: brandKit.colors.text,
-          fontFamily: brandKit.font,
-          tone: brandKit.tone,
-        }
-      : undefined;
-
-    return this._subscriptionService.useCredit(org, 'ai_images', async () => {
-      const variants = await this._studioAi.generateVariants(
-        body.prompt,
-        body.platform as StudioPlatformKey,
-        brand
-      );
-
-      const cacheKey = `bg:variants:${createHash('md5')
-        .update(body.prompt.trim().toLowerCase())
-        .digest('hex')}`;
-      let backgroundUrl = await ioRedis.get(cacheKey);
-      const cacheHit = !!backgroundUrl;
-
-      if (!backgroundUrl) {
-        try {
-          const generated = await this._openAi.generateImage(
-            `Social media background for: ${body.prompt}. Empty space for text overlay, dark gradient at bottom, modern minimal, no text in image.`,
-            true
-          );
-          backgroundUrl = generated
-            ? await this.storage.uploadSimple(generated)
-            : null;
-          if (backgroundUrl) {
-            await ioRedis.set(cacheKey, backgroundUrl, 'EX', POST_DESIGN_BG_CACHE_TTL);
-          }
-        } catch (err) {
-          console.warn('Variants background generation failed', err);
-        }
-      }
-
-      return { ...variants, backgroundUrl: backgroundUrl ?? null, cacheHit };
-    });
-  }
-
   async checkBrandVoice(
     org: Organization,
     body: BrandVoiceCheckDto
@@ -619,31 +583,6 @@ export class MediaService {
         platform: body.platform,
         tone: brandKit?.tone,
       })
-    );
-  }
-
-  async decomposeImage(
-    org: Organization,
-    body: DecomposeImageDto
-  ): Promise<StudioSpec> {
-    await this.requireAiImageCredit(org);
-    const brandKit = (await this._brandKitService.getNormalized(org.id)) ?? undefined;
-    const brand = brandKit
-      ? {
-          primary: brandKit.colors.primary,
-          secondary: brandKit.colors.secondary,
-          text: brandKit.colors.text,
-          fontFamily: brandKit.font,
-          tone: brandKit.tone,
-        }
-      : undefined;
-
-    return this._subscriptionService.useCredit(org, 'ai_images', () =>
-      this._studioAi.decomposeImage(
-        body.imageDataUrl,
-        body.platform as StudioPlatformKey,
-        brand
-      )
     );
   }
 
@@ -691,6 +630,12 @@ export class MediaService {
   }
 
   saveDesignSpec(org: string, mediaId: string, spec: StudioSpec) {
+    // Same light guard refineSpec uses: a StudioSpec must carry a bounded
+    // `layers` array. The controller DTO only proves it's an object.
+    const layers = (spec as { layers?: unknown })?.layers;
+    if (!Array.isArray(layers) || layers.length > 200) {
+      throw new HttpException('Invalid design spec', 400);
+    }
     return this._mediaRepository.saveDesignSpec(org, mediaId, spec);
   }
 
