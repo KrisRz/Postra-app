@@ -11,7 +11,8 @@ export type AuditAction =
   | 'integration.connect'
   | 'integration.disconnect'
   | 'subscription.change'
-  | 'subscription.delete';
+  | 'subscription.delete'
+  | 'security.apikey.rotate';
 
 export interface AuditEntry {
   action: AuditAction;

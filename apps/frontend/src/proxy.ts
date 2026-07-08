@@ -172,7 +172,7 @@ export async function proxy(request: NextRequest) {
 
     return topResponse;
   } catch (err) {
-    console.log('err', err);
+    console.error('[Postra:proxy] request failed, redirecting to logout', err);
     return NextResponse.redirect(new URL('/auth/logout', nextUrl.href));
   }
 }

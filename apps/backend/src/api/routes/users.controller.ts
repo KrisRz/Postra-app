@@ -34,6 +34,7 @@ import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { AuthorizationActions, Sections } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
 import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mobile-push/mobile.push.service';
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
+import { bustAuthContextCache } from '@gitroom/backend/services/auth/auth.middleware';
 
 @ApiTags('User')
 @Controller('/user')
@@ -193,8 +194,20 @@ export class UsersController {
 
   @Post('/api-key/rotate')
   @CheckPolicies([AuthorizationActions.Create, Sections.ADMIN])
-  async rotateApiKey(@GetOrgFromRequest() organization: Organization) {
-    return this._orgService.updateApiKey(organization.id);
+  async rotateApiKey(
+    @GetOrgFromRequest() organization: Organization,
+    @GetUserFromRequest() user: User
+  ) {
+    const result = await this._orgService.updateApiKey(organization.id);
+    this._auditService.record({
+      action: 'security.apikey.rotate',
+      userId: user.id,
+      organizationId: organization.id,
+    });
+    // The old key lives in the 30s auth-context cache — drop it so the
+    // rotation takes effect immediately.
+    await bustAuthContextCache(user.id);
+    return result;
   }
 
   @Get('/subscription')

@@ -195,12 +195,28 @@ export class AutopostService {
     return data;
   }
 
+  // rss-parser's parseURL uses its own HTTP client that re-resolves DNS and
+  // follows redirects, so the isSafePublicHttpsUrl pre-check can be defeated by
+  // a redirect to an internal host or a DNS-rebind. Fetch the body ourselves
+  // through the SSRF-pinned dispatcher (no redirects, timeout) and parse the
+  // string, matching the guarantees of the other autopost fetches.
+  private async fetchFeed(url: string) {
+    const res = await fetch(url, {
+      dispatcher: ssrfSafeDispatcher,
+      redirect: 'error',
+      signal: AbortSignal.timeout(10000),
+      headers: { accept: 'application/rss+xml, application/xml, text/xml, */*' },
+    });
+    const body = await res.text();
+    return parser.parseString(body);
+  }
+
   async loadXML(url: string) {
     try {
       if (!(await isSafePublicHttpsUrl(url))) {
         return { success: false };
       }
-      const { items } = await parser.parseURL(url);
+      const { items } = await this.fetchFeed(url);
       if (!items?.length) {
         return { success: false };
       }
@@ -268,7 +284,7 @@ export class AutopostService {
       if (!(await isSafePublicHttpsUrl(url))) {
         return [];
       }
-      const { items } = await parser.parseURL(url);
+      const { items } = await this.fetchFeed(url);
       const valid = (items || []).filter((i: any) => i?.link);
       if (!valid.length) {
         return [];

@@ -83,13 +83,13 @@ export const NotificationOpenComponent = () => {
             <ReactLoading type="spin" color="#fff" width={36} height={36} />
           </div>
         )}
-        {!isLoading && !data.notifications.length && (
+        {!isLoading && !data?.notifications?.length && (
           <div className="text-center p-[16px] text-textColor flex-1 flex justify-center items-center mt-[20px]">
             {t('no_notifications', 'No notifications')}
           </div>
         )}
         {!isLoading &&
-          data.notifications.map(
+          (data?.notifications || []).map(
             (
               notification: {
                 createdAt: string;

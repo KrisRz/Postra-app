@@ -296,6 +296,12 @@ export class SubscriptionRepository {
     // usage row and counting inside one transaction makes the loser roll back.
     const data = enforce
       ? await this._prismaTransaction.model.$transaction(async (tx) => {
+          // Serialize credit reservations for this org: READ COMMITTED alone
+          // lets two concurrent txns each miss the other's uncommitted usage
+          // row and both pass the limit check (overspend by up to N-1). The
+          // advisory xact lock (auto-released on commit/rollback) makes the
+          // loser wait, then see the winner's committed row in the aggregate.
+          await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${`credits:${org.id}`})::bigint)`;
           const row = await tx.credits.create({
             data: {
               organizationId: org.id,
