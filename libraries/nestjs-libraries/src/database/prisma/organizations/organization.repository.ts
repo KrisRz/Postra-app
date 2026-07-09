@@ -204,6 +204,18 @@ export class OrganizationRepository {
     });
   }
 
+  // Active membership row for (user, org), or null. Used to authorize the
+  // OAuth connect callback against the session user (see no.auth controller).
+  getUserOrgMembership(userId: string, organizationId: string) {
+    return this._userOrg.model.userOrganization.findFirst({
+      where: {
+        userId,
+        organizationId,
+        disabled: false,
+      },
+    });
+  }
+
   async addUserToOrg(
     userId: string,
     id: string,
