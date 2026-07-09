@@ -6,8 +6,10 @@ import {
   Logger,
   Param,
   Post,
+  Req,
   UseFilters,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 import { ConnectIntegrationDto } from '@gitroom/nestjs-libraries/dtos/integrations/connect.integration.dto';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
@@ -45,7 +47,8 @@ export class NoAuthIntegrationsController {
   @UseFilters(new NotEnoughScopesFilter())
   async connectSocialMedia(
     @Param('integration') integration: string,
-    @Body() body: ConnectIntegrationDto
+    @Body() body: ConnectIntegrationDto,
+    @Req() req: Request
   ) {
     if (
       !this._integrationManager
@@ -68,6 +71,40 @@ export class NoAuthIntegrationsController {
     const organization = await ioRedis.get(`organization:${body.state}`);
     if (!organization) {
       throw new Error('Organization not found');
+    }
+
+    // SECURITY: this route is unauthenticated by design (the OAuth provider
+    // redirects the browser here), so the target org comes from Redis keyed by
+    // `state`. Without binding the callback to the completing session, an
+    // attacker could mint a `state` for their own org, send the provider's
+    // authorize URL to a victim, and have the victim's channel connected into
+    // the attacker's org (login-CSRF / channel hijack). Require an authenticated
+    // session and verify it is a member of the org the channel connects to —
+    // the victim is not a member of the attacker's org, so the flow is rejected.
+    const authToken = (req.headers.auth as string) || req.cookies?.auth;
+    let sessionUser: { id?: string } | null = null;
+    try {
+      sessionUser = authToken
+        ? (AuthService.verifyJWT(authToken) as { id?: string })
+        : null;
+    } catch {
+      sessionUser = null;
+    }
+    if (!sessionUser?.id) {
+      throw new HttpException(
+        'You must be signed in to connect a channel',
+        401
+      );
+    }
+    const membership = await this._organizationService.getUserOrgMembership(
+      sessionUser.id,
+      organization
+    );
+    if (!membership) {
+      throw new HttpException(
+        'This connection does not belong to your organization',
+        403
+      );
     }
 
     const org = await this._organizationService.getOrgById(organization);
