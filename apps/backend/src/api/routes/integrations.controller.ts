@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   Logger,
   Param,
   Post,
@@ -211,6 +212,24 @@ export class IntegrationsController {
         .includes(integration)
     ) {
       throw new Error('Integration not allowed');
+    }
+
+    // Per-tier platform gating. Only when billing is on (billing off ⇒ every
+    // platform); skipped on reconnect (`refresh`) so an existing channel can
+    // always be re-authenticated even if it now sits above the org's tier.
+    // The tier's allowedProviders list is the single source of truth
+    // (edit it in pricing.ts to move a platform between plans).
+    if (process.env.STRIPE_PUBLISHABLE_KEY && !refresh) {
+      // @ts-ignore subscription is attached to the org by the auth middleware
+      const tier = org?.subscription?.subscriptionTier || 'FREE';
+      const allowed =
+        pricing[tier]?.allowedProviders || pricing.FREE.allowedProviders;
+      if (!allowed.includes(integration)) {
+        throw new HttpException(
+          `The ${integration} channel isn't included in your plan — upgrade to connect it.`,
+          402
+        );
+      }
     }
 
     const integrationProvider =
