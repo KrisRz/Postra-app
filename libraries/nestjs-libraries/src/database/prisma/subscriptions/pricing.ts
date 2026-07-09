@@ -3,6 +3,14 @@ export interface PricingInnerInterface {
   month_price: number;
   year_price: number;
   channel?: number;
+  // Platform identifiers a tier may connect. `channel` still caps the TOTAL
+  // number of channels; this caps WHICH platforms unlock. Enforced at connect
+  // (integrations.controller.getIntegrationUrl) and on downgrade
+  // (subscription.service.modifySubscription). Edit this list to move a
+  // platform between tiers. NOTE: a platform must ALSO be in
+  // integration.manager `enabledProviders` to appear in the picker — e.g. `x`
+  // is listed for ULTIMATE here but stays hidden until enabled globally.
+  allowedProviders: string[];
   posts_per_month: number;
   team_members: boolean;
   community_features: boolean;
@@ -23,12 +31,31 @@ export interface PricingInnerInterface {
 export interface PricingInterface {
   [key: string]: PricingInnerInterface;
 }
+// Per-tier platform entitlements. Each tier includes the one below it plus a
+// few more. `linkedin-page` rides with `linkedin` (same LinkedIn entitlement).
+const STARTER_PROVIDERS = ['facebook', 'instagram', 'tiktok'];
+const PRO_PROVIDERS = [
+  ...STARTER_PROVIDERS,
+  'threads',
+  'youtube',
+  'linkedin',
+  'linkedin-page',
+];
+const BUSINESS_PROVIDERS = [
+  ...PRO_PROVIDERS,
+  'mastodon',
+  'bluesky',
+  'telegram',
+  'x',
+];
+
 export const pricing: PricingInterface = {
   FREE: {
     current: 'FREE',
     month_price: 0,
     year_price: 0,
     channel: 2,
+    allowedProviders: STARTER_PROVIDERS,
     image_generation_count: 0,
     posts_per_month: 0,
     team_members: false,
@@ -48,6 +75,7 @@ export const pricing: PricingInterface = {
     month_price: 12,
     year_price: 120,
     channel: 3,
+    allowedProviders: STARTER_PROVIDERS,
     posts_per_month: 400,
     image_generation_count: 30,
     team_members: false,
@@ -62,11 +90,14 @@ export const pricing: PricingInterface = {
     autoPostLimit: 0,
     generate_videos: 3,
   },
+  // Legacy, not purchasable (removed from BillingSubscribeDto). Kept so any
+  // existing/grandfathered TEAM subscription still resolves.
   TEAM: {
     current: 'TEAM',
     month_price: 39,
     year_price: 374,
     channel: 10,
+    allowedProviders: BUSINESS_PROVIDERS,
     posts_per_month: 1000000,
     image_generation_count: 100,
     community_features: true,
@@ -85,7 +116,8 @@ export const pricing: PricingInterface = {
     current: 'PRO',
     month_price: 29,
     year_price: 290,
-    channel: 5,
+    channel: 6,
+    allowedProviders: PRO_PROVIDERS,
     posts_per_month: 1000000,
     image_generation_count: 150,
     community_features: true,
@@ -104,7 +136,8 @@ export const pricing: PricingInterface = {
     current: 'ULTIMATE',
     month_price: 79,
     year_price: 790,
-    channel: 5,
+    channel: 10,
+    allowedProviders: BUSINESS_PROVIDERS,
     posts_per_month: 1000000,
     image_generation_count: 600,
     community_features: true,

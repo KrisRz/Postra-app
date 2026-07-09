@@ -200,10 +200,27 @@ export class SubscriptionService {
       )
     ).filter((f) => !f.disabled);
 
-    if (currentTotalChannels.length > totalChannels) {
+    // Platform gating: disable any active channel whose platform is not allowed
+    // on the new tier (e.g. downgrading Business→Pro drops X / Mastodon /
+    // Bluesky / Telegram). Do this before the count cap so the remaining set is
+    // the keepers.
+    const disallowedByPlatform = currentTotalChannels.filter(
+      (c) => !to.allowedProviders.includes(c.providerIdentifier)
+    );
+    for (const channel of disallowedByPlatform) {
+      await this._integrationService.disableChannel(
+        getOrgByCustomerId?.id!,
+        channel.id
+      );
+    }
+
+    const remainingChannels = currentTotalChannels.filter((c) =>
+      to.allowedProviders.includes(c.providerIdentifier)
+    );
+    if (remainingChannels.length > totalChannels) {
       await this._integrationService.disableIntegrations(
         getOrgByCustomerId?.id!,
-        currentTotalChannels.length - totalChannels
+        remainingChannels.length - totalChannels
       );
     }
 

@@ -4,8 +4,11 @@ export class BillingSubscribeDto {
   @IsIn(['MONTHLY', 'YEARLY'])
   period: 'MONTHLY' | 'YEARLY';
 
-  @IsIn(['STANDARD', 'PRO', 'TEAM', 'ULTIMATE'])
-  billing: 'STANDARD' | 'PRO' | 'TEAM' | 'ULTIMATE';
+  // TEAM is intentionally NOT purchasable: it's a hidden legacy plan (£39/10
+  // channels) that undercuts Business (£79). The UI never offered it; this
+  // closes the direct-API purchase hole.
+  @IsIn(['STANDARD', 'PRO', 'ULTIMATE'])
+  billing: 'STANDARD' | 'PRO' | 'ULTIMATE';
 
   utm: string;
 
