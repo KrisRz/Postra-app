@@ -709,7 +709,10 @@ export class XProvider extends SocialAbstract implements SocialProvider {
 
       return Object.entries(metrics).map(([key, value]) => ({
         label: key.replace('_count', '').replace('_', ' ').toUpperCase(),
-        percentageChange: 5,
+        // The `since` datapoint is a synthetic 0, not a real prior-period
+        // measurement, so a computed change would be a meaningless +100%.
+        // Report no trend until X exposes a real time series.
+        percentageChange: 0,
         data: [
           {
             total: String(0),

@@ -16,6 +16,7 @@ import { InstagramDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-set
 import { Integration } from '@prisma/client';
 import { Rules } from '@gitroom/nestjs-libraries/chat/rules.description.decorator';
 import { hasExtension } from '@gitroom/helpers/utils/has.extension';
+import { percentageChangeFromSeries } from '@gitroom/nestjs-libraries/integrations/social/analytics.utils';
 
 @Rules(
   "Instagram should have at least one attachment, if it's a story, it can have only one picture"
@@ -921,20 +922,25 @@ export class InstagramProvider
     const analytics = [];
 
     analytics.push(
-      ...(data?.map((d: any) => ({
-        label: this.setTitle(d.name),
-        percentageChange: 5,
-        data: d.values.map((v: any) => ({
+      ...(data?.map((d: any) => {
+        const series = d.values.map((v: any) => ({
           total: v.value,
           date: dayjs(v.end_time).format('YYYY-MM-DD'),
-        })),
-      })) || [])
+        }));
+        return {
+          label: this.setTitle(d.name),
+          percentageChange: percentageChangeFromSeries(series),
+          data: series,
+        };
+      }) || [])
     );
 
     analytics.push(
       ...((data2 || []).map((d: any) => ({
         label: this.setTitle(d.name),
-        percentageChange: 5,
+        // Single lifetime total — no prior period to compare against, so no
+        // trend (the UI hides the badge at 0).
+        percentageChange: 0,
         data: [
           {
             total: d.total_value.value,

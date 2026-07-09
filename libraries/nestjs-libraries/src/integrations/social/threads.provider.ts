@@ -14,6 +14,7 @@ import { Plug } from '@gitroom/helpers/decorators/plug.decorator';
 import { Integration } from '@prisma/client';
 import { stripHtmlValidation } from '@gitroom/helpers/utils/strip.html.validation';
 import { hasExtension } from '@gitroom/helpers/utils/has.extension';
+import { percentageChangeFromSeries } from '@gitroom/nestjs-libraries/integrations/social/analytics.utils';
 
 export class ThreadsProvider extends SocialAbstract implements SocialProvider {
   identifier = 'threads';
@@ -473,16 +474,21 @@ export class ThreadsProvider extends SocialAbstract implements SocialProvider {
     ).json();
 
     return (
-      data?.map((d: any) => ({
-        label: capitalize(d.name),
-        percentageChange: 5,
-        data: d.total_value
+      data?.map((d: any) => {
+        const series = d.total_value
           ? [{ total: d.total_value.value, date: dayjs().format('YYYY-MM-DD') }]
           : d.values.map((v: any) => ({
               total: v.value,
               date: dayjs(v.end_time).format('YYYY-MM-DD'),
-            })),
-      })) || []
+            }));
+        return {
+          label: capitalize(d.name),
+          // Real half-over-half change from the series; a single lifetime
+          // total has no baseline and resolves to 0 (badge hidden).
+          percentageChange: percentageChangeFromSeries(series),
+          data: series,
+        };
+      }) || []
     );
   }
 

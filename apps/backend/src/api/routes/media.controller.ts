@@ -85,11 +85,21 @@ export class MediaController {
       return false;
     }
 
-    return {
-      output:
-        'data:image/png;base64,' +
-        (await this._mediaService.generateImage(prompt, org, isPicturePrompt)),
-    };
+    // generateImage generates AND uploads, returning the stored CDN URL. The
+    // Polotno "AI Img" tab uses `output` directly as the image src, so return
+    // the URL as-is. (The old code prefixed it with `data:image/png;base64,`,
+    // yielding `data:image/png;base64,https://cdn.../x.png` — a broken src that
+    // failed getImageSize/insert while still charging a credit. Same class as
+    // the #108 fix on /generate-image-with-prompt.)
+    const output = await this._mediaService.generateImage(
+      prompt,
+      org,
+      isPicturePrompt
+    );
+    if (!output) {
+      return false;
+    }
+    return { output };
   }
 
   @Post('/generate-image-with-prompt')

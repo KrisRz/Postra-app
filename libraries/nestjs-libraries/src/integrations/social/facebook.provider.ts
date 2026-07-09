@@ -215,7 +215,13 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
         value: 'Facebook return: No permission to publish the video',
       };
     }
-    if (body.indexOf('490') > -1) {
+    // Match the token-expiry error as a STRUCTURED code, not a loose substring.
+    // The old `body.indexOf('490')` matched anywhere — inside an fbtrace_id, a
+    // post/video id or a timestamp — so an unrelated error disconnected a
+    // healthy Page and emailed the user to reconnect. Facebook's real
+    // expired/invalid-token error is code 190 (same code checkToken() uses);
+    // the common message form is already handled at the top of this function.
+    if (body.indexOf('"code":190') > -1 || body.indexOf('"code": 190') > -1) {
       return {
         type: 'refresh-token' as const,
         value: 'Access token expired, please re-authenticate',

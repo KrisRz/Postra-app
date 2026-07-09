@@ -43,13 +43,22 @@ export default async function Auth(
 
   const post = await (await internalFetch(`/public/posts/${id}`)).json();
   const t = await getT();
-  if (!post.length) {
+  if (!Array.isArray(post) || !post.length) {
     return (
       <div className="text-white fixed start-0 top-0 w-full h-full flex justify-center items-center text-[20px]">
         {t('post_not_found', 'Post not found')}
       </div>
     );
   }
+  // The channel can be disconnected after a post was published — the calendar
+  // still offers a public "Preview" link for it, so integration may be null on
+  // this shareable, unauthenticated page. Fall back instead of crashing.
+  const integration = post[0].integration ?? {
+    name: t('removed_channel', 'Removed channel'),
+    picture: '',
+    providerIdentifier: '',
+    profile: '',
+  };
   return (
     <div>
       <div className="mx-auto w-full max-w-[1346px] py-3 text-white">
@@ -114,15 +123,15 @@ export default async function Auth(
                       <div className="w-[50px] h-[50px] z-[20]">
                         <img
                           className="w-full h-full relative z-[20] bg-black aspect-square rounded-full border-tableBorder"
-                          alt={post[0].integration.name}
-                          src={post[0].integration.picture}
+                          alt={integration.name}
+                          src={integration.picture}
                         />
                       </div>
                       <div className="absolute -end-[5px] -bottom-[5px] w-[30px] h-[30px] z-[20]">
                         <img
                           className="w-full h-full bg-black aspect-square rounded-full border-tableBorder"
-                          alt={post[0].integration.providerIdentifier}
-                          src={`/icons/platforms/${post[0].integration.providerIdentifier}.png`}
+                          alt={integration.providerIdentifier}
+                          src={`/icons/platforms/${integration.providerIdentifier}.png`}
                         />
                       </div>
                     </div>
@@ -130,10 +139,10 @@ export default async function Auth(
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center space-x-2">
                       <h2 className="text-sm font-semibold">
-                        {post[0].integration.name}
+                        {integration.name}
                       </h2>
                       <span className="text-sm text-gray-500">
-                        @{post[0].integration.profile}
+                        @{integration.profile}
                       </span>
                       {index === 0 && (
                         <CreationMethodBadge
