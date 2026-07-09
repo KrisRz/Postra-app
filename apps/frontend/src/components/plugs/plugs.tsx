@@ -42,7 +42,10 @@ export const Plugs = () => {
       refreshWhenOffline: false,
     }
   );
-  const { data, isLoading } = useSWR('analytics-list', load, {
+  // Distinct key: this fetches the FULL integrations list, while
+  // platform.analytics caches an analytics-capable SUBSET under 'analytics-list'.
+  // Sharing the key served each page the other's shape stale-first.
+  const { data, isLoading } = useSWR('plugs-integrations', load, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     revalidateIfStale: false,

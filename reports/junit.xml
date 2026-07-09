@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="14" failures="0" errors="0" time="0.192">
-  <testsuite name="customFetch" errors="0" failures="0" skipped="0" timestamp="2026-07-08T20:48:48" time="0.127" tests="6">
+<testsuites name="jest tests" tests="22" failures="0" errors="0" time="0.203">
+  <testsuite name="customFetch" errors="0" failures="0" skipped="0" timestamp="2026-07-09T06:14:22" time="0.089" tests="6">
     <testcase classname="customFetch resolves with the response when there is no afterRequest hook" name="customFetch resolves with the response when there is no afterRequest hook" time="0.001">
     </testcase>
     <testcase classname="customFetch resolves with the response when afterRequest approves it" name="customFetch resolves with the response when afterRequest approves it" time="0">
@@ -11,24 +11,42 @@
     </testcase>
     <testcase classname="customFetch does not impose its own timeout when the caller passes a signal" name="customFetch does not impose its own timeout when the caller passes a signal" time="0">
     </testcase>
-    <testcase classname="customFetch aborts and rejects with FetchTimeoutError after the timeout (no caller signal)" name="customFetch aborts and rejects with FetchTimeoutError after the timeout (no caller signal)" time="0.003">
+    <testcase classname="customFetch aborts and rejects with FetchTimeoutError after the timeout (no caller signal)" name="customFetch aborts and rejects with FetchTimeoutError after the timeout (no caller signal)" time="0.001">
     </testcase>
   </testsuite>
-  <testsuite name="readResponseError" errors="0" failures="0" skipped="0" timestamp="2026-07-08T20:48:48" time="0.011" tests="6">
+  <testsuite name="percentageChangeFromSeries" errors="0" failures="0" skipped="0" timestamp="2026-07-09T06:14:22" time="0.07" tests="8">
+    <testcase classname="percentageChangeFromSeries returns 0 for empty, undefined, or single-point series (no baseline)" name="percentageChangeFromSeries returns 0 for empty, undefined, or single-point series (no baseline)" time="0">
+    </testcase>
+    <testcase classname="percentageChangeFromSeries computes half-over-half growth" name="percentageChangeFromSeries computes half-over-half growth" time="0.001">
+    </testcase>
+    <testcase classname="percentageChangeFromSeries computes decline as a negative number" name="percentageChangeFromSeries computes decline as a negative number" time="0">
+    </testcase>
+    <testcase classname="percentageChangeFromSeries drops the middle point on odd-length series so halves are equal size" name="percentageChangeFromSeries drops the middle point on odd-length series so halves are equal size" time="0">
+    </testcase>
+    <testcase classname="percentageChangeFromSeries returns 100 when the baseline is zero but the period has activity" name="percentageChangeFromSeries returns 100 when the baseline is zero but the period has activity" time="0">
+    </testcase>
+    <testcase classname="percentageChangeFromSeries returns 0 when both halves are zero" name="percentageChangeFromSeries returns 0 when both halves are zero" time="0">
+    </testcase>
+    <testcase classname="percentageChangeFromSeries coerces string totals (X returns stringified numbers)" name="percentageChangeFromSeries coerces string totals (X returns stringified numbers)" time="0">
+    </testcase>
+    <testcase classname="percentageChangeFromSeries rounds to one decimal place" name="percentageChangeFromSeries rounds to one decimal place" time="0">
+    </testcase>
+  </testsuite>
+  <testsuite name="readResponseError" errors="0" failures="0" skipped="0" timestamp="2026-07-09T06:14:22" time="0.009" tests="6">
     <testcase classname="readResponseError returns a NestJS-style string message" name="readResponseError returns a NestJS-style string message" time="0">
     </testcase>
     <testcase classname="readResponseError joins a NestJS-style string[] message" name="readResponseError joins a NestJS-style string[] message" time="0">
     </testcase>
     <testcase classname="readResponseError falls back to raw text when the body has no `message` field" name="readResponseError falls back to raw text when the body has no `message` field" time="0">
     </testcase>
-    <testcase classname="readResponseError falls back to text when the body is not JSON" name="readResponseError falls back to text when the body is not JSON" time="0.001">
+    <testcase classname="readResponseError falls back to text when the body is not JSON" name="readResponseError falls back to text when the body is not JSON" time="0">
     </testcase>
-    <testcase classname="readResponseError returns an empty string for an empty body" name="readResponseError returns an empty string for an empty body" time="0">
+    <testcase classname="readResponseError returns an empty string for an empty body" name="readResponseError returns an empty string for an empty body" time="0.001">
     </testcase>
     <testcase classname="readResponseError never throws, even if reading the text also fails" name="readResponseError never throws, even if reading the text also fails" time="0">
     </testcase>
   </testsuite>
-  <testsuite name="FetchHandledError" errors="0" failures="0" skipped="0" timestamp="2026-07-08T20:48:48" time="0.008" tests="2">
+  <testsuite name="FetchHandledError" errors="0" failures="0" skipped="0" timestamp="2026-07-09T06:14:22" time="0.007" tests="2">
     <testcase classname="FetchHandledError is an Error that carries the status and a handled marker" name="FetchHandledError is an Error that carries the status and a handled marker" time="0">
     </testcase>
     <testcase classname="FetchTimeoutError is an Error that names itself and keeps the url" name="FetchTimeoutError is an Error that names itself and keeps the url" time="0">

@@ -81,11 +81,18 @@ export class SubscriptionService {
   }
 
   async deleteSubscription(customerId: string) {
-    await this.modifySubscription(
+    // modifySubscription returns false for lifetime/grandfathered grants (and
+    // unknown customers). A stray customer.subscription.deleted webhook or the
+    // superadmin cancel path must NOT then hard-delete the lifetime row and drop
+    // the org to FREE — bail if the downgrade was refused.
+    const modified = await this.modifySubscription(
       customerId,
       pricing.FREE.channel || 0,
       'FREE'
     );
+    if (!modified) {
+      return false;
+    }
     this._auditService.record({
       action: 'subscription.delete',
       metadata: { customerId },

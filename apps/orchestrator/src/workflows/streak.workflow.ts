@@ -15,7 +15,10 @@ export async function streakWorkflow({
   await setStreak(organizationId, 'start');
   await sleep(79200000);
   const userOrgs = await getUserOrgs(organizationId);
-  for (const user of userOrgs.users) {
+  // getUserOrgs uses findUnique — an org deleted during the ~22h sleep returns
+  // null, and userOrgs.users would throw in workflow code → Temporal retries the
+  // task forever (orphaned failing workflow). Same guard as digest.email.workflow.
+  for (const user of userOrgs?.users || []) {
     if (!user.user.sendStreakEmails) {
       continue;
     }

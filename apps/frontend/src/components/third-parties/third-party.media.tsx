@@ -166,7 +166,10 @@ export const ThirdPartyMedia: FC<{
     );
   }, []);
 
-  const { data, isLoading, mutate } = useSWR('third-party', thirdParties, {
+  // Distinct key: this caches the position==='media' subset, while
+  // third-party.component caches the raw list under 'third-party' — sharing the
+  // key cross-contaminated the composer media menu and the settings page.
+  const { data, isLoading, mutate } = useSWR('third-party-media', thirdParties, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     revalidateIfStale: false,
