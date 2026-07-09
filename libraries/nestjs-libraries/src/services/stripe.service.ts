@@ -238,23 +238,36 @@ export class StripeService {
     return { ...productsList };
   }
 
-  async prorate(organizationId: string, body: BillingSubscribeDto) {
-    const org = await this._organizationService.getOrgById(organizationId);
-    const customer = await this.createOrGetCustomer(org!);
-    const priceData = pricing[body.billing];
+  // Resolve the Stripe product for a plan tier. Matched by metadata.tier first
+  // so the product's display name can be a customer-facing label (e.g. "Postra
+  // Starter") without breaking the STANDARD/PRO/ULTIMATE lookup; falls back to
+  // the legacy name === tier match for products that predate the metadata tag.
+  // New products are created carrying metadata.tier so they stay renameable.
+  private async findOrCreateProduct(billing: string) {
     const allProducts = await stripe.products.list({
       active: true,
       expand: ['data.prices'],
     });
 
-    const findProduct =
+    return (
+      allProducts.data.find((p) => p.metadata?.tier === billing) ||
       allProducts.data.find(
-        (product) => product.name.toUpperCase() === body.billing.toUpperCase()
+        (p) => p.name.toUpperCase() === billing.toUpperCase()
       ) ||
       (await stripe.products.create({
         active: true,
-        name: body.billing,
-      }));
+        name: billing,
+        metadata: { tier: billing },
+      }))
+    );
+  }
+
+  async prorate(organizationId: string, body: BillingSubscribeDto) {
+    const org = await this._organizationService.getOrgById(organizationId);
+    const customer = await this.createOrGetCustomer(org!);
+    const priceData = pricing[body.billing];
+
+    const findProduct = await this.findOrCreateProduct(body.billing);
 
     const pricesList = await stripe.prices.list({
       active: true,
@@ -703,19 +716,7 @@ export class StripeService {
     const priceData = pricing[body.billing];
     const org = await this._organizationService.getOrgById(organizationId);
     const customer = await this.createOrGetCustomer(org!);
-    const allProducts = await stripe.products.list({
-      active: true,
-      expand: ['data.prices'],
-    });
-
-    const findProduct =
-      allProducts.data.find(
-        (product) => product.name.toUpperCase() === body.billing.toUpperCase()
-      ) ||
-      (await stripe.products.create({
-        active: true,
-        name: body.billing,
-      }));
+    const findProduct = await this.findOrCreateProduct(body.billing);
 
     const pricesList = await stripe.prices.list({
       active: true,
@@ -772,19 +773,7 @@ export class StripeService {
     const priceData = pricing[body.billing];
     const org = await this._organizationService.getOrgById(organizationId);
     const customer = await this.createOrGetCustomer(org!);
-    const allProducts = await stripe.products.list({
-      active: true,
-      expand: ['data.prices'],
-    });
-
-    const findProduct =
-      allProducts.data.find(
-        (product) => product.name.toUpperCase() === body.billing.toUpperCase()
-      ) ||
-      (await stripe.products.create({
-        active: true,
-        name: body.billing,
-      }));
+    const findProduct = await this.findOrCreateProduct(body.billing);
 
     const pricesList = await stripe.prices.list({
       active: true,
