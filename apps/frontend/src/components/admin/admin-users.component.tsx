@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
@@ -59,18 +59,82 @@ const Subscription = () => {
   );
 };
 
+interface UserOrgItem {
+  // UserOrganization id — what POST /user/impersonate expects
+  id: string;
+  role: string;
+  organization: {
+    id: string;
+    name: string;
+    subscription: {
+      subscriptionTier: string;
+      isLifetime: boolean;
+    } | null;
+  };
+}
+
+interface UserItem {
+  id: string;
+  email: string;
+  name: string | null;
+  lastName: string | null;
+  providerName: string;
+  activated: boolean;
+  isSuperAdmin: boolean;
+  createdAt: string;
+  lastOnline: string;
+  organizations: UserOrgItem[];
+}
+
+interface UsersResponse {
+  items: UserItem[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export const AdminUsersComponent = () => {
   const fetch = useFetch();
-  const [name, setName] = useState('');
-  const { isSecured, billingEnabled } = useVariables();
+  const [search, setSearch] = useState('');
+  // 0-indexed: the backend computes skip = page * limit
+  const [page, setPage] = useState(0);
+  const limit = 20;
+  const { isSecured } = useVariables();
   const user = useUser();
   const t = useT();
   const { openModal } = useModals();
 
   const load = useCallback(async () => {
-    if (!name) return [];
-    return (await fetch(`/user/impersonate?name=${name}`)).json();
-  }, [name]);
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+      ...(search ? { search } : {}),
+    });
+    const res = await fetch(`/admin/users?${params.toString()}`);
+    if (!res.ok) throw new Error('Failed to load users');
+    return res.json() as Promise<UsersResponse>;
+  }, [page, search]);
+
+  const { data, isLoading, error } = useSWR<UsersResponse>(
+    `/admin/users-${page}-${search}`,
+    load,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
+      refreshInterval: 0,
+    }
+  );
+
+  const totalPages = data ? Math.ceil(data.total / limit) : 0;
+
+  const handleSearch = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearch(e.target.value);
+      setPage(0);
+    },
+    []
+  );
 
   const stopImpersonating = useCallback(async () => {
     if (!isSecured) {
@@ -84,11 +148,11 @@ export const AdminUsersComponent = () => {
     window.location.reload();
   }, []);
 
-  const setUser = useCallback(
-    (userId: string) => async () => {
+  const impersonate = useCallback(
+    (userOrgId: string) => async () => {
       await fetch(`/user/impersonate`, {
         method: 'POST',
-        body: JSON.stringify({ id: userId }),
+        body: JSON.stringify({ id: userOrgId }),
       });
       window.location.reload();
     },
@@ -102,24 +166,6 @@ export const AdminUsersComponent = () => {
       children: (close) => <ImportDebugPostModal close={close} />,
     });
   }, []);
-
-  const { data } = useSWR(`/impersonate-${name}`, load, {
-    refreshWhenHidden: false,
-    revalidateOnMount: true,
-    revalidateOnReconnect: false,
-    revalidateOnFocus: false,
-    refreshWhenOffline: false,
-    revalidateIfStale: false,
-    refreshInterval: 0,
-  });
-
-  const mapData = useMemo(() => {
-    return data?.map((curr: any) => ({
-      id: curr.id,
-      name: curr.user.name,
-      email: curr.user.email,
-    }));
-  }, [data]);
 
   return (
     <div className="flex flex-col gap-[20px]">
@@ -144,12 +190,12 @@ export const AdminUsersComponent = () => {
           <Input
             autoComplete="off"
             placeholder={t('search_user_placeholder', 'Search by name or email...')}
-            name="impersonate"
+            name="user-search"
             disableForm={true}
             label=""
             removeError={true}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={search}
+            onChange={handleSearch}
           />
         </div>
         <Button onClick={handleImportDebugPost} className="rounded-[8px] text-[12px]">
@@ -157,50 +203,156 @@ export const AdminUsersComponent = () => {
         </Button>
       </div>
 
-      {!!mapData?.length && (
-        <div className="rounded-[8px] border border-white/10 overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="text-left border-b border-white/10 bg-white/[0.03]">
-                <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">ID</th>
-                <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
-                  {t('name', 'Name')}
-                </th>
-                <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
-                  {t('email', 'Email')}
-                </th>
-                <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60" />
-              </tr>
-            </thead>
-            <tbody>
-              {mapData.map((u: any) => (
-                <tr
-                  key={u.id}
-                  className="border-b border-white/5 hover:bg-white/[0.03] transition-colors"
+      <div className="rounded-[8px] border border-white/10 overflow-hidden">
+        <table className="w-full">
+          <thead>
+            <tr className="text-left border-b border-white/10 bg-white/[0.03]">
+              <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
+                {t('email', 'Email')}
+              </th>
+              <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
+                {t('name', 'Name')}
+              </th>
+              <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
+                {t('activated', 'Activated')}
+              </th>
+              <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
+                {t('organizations', 'Organizations')}
+              </th>
+              <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
+                {t('created', 'Created')}
+              </th>
+              <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
+                {t('last_online', 'Last online')}
+              </th>
+              <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60" />
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading && !data && (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="p-[20px] text-center text-[13px] text-newTextColor/40"
                 >
-                  <td className="p-[12px] text-[13px] font-mono text-newTextColor/50">
-                    ...{u.id.split('-').at(-1)}
-                  </td>
-                  <td className="p-[12px] text-[13px]">{u.name}</td>
-                  <td className="p-[12px] text-[13px]">{u.email}</td>
-                  <td className="p-[12px]">
-                    <Button
-                      onClick={setUser(u.id)}
-                      className="rounded-[8px] text-[12px]"
-                    >
-                      {t('impersonate', 'Impersonate')}
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                  {t('loading', 'Loading...')}
+                </td>
+              </tr>
+            )}
+            {error && (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="p-[20px] text-center text-[13px] text-red-400"
+                >
+                  {t('users_load_failed', 'Failed to load users.')}
+                </td>
+              </tr>
+            )}
+            {!error && data?.items.length === 0 && (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="p-[20px] text-center text-[13px] text-newTextColor/40"
+                >
+                  {t('no_users_found', 'No users found')}
+                </td>
+              </tr>
+            )}
+            {data?.items.map((u) => (
+              <tr
+                key={u.id}
+                className="border-b border-white/5 hover:bg-white/[0.03] transition-colors"
+              >
+                <td className="p-[12px] text-[13px]">
+                  {u.email}
+                  {u.isSuperAdmin && (
+                    <span className="ms-[6px] px-[6px] py-[1px] rounded-[6px] text-[10px] font-[600] bg-[rgba(167,139,250,0.15)] text-[#a78bfa] border border-[rgba(167,139,250,0.3)]">
+                      ADMIN
+                    </span>
+                  )}
+                </td>
+                <td className="p-[12px] text-[13px] text-newTextColor/60">
+                  {[u.name, u.lastName].filter(Boolean).join(' ') || '-'}
+                </td>
+                <td className="p-[12px] text-[13px]">
+                  {u.activated ? (
+                    <span className="text-green-400">✓</span>
+                  ) : (
+                    <span className="text-amber-400">
+                      {t('pending', 'pending')}
+                    </span>
+                  )}
+                </td>
+                <td className="p-[12px] text-[13px] text-newTextColor/60">
+                  <div className="flex flex-wrap gap-[6px]">
+                    {u.organizations.map((o) => (
+                      <span
+                        key={o.id}
+                        className="inline-flex items-center gap-[6px] px-[8px] py-[2px] rounded-[6px] text-[11px] border border-white/10 bg-white/[0.03]"
+                      >
+                        {o.organization.name}
+                        <span className="text-newTextColor/40">
+                          {o.organization.subscription?.isLifetime
+                            ? 'LIFETIME'
+                            : o.organization.subscription?.subscriptionTier ??
+                              'FREE'}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                </td>
+                <td className="p-[12px] text-[13px] text-newTextColor/60">
+                  {new Date(u.createdAt).toLocaleDateString()}
+                </td>
+                <td className="p-[12px] text-[13px] text-newTextColor/60">
+                  {new Date(u.lastOnline).toLocaleDateString()}
+                </td>
+                <td className="p-[12px]">
+                  <div className="flex flex-col gap-[4px]">
+                    {u.organizations.map((o) => (
+                      <Button
+                        key={o.id}
+                        onClick={impersonate(o.id)}
+                        className="rounded-[8px] text-[12px]"
+                      >
+                        {u.organizations.length > 1
+                          ? `${t('impersonate', 'Impersonate')} · ${o.organization.name}`
+                          : t('impersonate', 'Impersonate')}
+                      </Button>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      {name && !mapData?.length && (
-        <div className="text-[14px] text-newTextColor/40 py-[20px] text-center">
-          {t('no_users_found', 'No users found')}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-[13px]">
+          <span className="text-newTextColor/60">
+            {t('page', 'Page')} {page + 1} / {totalPages} ({data?.total}{' '}
+            {t('total', 'total')})
+          </span>
+          <div className="flex gap-[8px]">
+            <button
+              type="button"
+              disabled={page <= 0}
+              onClick={() => setPage((p) => p - 1)}
+              className="px-[14px] h-[34px] rounded-[10px] text-[13px] border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/25 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            >
+              {t('prev', 'Prev')}
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => p + 1)}
+              className="px-[14px] h-[34px] rounded-[10px] text-[13px] border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/25 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
+            >
+              {t('next', 'Next')}
+            </button>
+          </div>
         </div>
       )}
     </div>
