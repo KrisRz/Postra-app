@@ -307,10 +307,12 @@ export class AuthService {
         return false;
       }
       await this._userService.activateUser(user.id);
-      user.activated = true;
       this._track('register', user.email, tracking).catch((err) => {});
       await NewsletterService.register(user.email);
-      return this.jwt(user as any);
+      // Sign the DB user, not the decoded activation token — the decoded
+      // payload carries exp/iat and jsonwebtoken refuses to re-sign it
+      // with expiresIn (every activation 500ed since signJWT got a TTL).
+      return this.jwt({ ...getUserAgain, activated: true });
     }
 
     return false;
