@@ -107,6 +107,21 @@ export async function isSafePublicHttpsUrl(value: unknown): Promise<boolean> {
   }
 }
 
+// Self-hosted providers (Lemmy, WordPress) let the user name their own instance
+// host, which the server then calls with the user's credentials — an SSRF sink
+// into the VPC / IMDS / localhost. Validate the base URL where it enters, so
+// every path built on top of it targets a public host.
+export async function assertSafeInstanceUrl(
+  value: unknown,
+  provider: string
+): Promise<string> {
+  if (!(await isSafePublicHttpsUrl(value))) {
+    throw new Error(`${provider}: instance URL must be a public HTTPS host`);
+  }
+
+  return (value as string).replace(/\/+$/, '');
+}
+
 @ValidatorConstraint({ name: 'IsSafeWebhookUrl', async: true })
 export class IsSafeWebhookUrlConstraint implements ValidatorConstraintInterface {
   async validate(value: unknown, _args: ValidationArguments): Promise<boolean> {
