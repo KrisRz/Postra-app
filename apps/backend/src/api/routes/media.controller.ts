@@ -46,6 +46,19 @@ import {
 } from '@gitroom/nestjs-libraries/studio/studio.dto';
 import { StudioSpec } from '@gitroom/nestjs-libraries/studio/studio-spec';
 
+// Express turns a repeated query param (`?q=a&q=b`) into an array, so a
+// `: string` annotation on @Query is a lie the caller controls: string methods
+// then throw and 500 the endpoint. Collapse to a single string at the edge.
+const queryString = (value: unknown): string => {
+  const first = Array.isArray(value) ? value[0] : value;
+  return typeof first === 'string' ? first : '';
+};
+
+const queryPage = (value: unknown): number => {
+  const parsed = Number(queryString(value));
+  return Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+};
+
 @ApiTags('Media')
 @Controller('/media')
 export class MediaController {
@@ -178,15 +191,15 @@ export class MediaController {
 
   @Get('/pixabay-videos')
   async pixabayVideos(
-    @Query('q') q: string,
-    @Query('page') page = '1'
+    @Query('q') q: unknown,
+    @Query('page') page: unknown
   ) {
     const apiKey = process.env.PIXABAY_API_KEY;
     if (!apiKey) {
       return { hits: [], note: 'PIXABAY_API_KEY not configured' };
     }
-    const safeQuery = (q || '').slice(0, 100).trim().toLowerCase();
-    const safePage = Math.max(1, Number(page) || 1);
+    const safeQuery = queryString(q).slice(0, 100).trim().toLowerCase();
+    const safePage = queryPage(page);
     // Pixabay license requires caching responses for 24h to avoid duplicate calls.
     const cacheKey = `pixabay:videos:${createHash('md5').update(`${safeQuery}|${safePage}`).digest('hex')}`;
     const cached = await ioRedis.get(cacheKey);
@@ -208,15 +221,15 @@ export class MediaController {
 
   @Get('/pixabay-images')
   async pixabayImages(
-    @Query('q') q: string,
-    @Query('page') page = '1'
+    @Query('q') q: unknown,
+    @Query('page') page: unknown
   ) {
     const apiKey = process.env.PIXABAY_API_KEY;
     if (!apiKey) {
       return { hits: [], note: 'PIXABAY_API_KEY not configured' };
     }
-    const safeQuery = (q || '').slice(0, 100).trim().toLowerCase();
-    const safePage = Math.max(1, Number(page) || 1);
+    const safeQuery = queryString(q).slice(0, 100).trim().toLowerCase();
+    const safePage = queryPage(page);
     // Pixabay license requires caching responses for 24h to avoid duplicate calls.
     const cacheKey = `pixabay:images:${createHash('md5').update(`${safeQuery}|${safePage}`).digest('hex')}`;
     const cached = await ioRedis.get(cacheKey);
@@ -460,10 +473,14 @@ export class MediaController {
   @Get('/')
   getMedia(
     @GetOrgFromRequest() org: Organization,
-    @Query('page') page: number,
-    @Query('search') search?: string
+    @Query('page') page: unknown,
+    @Query('search') search?: unknown
   ) {
-    return this._mediaService.getMedia(org.id, page, search);
+    return this._mediaService.getMedia(
+      org.id,
+      queryPage(page),
+      queryString(search) || undefined
+    );
   }
 
   @Get('/video-options')

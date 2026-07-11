@@ -14,6 +14,7 @@ import { Integration } from '@prisma/client';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import { LemmySettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/lemmy.dto';
 import { Tool } from '@gitroom/nestjs-libraries/integrations/tool.decorator';
+import { assertSafeInstanceUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
 
 export class LemmyProvider extends SocialAbstract implements SocialProvider {
   override maxConcurrentJob = 3; // Lemmy instances typically have moderate limits
@@ -94,8 +95,9 @@ export class LemmyProvider extends SocialAbstract implements SocialProvider {
     refresh?: string;
   }) {
     const body = JSON.parse(Buffer.from(params.code, 'base64').toString());
+    const service = await assertSafeInstanceUrl(body.service, 'lemmy');
 
-    const load = await fetch(body.service + '/api/v3/user/login', {
+    const load = await fetch(service + '/api/v3/user/login', {
       body: JSON.stringify({
         username_or_email: body.identifier,
         password: body.password,
@@ -114,7 +116,7 @@ export class LemmyProvider extends SocialAbstract implements SocialProvider {
 
     try {
       const user = await (
-        await fetch(body.service + `/api/v3/user?username=${body.identifier}`, {
+        await fetch(service + `/api/v3/user?username=${body.identifier}`, {
           headers: {
             Authorization: `Bearer ${jwt}`,
           },
@@ -143,9 +145,10 @@ export class LemmyProvider extends SocialAbstract implements SocialProvider {
     const body = JSON.parse(
       AuthService.fixedDecryption(integration.customInstanceDetails!)
     );
+    const service = await assertSafeInstanceUrl(body.service, 'lemmy');
 
     const { jwt } = await (
-      await fetch(body.service + '/api/v3/user/login', {
+      await fetch(service + '/api/v3/user/login', {
         body: JSON.stringify({
           username_or_email: body.identifier,
           password: body.password,
@@ -157,7 +160,7 @@ export class LemmyProvider extends SocialAbstract implements SocialProvider {
       })
     ).json();
 
-    return { jwt, service: body.service };
+    return { jwt, service };
   }
 
   async post(

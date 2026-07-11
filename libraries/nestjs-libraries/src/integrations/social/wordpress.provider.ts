@@ -14,6 +14,7 @@ import slugify from 'slugify';
 import axios from 'axios';
 import { Tool } from '@gitroom/nestjs-libraries/integrations/tool.decorator';
 import { string } from 'yup';
+import { assertSafeInstanceUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
 
 export class WordpressProvider
   extends SocialAbstract
@@ -98,11 +99,12 @@ export class WordpressProvider
       password: string;
     };
     try {
+      const domain = await assertSafeInstanceUrl(body.domain, 'wordpress');
       const auth = Buffer.from(`${body.username}:${body.password}`).toString(
         'base64'
       );
       const { id, name, avatar_urls, code } = await (
-        await fetch(`${body.domain}/wp-json/wp/v2/users/me`, {
+        await fetch(`${domain}/wp-json/wp/v2/users/me`, {
           headers: {
             Authorization: `Basic ${auth}`,
           },
@@ -149,12 +151,13 @@ export class WordpressProvider
       password: string;
     };
 
+    const domain = await assertSafeInstanceUrl(body.domain, 'wordpress');
     const auth = Buffer.from(`${body.username}:${body.password}`).toString(
       'base64'
     );
 
     const postTypes = await (
-      await this.fetch(`${body.domain}/wp-json/wp/v2/types`, {
+      await this.fetch(`${domain}/wp-json/wp/v2/types`, {
         headers: {
           Authorization: `Basic ${auth}`,
         },
@@ -191,6 +194,7 @@ export class WordpressProvider
       password: string;
     };
 
+    const domain = await assertSafeInstanceUrl(body.domain, 'wordpress');
     const auth = Buffer.from(`${body.username}:${body.password}`).toString(
       'base64'
     );
@@ -207,7 +211,7 @@ export class WordpressProvider
       ).then((r) => r.blob());
 
       const mediaResponse = await (
-        await this.fetch(`${body.domain}/wp-json/wp/v2/media`, {
+        await this.fetch(`${domain}/wp-json/wp/v2/media`, {
           method: 'POST',
           headers: {
             Authorization: `Basic ${auth}`,
@@ -225,7 +229,7 @@ export class WordpressProvider
 
     const submit = await (
       await this.fetch(
-        `${body.domain}/wp-json/wp/v2/${postDetails?.[0]?.settings?.type}`,
+        `${domain}/wp-json/wp/v2/${postDetails?.[0]?.settings?.type}`,
         {
           headers: {
             Authorization: `Basic ${auth}`,
