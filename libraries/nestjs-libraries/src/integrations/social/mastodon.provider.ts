@@ -5,6 +5,7 @@ import {
   SocialProvider,
 } from '@gitroom/nestjs-libraries/integrations/social/social.integrations.interface';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
+import { fetchMediaBuffer } from '@gitroom/nestjs-libraries/media/fetch.media.buffer';
 import { SocialAbstract } from '@gitroom/nestjs-libraries/integrations/social.abstract';
 import dayjs from 'dayjs';
 import { Integration } from '@prisma/client';
@@ -137,7 +138,8 @@ export class MastodonProvider extends SocialAbstract implements SocialProvider {
     alt?: string
   ) {
     const form = new FormData();
-    form.append('file', await fetch(fileUrl).then((r) => r.blob()));
+    // SSRF-guarded: fileUrl comes from client-controlled media path
+    form.append('file', new Blob([await fetchMediaBuffer(fileUrl)]));
     if (alt) {
       form.append('description', alt);
     }

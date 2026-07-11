@@ -1,5 +1,7 @@
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { SocialAbstract } from '../social.abstract';
+import { fetchMediaBuffer } from '@gitroom/nestjs-libraries/media/fetch.media.buffer';
+import mime from 'mime-types';
 import {
   AuthTokenDetails,
   MediaContent,
@@ -206,11 +208,11 @@ export class SkoolProvider extends SocialAbstract implements SocialProvider {
     const fileIds: string[] = [];
 
     for (const item of media) {
-      const fileResponse = await fetch(item.path);
-      const fileBuffer = await fileResponse.arrayBuffer();
-      const contentType =
-        fileResponse.headers.get('content-type') || 'application/octet-stream';
+      // SSRF-guarded: item.path is client-controlled
+      const fileBuffer = await fetchMediaBuffer(item.path);
       const fileName = item.path.split('/').pop() || 'file';
+      const contentType =
+        mime.lookup(fileName) || 'application/octet-stream';
 
       const createFileResponse = await (
         await this.fetch('https://api2.skool.com/files', {

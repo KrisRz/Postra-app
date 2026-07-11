@@ -23,10 +23,25 @@ import useCookie from 'react-use-cookie';
 type Inputs = {
   email: string;
   password: string;
+  confirmPassword: string;
   company: string;
   providerToken: string;
   provider: string;
 };
+
+// Lightweight, dependency-free strength heuristic (length + character classes).
+// This is a UX hint only — the real password policy (min 8 + HIBP breach check)
+// is enforced server-side on /auth/register.
+function passwordScore(password: string): number {
+  if (!password) return 0;
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+  return Math.min(score, 4);
+}
 export function Register() {
   const getQuery = useSearchParams();
   const fetch = useFetch();
@@ -116,14 +131,31 @@ export function RegisterAfter({
     },
   });
   const fetchData = useFetch();
+  const passwordValue = form.watch('password') || '';
+  const strength = useMemo(() => passwordScore(passwordValue), [passwordValue]);
+  const strengthMeta = [
+    { label: t('password_weak', 'Weak'), color: '#f87171' },
+    { label: t('password_weak', 'Weak'), color: '#f87171' },
+    { label: t('password_fair', 'Fair'), color: '#fbbf24' },
+    { label: t('password_good', 'Good'), color: '#38bdf8' },
+    { label: t('password_strong', 'Strong'), color: '#34d399' },
+  ][strength];
   const onSubmit: SubmitHandler<Inputs> = async (data) => {
+    // confirmPassword is a client-only UX guard (not part of CreateOrgUserDto).
+    if (!isAfterProvider && data.password !== data.confirmPassword) {
+      form.setError('confirmPassword', {
+        message: t('passwords_do_not_match', 'Passwords do not match'),
+      });
+      return;
+    }
     setLoading(true);
     const region =
       searchParams?.get('region')?.toUpperCase() || regionCookie || '';
+    const { confirmPassword, ...payload } = data;
     await fetchData('/auth/register', {
       method: 'POST',
       body: JSON.stringify({
-        ...data,
+        ...payload,
         datafast_visitor_id,
         ...(region === 'PL' || region === 'UK' ? { region } : {}),
       }),
@@ -215,6 +247,41 @@ export function RegisterAfter({
                       autoComplete="off"
                       type="password"
                       placeholder={t('label_password', 'Password')}
+                    />
+                    {passwordValue && (
+                      <div className="-mt-[6px] mb-[14px] flex flex-col gap-[6px]">
+                        <div className="flex gap-[4px]">
+                          {[0, 1, 2, 3].map((i) => (
+                            <div
+                              key={i}
+                              className="h-[4px] flex-1 rounded-full transition-colors"
+                              style={{
+                                backgroundColor:
+                                  i < strength
+                                    ? strengthMeta.color
+                                    : 'rgba(255,255,255,0.1)',
+                              }}
+                            />
+                          ))}
+                        </div>
+                        <span
+                          className="text-[11px] font-[600]"
+                          style={{ color: strengthMeta.color }}
+                        >
+                          {strengthMeta.label}
+                        </span>
+                      </div>
+                    )}
+                    <Input
+                      label="Confirm Password"
+                      translationKey="label_confirm_password"
+                      {...form.register('confirmPassword')}
+                      autoComplete="off"
+                      type="password"
+                      placeholder={t(
+                        'label_confirm_password',
+                        'Confirm Password'
+                      )}
                     />
                   </>
                 )}

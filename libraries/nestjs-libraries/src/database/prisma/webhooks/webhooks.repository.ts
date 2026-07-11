@@ -1,7 +1,6 @@
 import { PrismaRepository } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { WebhooksDto } from '@gitroom/nestjs-libraries/dtos/webhooks/webhooks.dto';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class WebhooksRepository {
@@ -54,21 +53,30 @@ export class WebhooksRepository {
   }
 
   async createWebhook(orgId: string, body: WebhooksDto) {
-    const { id } = await this._webhooks.model.webhooks.upsert({
-      where: {
-        id: body.id || uuidv4(),
-        organizationId: orgId,
-      },
-      create: {
-        organizationId: orgId,
-        url: body.url,
-        name: body.name,
-      },
-      update: {
-        url: body.url,
-        name: body.name,
-      },
-    });
+    let id: string;
+    if (body.id) {
+      // Update path (PUT /webhooks): scope to the org and NEVER create.
+      // A prior upsert here let a made-up id fall through to `create`,
+      // turning the (un-policy-checked) update route into an uncapped
+      // create that bypassed the per-plan webhook limit enforced on POST.
+      const updated = await this._webhooks.model.webhooks.updateMany({
+        where: { id: body.id, organizationId: orgId },
+        data: { url: body.url, name: body.name },
+      });
+      if (updated.count === 0) {
+        throw new Error('Webhook not found');
+      }
+      id = body.id;
+    } else {
+      const created = await this._webhooks.model.webhooks.create({
+        data: {
+          organizationId: orgId,
+          url: body.url,
+          name: body.name,
+        },
+      });
+      id = created.id;
+    }
 
     // Only link integrations the org actually owns — a client-supplied
     // foreign integration id would otherwise leak that channel's name/picture
