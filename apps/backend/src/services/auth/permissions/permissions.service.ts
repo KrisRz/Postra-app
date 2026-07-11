@@ -1,6 +1,6 @@
 import { Ability, AbilityBuilder, AbilityClass } from '@casl/ability';
 import { Injectable } from '@nestjs/common';
-import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
+import { pricing, TRIAL_CHANNEL_CAP } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
 import { PostsService } from '@gitroom/nestjs-libraries/database/prisma/posts/posts.service';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
@@ -46,7 +46,8 @@ export class PermissionsService {
     created_at: Date,
     permission: 'USER' | 'ADMIN' | 'SUPERADMIN',
     requestedPermission: Array<[AuthorizationActions, Sections]>,
-    refreshChannelId?: string
+    refreshChannelId?: string,
+    isTrailing = false
   ) {
     const { can, build } = new AbilityBuilder<
       Ability<[AuthorizationActions, Sections]>
@@ -99,9 +100,15 @@ export class PermissionsService {
           await this._integrationService.getIntegrationsList(orgId)
         ).filter((f) => !f.refreshNeeded).length;
 
+        // Trialing orgs get their tier's platforms but only
+        // TRIAL_CHANNEL_CAP slots until the trial converts.
+        const subscriptionChannels = isTrailing
+          ? Math.min(subscription?.totalChannels || 0, TRIAL_CHANNEL_CAP)
+          : subscription?.totalChannels || 0;
+
         if (
           (options.channel && options.channel > totalChannels) ||
-          (subscription?.totalChannels || 0) > totalChannels
+          subscriptionChannels > totalChannels
         ) {
           can(action, section);
           continue;

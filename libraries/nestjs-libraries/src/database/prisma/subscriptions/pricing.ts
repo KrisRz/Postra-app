@@ -166,3 +166,17 @@ export const planLabels: Record<string, string> = {
 
 export const planLabel = (tier?: string | null): string =>
   (tier && planLabels[tier]) || tier || '';
+
+// A 7-day Stripe trial runs on the paid tier the user picked, but with only
+// this many channel slots — the tier's full quota unlocks on conversion. The
+// platform allowlist is intentionally NOT reduced, so e.g. a Pro trial can
+// still evaluate LinkedIn/YouTube on one of its capped slots.
+export const TRIAL_CHANNEL_CAP = 3;
+
+export const channelLimitFor = (org?: {
+  isTrailing?: boolean;
+  subscription?: { totalChannels: number } | null;
+}): number => {
+  const base = org?.subscription?.totalChannels || pricing.FREE.channel || 0;
+  return org?.isTrailing ? Math.min(base, TRIAL_CHANNEL_CAP) : base;
+};
