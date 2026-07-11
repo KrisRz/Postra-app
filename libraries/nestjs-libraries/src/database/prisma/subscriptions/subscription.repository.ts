@@ -4,7 +4,7 @@ import {
   PrismaTransaction,
 } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import dayjs from 'dayjs';
-import { Organization } from '@prisma/client';
+import { Organization, Role } from '@prisma/client';
 
 @Injectable()
 export class SubscriptionRepository {
@@ -42,6 +42,37 @@ export class SubscriptionRepository {
   // than an account already uses).
   getAllOrganizationsForGrandfather() {
     return this._organization.model.organization.findMany({
+      select: {
+        id: true,
+        name: true,
+        subscription: {
+          select: {
+            subscriptionTier: true,
+            isLifetime: true,
+            deletedAt: true,
+          },
+        },
+        Integration: {
+          where: { deletedAt: null },
+          select: { id: true },
+        },
+      },
+    });
+  }
+
+  // Targeted comp: the org(s) OWNED (SUPERADMIN) by a given email, same shape as
+  // the grandfather query above. Used to grant a lifetime plan to a tester /
+  // influencer account by email. Case-insensitive on the email.
+  getOwnedOrganizationsByEmail(email: string) {
+    return this._organization.model.organization.findMany({
+      where: {
+        users: {
+          some: {
+            role: Role.SUPERADMIN,
+            user: { email: { equals: email, mode: 'insensitive' } },
+          },
+        },
+      },
       select: {
         id: true,
         name: true,

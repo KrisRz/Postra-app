@@ -325,6 +325,58 @@ export class SubscriptionService {
     return { total: orgs.length, granted, skipped };
   }
 
+  /**
+   * Targeted version of the grandfather backfill: grants a lifetime Business
+   * subscription to every org OWNED (SUPERADMIN) by `email`. Used to comp
+   * tester / influencer accounts so they skip the paywall and the trial-only
+   * anti-abuse guards (e.g. the "previously connected" channel block).
+   * Idempotent — an org that already holds an active subscription is skipped.
+   */
+  async grantLifetimeByEmail(email: string, apply: boolean) {
+    const TIER = 'ULTIMATE' as const;
+    const MIN_CHANNELS = 100;
+    const orgs =
+      await this._subscriptionRepository.getOwnedOrganizationsByEmail(
+        email.trim()
+      );
+
+    const granted: Array<{ id: string; name: string; channels: number }> = [];
+    const skipped: Array<{ id: string; name: string; reason: string }> = [];
+
+    for (const org of orgs) {
+      const sub = org.subscription;
+      if (sub && !sub.deletedAt) {
+        skipped.push({
+          id: org.id,
+          name: org.name,
+          reason: `already ${sub.isLifetime ? 'lifetime' : 'active'} ${
+            sub.subscriptionTier
+          }`,
+        });
+        continue;
+      }
+
+      const channels = Math.max(MIN_CHANNELS, org.Integration.length);
+      granted.push({ id: org.id, name: org.name, channels });
+
+      if (apply) {
+        await this.createOrUpdateSubscription(
+          false, // isTrailing
+          makeId(10), // identifier
+          '', // customerId (unused when org id + code are provided)
+          channels,
+          TIER,
+          'MONTHLY',
+          null,
+          `grandfather-${org.id}`, // code -> isLifetime=true, skips Stripe
+          org.id
+        );
+      }
+    }
+
+    return { email: email.trim(), total: orgs.length, granted, skipped };
+  }
+
   getSubscriptionByIdentifier(identifier: string) {
     return this._subscriptionRepository.getSubscriptionByIdentifier(identifier);
   }
