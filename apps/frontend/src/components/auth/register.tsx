@@ -313,7 +313,8 @@ export function RegisterAfter({
                 <a
                   href={`https://postra.co.uk/terms`}
                   className="underline underline-offset-4 hover:text-[#38bdf8]"
-                  rel="nofollow"
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
                 >
                   {t('terms_of_service', 'Terms of Service')}
                 </a>
@@ -321,7 +322,8 @@ export function RegisterAfter({
                 {t('and', 'and')}&nbsp;
                 <a
                   href={`https://postra.co.uk/privacy`}
-                  rel="nofollow"
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
                   className="underline underline-offset-4 hover:text-[#38bdf8]"
                 >
                   {t('privacy_policy', 'Privacy Policy')}
