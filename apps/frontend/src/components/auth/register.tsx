@@ -172,8 +172,12 @@ export function RegisterAfter({
             }
           });
         } else {
-          form.setError('email', {
-            message: await response.text(),
+          const message = await response.text();
+          // Route the server error to the field it's actually about, so a
+          // password-policy failure (e.g. breached password) doesn't highlight
+          // the email field.
+          form.setError(/password|breach/i.test(message) ? 'password' : 'email', {
+            message,
           });
         }
       })
@@ -236,14 +240,18 @@ export function RegisterAfter({
                     <Input
                       label="Email"
                       translationKey="label_email"
-                      {...form.register('email')}
+                      {...form.register('email', {
+                        onChange: () => form.clearErrors('email'),
+                      })}
                       type="email"
                       placeholder={t('email_address', 'Email Address')}
                     />
                     <Input
                       label="Password"
                       translationKey="label_password"
-                      {...form.register('password')}
+                      {...form.register('password', {
+                        onChange: () => form.clearErrors('password'),
+                      })}
                       autoComplete="off"
                       type="password"
                       placeholder={t('label_password', 'Password')}
@@ -275,7 +283,9 @@ export function RegisterAfter({
                     <Input
                       label="Confirm Password"
                       translationKey="label_confirm_password"
-                      {...form.register('confirmPassword')}
+                      {...form.register('confirmPassword', {
+                        onChange: () => form.clearErrors('confirmPassword'),
+                      })}
                       autoComplete="off"
                       type="password"
                       placeholder={t(
@@ -303,7 +313,8 @@ export function RegisterAfter({
                 <a
                   href={`https://postra.co.uk/terms`}
                   className="underline underline-offset-4 hover:text-[#38bdf8]"
-                  rel="nofollow"
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
                 >
                   {t('terms_of_service', 'Terms of Service')}
                 </a>
@@ -311,7 +322,8 @@ export function RegisterAfter({
                 {t('and', 'and')}&nbsp;
                 <a
                   href={`https://postra.co.uk/privacy`}
-                  rel="nofollow"
+                  target="_blank"
+                  rel="nofollow noopener noreferrer"
                   className="underline underline-offset-4 hover:text-[#38bdf8]"
                 >
                   {t('privacy_policy', 'Privacy Policy')}

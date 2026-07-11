@@ -229,9 +229,9 @@ const PriceBreakdown: FC = () => {
 
   // Get values
   const planName = lineItem?.name || t('billing_subscription', 'Subscription');
-  const unitAmount = lineItem?.unitAmount?.amount || '$0.00';
+  const unitAmount = lineItem?.unitAmount?.amount || '£0.00';
   const discountDisplay = hasDiscount ? discountAmounts[0] : null;
-  const dueToday = checkout?.total?.total?.amount || '$0.00';
+  const dueToday = checkout?.total?.total?.amount || '£0.00';
   const nextBillingTotal = recurring?.dueNext?.total?.amount;
   const nextBillingDate = recurring?.trial?.trialEnd
     ? dayjs(recurring.trial.trialEnd * 1000).format('MMMM D, YYYY')
@@ -283,7 +283,7 @@ const PriceBreakdown: FC = () => {
               </span>
             </div>
             <span className="font-[500]">
-              {discountDisplay.amount !== '$0.00'
+              {discountDisplay.amount !== '£0.00'
                 ? `-${discountDisplay.amount}`
                 : t('billing_applied', 'Applied')}
             </span>
@@ -703,7 +703,7 @@ const SubmitBar: FC<{ loading: boolean; consent: boolean }> = ({
             {checkout.checkout.recurring?.trial?.trialEnd
               ? t(
                   'billing_pay_0_start_trial',
-                  'Pay $0 Today - Start your free trial!'
+                  'Pay £0 Today - Start your free trial!'
                 )
               : t('billing_pay_now', 'Pay Now')}
           </Button>
