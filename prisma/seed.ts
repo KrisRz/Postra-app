@@ -57,7 +57,10 @@ async function main() {
     },
   });
 
-  console.log(`Seeded/reset admin: ${adminEmail} / ${adminPassword}`);
+  // Don't echo the password — the operator set SEED_ADMIN_PASSWORD (or it's the
+  // documented default), and clear-text credential logging is flagged by CodeQL
+  // and would leak into any captured seed output.
+  console.log(`Seeded/reset admin: ${adminEmail}`);
   console.log(`  Org ${orgId} — ULTIMATE, non-lifetime (app accessible + billing loads)`);
 }
 

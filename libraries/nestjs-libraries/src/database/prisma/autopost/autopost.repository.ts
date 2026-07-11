@@ -1,6 +1,5 @@
 import { PrismaRepository } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
 import { AutopostDto } from '@gitroom/nestjs-libraries/dtos/autopost/autopost.dto';
 
 @Injectable()
@@ -70,39 +69,41 @@ export class AutopostRepository {
   }
 
   async createAutopost(orgId: string, body: AutopostDto, id?: string) {
-    const { id: newId, active } = await this._autoPost.model.autoPost.upsert({
-      where: {
-        id: id || uuidv4(),
+    const data = {
+      url: body.url,
+      title: body.title,
+      integrations: JSON.stringify(body.integrations),
+      active: body.active,
+      content: body.content,
+      generateContent: body.generateContent,
+      addPicture: body.addPicture,
+      syncLast: body.syncLast,
+      onSlot: body.onSlot,
+      lastUrl: body.lastUrl,
+      tone: body.tone,
+      customInstructions: body.customInstructions,
+    };
+
+    // Update path: only ever touch a feed that already exists for this org.
+    // The old upsert would mint a brand-new feed for any unknown id, so
+    // `PUT /autopost/<random-uuid>` bypassed the per-plan autoPostLimit (the
+    // Update policy skips the cap check by design). A plain org-scoped update
+    // throws P2025 on an unknown/foreign id instead of creating.
+    if (id) {
+      const { id: updatedId, active } = await this._autoPost.model.autoPost.update({
+        where: {
+          id,
+          organizationId: orgId,
+        },
+        data,
+      });
+      return { id: updatedId, active };
+    }
+
+    const { id: newId, active } = await this._autoPost.model.autoPost.create({
+      data: {
         organizationId: orgId,
-      },
-      create: {
-        organizationId: orgId,
-        url: body.url,
-        title: body.title,
-        integrations: JSON.stringify(body.integrations),
-        active: body.active,
-        content: body.content,
-        generateContent: body.generateContent,
-        addPicture: body.addPicture,
-        syncLast: body.syncLast,
-        onSlot: body.onSlot,
-        lastUrl: body.lastUrl,
-        tone: body.tone,
-        customInstructions: body.customInstructions,
-      },
-      update: {
-        url: body.url,
-        title: body.title,
-        integrations: JSON.stringify(body.integrations),
-        active: body.active,
-        content: body.content,
-        generateContent: body.generateContent,
-        addPicture: body.addPicture,
-        syncLast: body.syncLast,
-        onSlot: body.onSlot,
-        lastUrl: body.lastUrl,
-        tone: body.tone,
-        customInstructions: body.customInstructions,
+        ...data,
       },
     });
 
