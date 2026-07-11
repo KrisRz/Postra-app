@@ -26,6 +26,11 @@ import {
 } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
 import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integrations/refresh.integration.service';
 import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/organizations/organization.service';
+import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
+import {
+  channelLimitFor,
+  pricing,
+} from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 
 @ApiTags('Integrations')
 @Controller('/integrations')
@@ -34,7 +39,8 @@ export class NoAuthIntegrationsController {
     private _integrationManager: IntegrationManager,
     private _integrationService: IntegrationService,
     private _refreshIntegrationService: RefreshIntegrationService,
-    private _organizationService: OrganizationService
+    private _organizationService: OrganizationService,
+    private _subscriptionService: SubscriptionService
   ) {}
 
   @Get('/')
@@ -245,6 +251,51 @@ export class NoAuthIntegrationsController {
       ))
     ) {
       throw new HttpException('', 412);
+    }
+
+    // AE2: the channel count + platform allowlist are checked when the OAuth
+    // URL is generated (integrations.controller.getIntegrationUrl), but that is
+    // a separate request. A user could mint several `state`s while under the
+    // cap and then complete them all here, overshooting the plan. Re-check at
+    // the actual channel creation. Skip on refresh/reconnect and when the
+    // channel already exists (an update adds no new channel).
+    if (process.env.STRIPE_PUBLISHABLE_KEY && !refresh) {
+      const list = await this._integrationService.getIntegrationsList(org.id);
+      const alreadyConnected = list.some(
+        (i) =>
+          i.internalId === String(id) &&
+          i.providerIdentifier === integration
+      );
+      if (!alreadyConnected) {
+        const subscription =
+          await this._subscriptionService.getSubscriptionByOrganizationId(
+            org.id
+          );
+        const tier = subscription?.subscriptionTier || 'FREE';
+        const allowed =
+          pricing[tier]?.allowedProviders || pricing.FREE.allowedProviders;
+        if (!allowed.includes(integration)) {
+          throw new HttpException(
+            'This platform is not available on your plan',
+            402
+          );
+        }
+        const activeChannels = list.filter(
+          (i) => !i.refreshNeeded && !i.disabled
+        ).length;
+        const limit = channelLimitFor({
+          isTrailing: org.isTrailing,
+          subscription: subscription
+            ? { totalChannels: subscription.totalChannels }
+            : null,
+        });
+        if (limit && activeChannels >= limit) {
+          throw new HttpException(
+            'You have reached the maximum number of channels for your plan',
+            402
+          );
+        }
+      }
     }
 
     const createUpdate =

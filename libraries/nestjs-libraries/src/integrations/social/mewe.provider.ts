@@ -6,6 +6,7 @@ import {
 } from '@gitroom/nestjs-libraries/integrations/social/social.integrations.interface';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { SocialAbstract } from '@gitroom/nestjs-libraries/integrations/social.abstract';
+import { fetchMediaBuffer } from '@gitroom/nestjs-libraries/media/fetch.media.buffer';
 import dayjs from 'dayjs';
 import { Integration } from '@prisma/client';
 import { MeweDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/mewe.dto';
@@ -204,8 +205,8 @@ export class MeweProvider extends SocialAbstract implements SocialProvider {
     accessToken: string,
     mediaPath: string
   ): Promise<string> {
-    const mediaResponse = await fetch(mediaPath);
-    const blob = await mediaResponse.blob();
+    // SSRF-guarded: mediaPath is client-controlled
+    const blob = new Blob([await fetchMediaBuffer(mediaPath)]);
     const fileName = mediaPath.split('/').pop() || 'photo.jpg';
 
     const form = new FormData();

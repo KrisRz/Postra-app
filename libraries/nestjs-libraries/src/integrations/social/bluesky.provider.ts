@@ -25,16 +25,15 @@ import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import sharp from 'sharp';
 import { Plug } from '@gitroom/helpers/decorators/plug.decorator';
 import { timer } from '@gitroom/helpers/utils/timer';
-import axios from 'axios';
+import { fetchMediaBuffer } from '@gitroom/nestjs-libraries/media/fetch.media.buffer';
 import { stripHtmlValidation } from '@gitroom/helpers/utils/strip.html.validation';
 import { Rules } from '@gitroom/nestjs-libraries/chat/rules.description.decorator';
 import { hasExtension } from '@gitroom/helpers/utils/has.extension';
 
 async function reduceImageBySize(url: string, maxSizeKB = 976) {
   try {
-    // Fetch the image from the URL
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
-    let imageBuffer = Buffer.from(response.data);
+    // Fetch the image from the URL (SSRF-guarded: path is client-controlled)
+    let imageBuffer = await fetchMediaBuffer(url);
 
     // Use sharp to get the metadata of the image
     const metadata = await sharp(imageBuffer, {

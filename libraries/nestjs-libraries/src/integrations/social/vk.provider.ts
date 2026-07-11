@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { SocialAbstract } from '@gitroom/nestjs-libraries/integrations/social.abstract';
 import { createHash, randomBytes } from 'crypto';
 import axios from 'axios';
+import { fetchMediaBuffer } from '@gitroom/nestjs-libraries/media/fetch.media.buffer';
 import FormDataNew from 'form-data';
 import mime from 'mime-types';
 import { Integration } from '@prisma/client';
@@ -175,9 +176,8 @@ export class VkProvider extends SocialAbstract implements SocialProvider {
           )
         ).json();
 
-        const { data } = await axios.get(media.path!, {
-          responseType: 'stream',
-        });
+        // SSRF-guarded: media.path is client-controlled
+        const data = await fetchMediaBuffer(media.path!);
 
         const slash = media.path.split('/').at(-1);
 
