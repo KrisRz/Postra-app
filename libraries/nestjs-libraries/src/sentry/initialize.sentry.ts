@@ -36,15 +36,17 @@ export const initializeSentry = (appName: string, allowLogs = false) => {
         nodeProfilingIntegration(),
         Sentry.consoleLoggingIntegration({ levels: ['warn', 'error'] }),
         Sentry.openAIIntegration({
-          recordInputs: true,
-          recordOutputs: true,
+          // GDPR: prompts/completions contain user content (post drafts, brand
+          // details) — keep them out of Sentry, timing/token metrics still flow.
+          recordInputs: false,
+          recordOutputs: false,
         }),
       ],
       tracesSampleRate,
       enableLogs: true,
 
       // Profiling
-      profileSessionSampleRate: process.env.NODE_ENV === 'development' ? 1.0 : 0.45,
+      profileSessionSampleRate: process.env.NODE_ENV === 'development' ? 1.0 : 0.1,
       profileLifecycle: 'trace',
     });
   } catch (err) {

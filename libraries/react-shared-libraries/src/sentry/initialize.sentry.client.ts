@@ -8,7 +8,9 @@ export const initializeSentryClient = (environment: string, dsn: string) =>
       Sentry.browserTracingIntegration(),
       Sentry.browserProfilingIntegration(),
       Sentry.replayIntegration({
-        maskAllText: false,
+        // GDPR: replays capture whatever the user sees (post drafts, emails),
+        // so mask everything and record only when an error actually happens.
+        maskAllText: true,
         maskAllInputs: true,
       }),
       Sentry.feedbackIntegration({
@@ -17,8 +19,10 @@ export const initializeSentryClient = (environment: string, dsn: string) =>
       }),
       Sentry.replayCanvasIntegration(),
     ],
-    replaysSessionSampleRate: 1.0,
+    // Error-only replays: the free tier includes ~50 replays/month, so recording
+    // every session would exhaust the quota within a day.
+    replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1.0,
 
-    profilesSampleRate: environment === 'development' ? 1.0 : 0.75,
+    profilesSampleRate: environment === 'development' ? 1.0 : 0.1,
   });
