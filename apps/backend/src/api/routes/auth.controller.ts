@@ -28,6 +28,20 @@ import * as Sentry from '@sentry/nestjs';
 import { pickEmailLang } from '@gitroom/backend/services/auth/auth.emails';
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 
+// One definition for every auth cookie we set. It used to be copy-pasted per
+// route, which is how /activate and /oauth/:provider/exists drifted to
+// `sameSite: 'none'` — that ships the session cookie on cross-site requests,
+// and since the API has no CSRF tokens, every freshly-activated user was
+// CSRF-able until their next login. `lax` still covers the flows that set it:
+// they are top-level navigations from our own email/OAuth redirect.
+const authCookieOptions = () => ({
+  domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
+  ...(!process.env.NOT_SECURED
+    ? { secure: true, httpOnly: true, sameSite: 'lax' as const }
+    : {}),
+  expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+});
+
 @ApiTags('Auth')
 @Controller('/auth')
 export class AuthController {
@@ -83,34 +97,18 @@ export class AuthController {
         return;
       }
 
-      response.cookie('auth', jwt, {
-        domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
-        ...(!process.env.NOT_SECURED
-          ? {
-              secure: true,
-              httpOnly: true,
-              sameSite: 'lax',
-            }
-          : {}),
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-      });
+      response.cookie('auth', jwt, authCookieOptions());
 
       if (process.env.NOT_SECURED) {
         response.header('auth', jwt);
       }
 
       if (typeof addedOrg !== 'boolean' && addedOrg?.organizationId) {
-        response.cookie('showorg', addedOrg.organizationId, {
-          domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
-          ...(!process.env.NOT_SECURED
-            ? {
-                secure: true,
-                httpOnly: true,
-                sameSite: 'lax',
-              }
-            : {}),
-          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-        });
+        response.cookie(
+          'showorg',
+          addedOrg.organizationId,
+          authCookieOptions()
+        );
 
         if (process.env.NOT_SECURED) {
           response.header('showorg', addedOrg.organizationId);
@@ -167,34 +165,18 @@ export class AuthController {
         metadata: { email: body.email, provider: body.provider },
       });
 
-      response.cookie('auth', jwt, {
-        domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
-        ...(!process.env.NOT_SECURED
-          ? {
-              secure: true,
-              httpOnly: true,
-              sameSite: 'lax',
-            }
-          : {}),
-        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-      });
+      response.cookie('auth', jwt, authCookieOptions());
 
       if (process.env.NOT_SECURED) {
         response.header('auth', jwt);
       }
 
       if (typeof addedOrg !== 'boolean' && addedOrg?.organizationId) {
-        response.cookie('showorg', addedOrg.organizationId, {
-          domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
-          ...(!process.env.NOT_SECURED
-            ? {
-                secure: true,
-                httpOnly: true,
-                sameSite: 'lax',
-              }
-            : {}),
-          expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-        });
+        response.cookie(
+          'showorg',
+          addedOrg.organizationId,
+          authCookieOptions()
+        );
 
         if (process.env.NOT_SECURED) {
           response.header('showorg', addedOrg.organizationId);
@@ -242,6 +224,7 @@ export class AuthController {
   }
 
   @Post('/forgot-return')
+  @Throttle({ default: { ttl: 900000, limit: 5 } })
   async forgotReturn(@Body() body: ForgotReturnPasswordDto) {
     try {
       const reset = await this._authService.forgotReturn(body);
@@ -288,17 +271,7 @@ export class AuthController {
       return response.status(200).json({ can: false });
     }
 
-    response.cookie('auth', activate, {
-      domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
-      ...(!process.env.NOT_SECURED
-        ? {
-            secure: true,
-            httpOnly: true,
-            sameSite: 'none',
-          }
-        : {}),
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-    });
+    response.cookie('auth', activate, authCookieOptions());
 
     if (process.env.NOT_SECURED) {
       response.header('auth', activate);
@@ -349,17 +322,7 @@ export class AuthController {
       return response.json({ token });
     }
 
-    response.cookie('auth', jwt, {
-      domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
-      ...(!process.env.NOT_SECURED
-        ? {
-            secure: true,
-            httpOnly: true,
-            sameSite: 'none',
-          }
-        : {}),
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
-    });
+    response.cookie('auth', jwt, authCookieOptions());
 
     if (process.env.NOT_SECURED) {
       response.header('auth', jwt);
