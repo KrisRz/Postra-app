@@ -78,7 +78,7 @@ export const AdminGrowthComponent = () => {
   const t = useT();
   const [days, setDays] = useState<number>(30);
 
-  const { data, isLoading } = useSWR<GrowthResponse>(
+  const { data, isLoading, error } = useSWR<GrowthResponse>(
     `/admin/growth?days=${days}`,
     useCallback(
       async (url: string) => {
@@ -109,7 +109,11 @@ export const AdminGrowthComponent = () => {
         </div>
       </div>
 
-      {isLoading || !data ? (
+      {error ? (
+        <div className="text-[13px] text-red-400">
+          {t('admin.growthLoadFailed', 'Failed to load growth data.')}
+        </div>
+      ) : isLoading || !data ? (
         <div className="text-[13px] opacity-50">Loading...</div>
       ) : (
         <>
