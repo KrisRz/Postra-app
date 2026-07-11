@@ -14,6 +14,7 @@ import { NewsletterService } from '@gitroom/nestjs-libraries/newsletter/newslett
 import { normalizeEmail } from '@gitroom/helpers/utils/email.normalize';
 import disposableDomains from 'disposable-email-domains';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+import { bustAuthContextCache } from '@gitroom/nestjs-libraries/redis/auth-context.cache';
 import {
   authEmails,
   EmailLang,
@@ -292,7 +293,14 @@ export class AuthService {
       throw new Error(PWNED_PASSWORD_MESSAGE);
     }
 
-    return this._userService.updatePassword(user.id, body.password);
+    const updated = await this._userService.updatePassword(
+      user.id,
+      body.password
+    );
+    // updatePassword bumped tokenVersion; drop the cached auth context so the
+    // new version is enforced on the very next request (not up to 30s later).
+    await bustAuthContextCache(user.id);
+    return updated;
   }
 
   async activate(code: string, tracking: string) {
@@ -382,9 +390,15 @@ export class AuthService {
   }
 
   private async jwt(user: User) {
-    if (user.password) {
-      delete user.password;
-    }
-    return AuthChecker.signJWT(user);
+    // Sign only the claims we actually need. auth.middleware re-resolves the
+    // user (org, role, isSuperAdmin, activated) from the DB on every request
+    // and never trusts token claims, so a fat token just meant a bigger cookie
+    // and stale/leaked fields. `tokenVersion` is the revocation check (see the
+    // column comment + auth.middleware).
+    return AuthChecker.signJWT({
+      id: user.id,
+      email: user.email,
+      tokenVersion: user.tokenVersion ?? 0,
+    });
   }
 }
