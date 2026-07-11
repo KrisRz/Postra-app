@@ -1,13 +1,13 @@
-'use client';
+export const dynamic = 'force-dynamic';
+import { Register } from '@gitroom/frontend/components/auth/register';
+import { Metadata } from 'next';
+import { isGeneralServerSide } from '@gitroom/helpers/utils/is.general.server.side';
 
-import { ComingSoon } from '@gitroom/frontend/components/auth/coming-soon';
-import { createPortal } from 'react-dom';
-import { useEffect, useState } from 'react';
+export const metadata: Metadata = {
+  title: `${isGeneralServerSide() ? 'Postra' : 'Gitroom'} - Register`,
+  description: 'Create your account to schedule and publish social media content.',
+};
 
-export default function RegisterPage() {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  if (!mounted) return null;
-  return createPortal(<ComingSoon />, document.body);
+export default async function Auth() {
+  return <Register />;
 }
