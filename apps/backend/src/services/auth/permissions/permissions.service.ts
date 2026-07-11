@@ -7,6 +7,7 @@ import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/in
 import dayjs from 'dayjs';
 import { WebhooksService } from '@gitroom/nestjs-libraries/database/prisma/webhooks/webhooks.service';
 import { AutopostService } from '@gitroom/nestjs-libraries/database/prisma/autopost/autopost.service';
+import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/organizations/organization.service';
 import { AuthorizationActions, Sections } from './permission.exception.class';
 
 export type AppAbility = Ability<[AuthorizationActions, Sections]>;
@@ -18,7 +19,8 @@ export class PermissionsService {
     private _postsService: PostsService,
     private _integrationService: IntegrationService,
     private _webhooksService: WebhooksService,
-    private _autopostService: AutopostService
+    private _autopostService: AutopostService,
+    private _organizationService: OrganizationService
   ) {}
   async getPackageOptions(orgId: string) {
     const subscription =
@@ -157,8 +159,16 @@ export class PermissionsService {
         }
       }
 
-      if (section === Sections.TEAM_MEMBERS && options.team_members) {
-        can(action, section);
+      if (section === Sections.TEAM_MEMBERS) {
+        // Seat cap: `team_members` counts total seats INCLUDING the owner, so a
+        // fresh org already fills one seat. Allow a new invite only while the
+        // active-member count is below the tier's allowance (Starter=1 ⇒ solo,
+        // no invites; Pro=2 ⇒ owner+1; Business=5 ⇒ owner+4).
+        const activeMembers =
+          await this._organizationService.getActiveMemberCount(orgId);
+        if (activeMembers < options.team_members) {
+          can(action, section);
+        }
         continue;
       }
 

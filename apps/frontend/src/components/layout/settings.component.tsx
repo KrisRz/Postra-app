@@ -93,7 +93,7 @@ export const SettingsPopup: FC<{
     const arr = [];
     arr.push({ tab: 'global_settings', label: t('global_settings', 'Global Settings') });
     // Populate tabs based on user permissions
-    if (user?.tier?.team_members && isGeneral) {
+    if ((user?.tier?.team_members ?? 0) > 1 && isGeneral) {
       arr.push({ tab: 'teams', label: t('teams', 'Teams') });
     }
     if (user?.tier?.webhooks) {
@@ -169,7 +169,7 @@ export const SettingsPopup: FC<{
                   <GlobalSettings />
                 </div>
               )}
-              {tab === 'teams' && !!user?.tier?.team_members && isGeneral && (
+              {tab === 'teams' && (user?.tier?.team_members ?? 0) > 1 && isGeneral && (
                 <div>
                   <TeamsComponent />
                 </div>

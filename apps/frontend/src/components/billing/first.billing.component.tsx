@@ -336,8 +336,13 @@ export const BillingFeatures: FC<{ tier: string }> = ({ tier }) => {
 
     if (currentPricing.team_members) {
       list.push({
-        key: 'billing_unlimited_team_members',
-        defaultValue: 'Unlimited team members',
+        key:
+          currentPricing.team_members === 1
+            ? 'billing_team_member'
+            : 'billing_team_members',
+        defaultValue:
+          currentPricing.team_members === 1 ? 'team member' : 'team members',
+        prefix: currentPricing.team_members,
       });
     }
     if (currentPricing?.ai) {
@@ -346,10 +351,6 @@ export const BillingFeatures: FC<{ tier: string }> = ({ tier }) => {
         defaultValue: 'AI auto-complete',
       });
       list.push({ key: 'billing_ai_copilots', defaultValue: 'AI copilots' });
-      list.push({
-        key: 'billing_ai_autocomplete',
-        defaultValue: 'AI Autocomplete',
-      });
     }
     list.push({
       key: 'billing_advanced_picture_editor',

@@ -12,7 +12,10 @@ export interface PricingInnerInterface {
   // is listed for ULTIMATE here but stays hidden until enabled globally.
   allowedProviders: string[];
   posts_per_month: number;
-  team_members: boolean;
+  // Team seat allowance INCLUDING the owner. 1 = solo (owner only, cannot
+  // invite). Enforced at invite (permissions.service TEAM_MEMBERS) and
+  // reconciled on tier change (subscription.service → reconcileTeamSeats).
+  team_members: number;
   community_features: boolean;
   featured_by_gitroom: boolean;
   ai: boolean;
@@ -58,7 +61,7 @@ export const pricing: PricingInterface = {
     allowedProviders: STARTER_PROVIDERS,
     image_generation_count: 0,
     posts_per_month: 0,
-    team_members: false,
+    team_members: 1,
     community_features: false,
     featured_by_gitroom: false,
     ai: false,
@@ -78,17 +81,17 @@ export const pricing: PricingInterface = {
     allowedProviders: STARTER_PROVIDERS,
     posts_per_month: 400,
     image_generation_count: 30,
-    team_members: false,
+    team_members: 1,
     ai: true,
     community_features: false,
     featured_by_gitroom: false,
     import_from_channels: true,
-    image_generator: false,
+    image_generator: true,
     public_api: true,
     webhooks: 2,
     autoPost: false,
     autoPostLimit: 0,
-    generate_videos: 3,
+    generate_videos: 0,
   },
   // Legacy, not purchasable (removed from BillingSubscribeDto). Kept so any
   // existing/grandfathered TEAM subscription still resolves.
@@ -101,7 +104,7 @@ export const pricing: PricingInterface = {
     posts_per_month: 1000000,
     image_generation_count: 100,
     community_features: true,
-    team_members: true,
+    team_members: 1000000,
     featured_by_gitroom: true,
     ai: true,
     import_from_channels: true,
@@ -121,7 +124,7 @@ export const pricing: PricingInterface = {
     posts_per_month: 1000000,
     image_generation_count: 150,
     community_features: true,
-    team_members: true,
+    team_members: 2,
     featured_by_gitroom: true,
     ai: true,
     import_from_channels: true,
@@ -141,7 +144,7 @@ export const pricing: PricingInterface = {
     posts_per_month: 1000000,
     image_generation_count: 600,
     community_features: true,
-    team_members: true,
+    team_members: 5,
     featured_by_gitroom: true,
     ai: true,
     import_from_channels: true,

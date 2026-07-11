@@ -6,7 +6,7 @@ import { AddTeamMemberDto } from '@gitroom/nestjs-libraries/dtos/settings/add.te
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import dayjs from 'dayjs';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
-import { Organization, ShortLinkPreference } from '@prisma/client';
+import { Organization, Role, ShortLinkPreference } from '@prisma/client';
 import { AutopostService } from '@gitroom/nestjs-libraries/database/prisma/autopost/autopost.service';
 import { bustAuthContextCacheForUsers } from '@gitroom/nestjs-libraries/redis/auth-context.cache';
 
@@ -136,6 +136,54 @@ export class OrganizationService {
     // the members' 30s auth-context cache so the permission change is immediate.
     await bustAuthContextCacheForUsers(affectedUserIds);
     return result;
+  }
+
+  getActiveMemberCount(orgId: string) {
+    return this._organizationRepository.getActiveMemberCount(orgId);
+  }
+
+  // Bring the org's active team members in line with a tier's seat allowance.
+  // The owner (SUPERADMIN) is always kept; among the rest the earliest-joined
+  // fill the remaining seats and anyone over the cap is disabled. Runs on every
+  // tier change: a downgrade disables the overflow, an upgrade re-enables people
+  // back within the new cap. `seatLimit` counts the owner, so Starter=1 keeps
+  // the owner only.
+  async reconcileTeamSeats(orgId: string, seatLimit: number) {
+    const members =
+      await this._organizationRepository.getMembersForSeatReconcile(orgId);
+    const ordered = [...members].sort((a, b) => {
+      const aOwner = a.role === Role.SUPERADMIN ? 0 : 1;
+      const bOwner = b.role === Role.SUPERADMIN ? 0 : 1;
+      if (aOwner !== bOwner) return aOwner - bOwner;
+      return a.createdAt.getTime() - b.createdAt.getTime();
+    });
+    const keep = new Set(ordered.slice(0, seatLimit).map((m) => m.userId));
+    const toEnable = ordered
+      .filter(
+        (m) => keep.has(m.userId) && m.disabled && m.role !== Role.SUPERADMIN
+      )
+      .map((m) => m.userId);
+    const toDisable = ordered
+      .filter(
+        (m) => !keep.has(m.userId) && !m.disabled && m.role !== Role.SUPERADMIN
+      )
+      .map((m) => m.userId);
+    if (toEnable.length) {
+      await this._organizationRepository.setMembersDisabled(
+        orgId,
+        toEnable,
+        false
+      );
+    }
+    if (toDisable.length) {
+      await this._organizationRepository.setMembersDisabled(
+        orgId,
+        toDisable,
+        true
+      );
+    }
+    // Bust the 30s auth-context cache for anyone whose access just changed.
+    await bustAuthContextCacheForUsers([...toEnable, ...toDisable]);
   }
 
   getShortlinkPreference(orgId: string) {
