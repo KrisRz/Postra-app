@@ -118,6 +118,11 @@ model User {
   lastOnline            DateTime             @default(now())
   ip                    String?
   agent                 String?
+  // Bumped on password reset (and any future "log out everywhere") to revoke
+  // every outstanding JWT: the token carries this value and auth.middleware
+  // rejects it when it no longer matches the DB. Stateless 30d tokens are
+  // otherwise irrevocable.
+  tokenVersion          Int                  @default(0)
   comments              Comments[]
   items                 ItemUser[]
   groupBuyer            MessagesGroup[]      @relation("groupBuyer")

@@ -104,6 +104,10 @@ export class UsersRepository {
       },
       data: {
         password: AuthService.hashPassword(password),
+        // Revoke every session issued before this reset (ASVS 3.3.1). The
+        // caller must also bust the authctx cache so the bump is seen within
+        // the 30s cache TTL.
+        tokenVersion: { increment: 1 },
       },
     });
   }

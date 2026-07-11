@@ -34,12 +34,16 @@ import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/au
 // and since the API has no CSRF tokens, every freshly-activated user was
 // CSRF-able until their next login. `lax` still covers the flows that set it:
 // they are top-level navigations from our own email/OAuth redirect.
+// Cookie lifetime is pinned to the JWT lifetime (30d). It used to be 365d,
+// which left an expired-token cookie sitting in the browser for 11 months after
+// the JWT it carried had died.
+const AUTH_COOKIE_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30;
 const authCookieOptions = () => ({
   domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
   ...(!process.env.NOT_SECURED
     ? { secure: true, httpOnly: true, sameSite: 'lax' as const }
     : {}),
-  expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365),
+  expires: new Date(Date.now() + AUTH_COOKIE_MAX_AGE_MS),
 });
 
 @ApiTags('Auth')
@@ -131,7 +135,11 @@ export class AuthController {
           : {}),
       });
     } catch (e: any) {
-      response.status(400).send(e.message);
+      // Force text/plain: Express's res.send(string) would set text/html, which
+      // makes CodeQL flag this as reflected XSS / exception-text-as-HTML even
+      // though the message is server-generated. text/plain keeps the browser
+      // from ever rendering it as markup, and the client reads it via .text().
+      response.status(400).type('text/plain').send(e.message);
     }
   }
 
@@ -204,7 +212,11 @@ export class AuthController {
         userAgent,
         metadata: { email: body.email, reason: e.message?.slice(0, 200) },
       });
-      response.status(400).send(e.message);
+      // Force text/plain: Express's res.send(string) would set text/html, which
+      // makes CodeQL flag this as reflected XSS / exception-text-as-HTML even
+      // though the message is server-generated. text/plain keeps the browser
+      // from ever rendering it as markup, and the client reads it via .text().
+      response.status(400).type('text/plain').send(e.message);
     }
   }
 
