@@ -11,6 +11,7 @@ import { ErrorsService } from '@gitroom/nestjs-libraries/database/prisma/errors/
 import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.service';
 import { PrismaService } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import dayjs from 'dayjs';
+import { fetch } from 'undici';
 
 @ApiTags('Admin')
 @Controller('/admin')
@@ -178,6 +179,92 @@ export class AdminController {
     ]);
 
     return { items, total, page: page ? parseInt(page, 10) : 0, limit: take };
+  }
+
+  @Get('/metrics')
+  async getAppMetrics(@GetUserFromRequest() user: User) {
+    this.assertSuperAdmin(user);
+
+    const aiCalls24h = await this._prisma.credits.count({
+      where: { createdAt: { gte: dayjs().subtract(24, 'hour').toDate() } },
+    });
+
+    const token = process.env.GRAFANA_SA_TOKEN;
+    const grafanaUrl = process.env.GRAFANA_URL || 'https://postra.grafana.net';
+    if (!token) {
+      return { enabled: false, aiCalls24h };
+    }
+
+    // Same PromQL as the Tier 1 dashboards (observability/dashboards/generate.py)
+    const prom = { type: 'prometheus', uid: 'grafanacloud-prom' };
+    const range = (refId: string, expr: string) => ({
+      refId,
+      datasource: prom,
+      expr,
+      range: true,
+      intervalMs: 1800000,
+      maxDataPoints: 48,
+    });
+    const instant = (refId: string, expr: string) => ({
+      refId,
+      datasource: prom,
+      expr,
+      instant: true,
+      range: false,
+    });
+
+    try {
+      const res = await fetch(`${grafanaUrl}/api/ds/query`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'now-24h',
+          to: 'now',
+          queries: [
+            range('A', 'sum(rate(http_request_duration_seconds_count[5m]))'),
+            range(
+              'B',
+              'histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))'
+            ),
+            instant('C', 'sum(increase(temporal_workflow_completed[24h]))'),
+            instant('D', 'sum(increase(temporal_workflow_failed[24h]))'),
+          ],
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(`Grafana responded ${res.status}`);
+      }
+      const data: any = await res.json();
+
+      const series = (refId: string): [number, number][] => {
+        const values = data?.results?.[refId]?.frames?.[0]?.data?.values;
+        if (!values?.length) return [];
+        const [times, vals] = values;
+        return times
+          .map((t: number, i: number) => [t, vals[i]] as [number, number])
+          .filter((p: [number, number]) => p[1] != null);
+      };
+      const last = (refId: string) => {
+        const s = series(refId);
+        return s.length ? s[s.length - 1][1] : 0;
+      };
+
+      return {
+        enabled: true,
+        requestRate: series('A'),
+        latencyP95: series('B'),
+        publish24h: {
+          completed: Math.round(last('C')),
+          failed: Math.round(last('D')),
+        },
+        aiCalls24h,
+      };
+    } catch (e: any) {
+      return { enabled: false, error: e.message, aiCalls24h };
+    }
   }
 
   @Get('/health')
