@@ -1,4 +1,5 @@
 import {
+  ArrayMaxSize,
   ArrayMinSize,
   IsArray,
   IsBoolean,
@@ -43,7 +44,11 @@ export class PostContent {
   @IsNumber()
   delay: number;
 
+  // Each image is fetched + sharp-decoded on publish; an unbounded array on a
+  // 25mb body could queue thousands of concurrent fetch/decode ops. No platform
+  // accepts more than ~10 media per post, so 20 is generous headroom.
   @IsArray()
+  @ArrayMaxSize(20)
   @Type(() => MediaDto)
   @ValidateNested({ each: true })
   image: MediaDto[];
@@ -57,8 +62,11 @@ export class Post {
   @ValidateNested()
   integration: Integration;
 
+  // One entry per part of a thread/carousel. Long threads are legitimate, so
+  // the cap is high — it only exists to stop an unbounded payload.
   @IsDefined()
   @ArrayMinSize(1)
+  @ArrayMaxSize(100)
   @IsArray()
   @Type(() => PostContent)
   @ValidateNested({ each: true })
@@ -113,13 +121,17 @@ export class CreatePostDto {
 
   @IsArray()
   @IsDefined()
+  @ArrayMaxSize(30)
   @ValidateNested({ each: true })
   tags: Tags[];
 
+  // One post per selected channel in the group; Business tops out at 10
+  // channels, so 50 is well clear of any real fan-out.
   @IsDefined()
   @Type(() => Post)
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
+  @ArrayMaxSize(50)
   posts: Post[];
 }

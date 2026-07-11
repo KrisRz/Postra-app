@@ -411,10 +411,35 @@ export class IntegrationsController {
   }
 
   @Post('/enable')
-  enableChannel(
+  async enableChannel(
     @GetOrgFromRequest() org: Organization,
     @Body('id') id: string
   ) {
+    // Re-enabling is a second entry point for a channel, so it must honour the
+    // same per-tier platform allowlist the connect path enforces — otherwise a
+    // downgraded org (e.g. Business→Starter) could disable an allowed channel
+    // and re-enable a now-forbidden one, keeping a higher-tier platform under
+    // the seat count. Skipped when billing is off (every platform allowed).
+    if (process.env.STRIPE_PUBLISHABLE_KEY) {
+      const integration = await this._integrationService.getIntegrationById(
+        org.id,
+        id
+      );
+      // @ts-ignore subscription is attached to the org by the auth middleware
+      const tier = org?.subscription?.subscriptionTier || 'FREE';
+      const allowed =
+        pricing[tier]?.allowedProviders || pricing.FREE.allowedProviders;
+      if (
+        integration &&
+        !allowed.includes(integration.providerIdentifier)
+      ) {
+        throw new HttpException(
+          `The ${integration.providerIdentifier} channel isn't included in your plan — upgrade to enable it.`,
+          402
+        );
+      }
+    }
+
     return this._integrationService.enableChannel(
       org.id,
       // @ts-ignore
