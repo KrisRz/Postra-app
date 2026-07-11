@@ -22,7 +22,7 @@ interface OrgItem {
   _count: {
     users: number;
     Integration: number;
-    posts: number;
+    post: number;
   };
 }
 
@@ -46,7 +46,8 @@ export const AdminOrganizationsComponent = () => {
   const fetch = useFetch();
   const t = useT();
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  // 0-indexed: the backend computes skip = page * limit
+  const [page, setPage] = useState(0);
   const limit = 20;
 
   const load = useCallback(
@@ -63,7 +64,7 @@ export const AdminOrganizationsComponent = () => {
     [page, search]
   );
 
-  const { data, isLoading } = useSWR<OrgResponse>(
+  const { data, isLoading, error } = useSWR<OrgResponse>(
     `/admin/organizations-${page}-${search}`,
     load,
     {
@@ -79,7 +80,7 @@ export const AdminOrganizationsComponent = () => {
   const handleSearch = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearch(e.target.value);
-      setPage(1);
+      setPage(0);
     },
     []
   );
@@ -153,7 +154,20 @@ export const AdminOrganizationsComponent = () => {
                 </td>
               </tr>
             )}
-            {data?.items.length === 0 && (
+            {error && (
+              <tr>
+                <td
+                  colSpan={7}
+                  className="p-[20px] text-center text-[13px] text-red-400"
+                >
+                  {t(
+                    'organizations_load_failed',
+                    'Failed to load organizations.'
+                  )}
+                </td>
+              </tr>
+            )}
+            {!error && data?.items.length === 0 && (
               <tr>
                 <td
                   colSpan={7}
@@ -184,13 +198,13 @@ export const AdminOrganizationsComponent = () => {
                     : org.subscription?.period ?? '-'}
                 </td>
                 <td className="p-[12px] text-[13px] text-newTextColor/60">
-                  {org.subscription?.totalChannels ?? 0}
+                  {org._count.Integration}
                 </td>
                 <td className="p-[12px] text-[13px] text-newTextColor/60">
                   {org._count.users}
                 </td>
                 <td className="p-[12px] text-[13px] text-newTextColor/60">
-                  {org._count.posts}
+                  {org._count.post}
                 </td>
                 <td className="p-[12px] text-[13px] text-newTextColor/60">
                   {new Date(org.createdAt).toLocaleDateString()}
@@ -204,13 +218,13 @@ export const AdminOrganizationsComponent = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-[13px]">
           <span className="text-newTextColor/60">
-            {t('page', 'Page')} {page} / {totalPages} ({data?.total}{' '}
+            {t('page', 'Page')} {page + 1} / {totalPages} ({data?.total}{' '}
             {t('total', 'total')})
           </span>
           <div className="flex gap-[8px]">
             <button
               type="button"
-              disabled={page <= 1}
+              disabled={page <= 0}
               onClick={() => setPage((p) => p - 1)}
               className="px-[14px] h-[34px] rounded-[10px] text-[13px] border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/25 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
@@ -218,7 +232,7 @@ export const AdminOrganizationsComponent = () => {
             </button>
             <button
               type="button"
-              disabled={page >= totalPages}
+              disabled={page >= totalPages - 1}
               onClick={() => setPage((p) => p + 1)}
               className="px-[14px] h-[34px] rounded-[10px] text-[13px] border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/25 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >

@@ -7,10 +7,10 @@ const REGION = 'eu-west-2';
 const CW = `https://${REGION}.console.aws.amazon.com/cloudwatch/home?region=${REGION}`;
 
 const links: { name: string; desc: string; href: string }[] = [
-  { name: 'CloudWatch', desc: 'RAM, dysk, CPU, RDS, ALB · dashboard postra-dev', href: `${CW}#dashboards/dashboard/postra-dev` },
+  { name: 'CloudWatch', desc: 'RAM, disk, CPU, RDS, ALB · dashboard postra-dev', href: `${CW}#dashboards/dashboard/postra-dev` },
   { name: 'Alarms', desc: '7 alarms → email (5xx, RAM, disk, RDS, recovery)', href: `${CW}#alarmsV2:` },
   { name: 'Status page', desc: 'status.postra.pl · uptime + response time', href: 'https://status.postra.pl' },
-  { name: 'Sentry', desc: 'errors + traces (FE + BE)', href: 'https://sentry.io' },
+  { name: 'Sentry', desc: 'errors + traces (FE + BE)', href: 'https://bk-company-9c.sentry.io/issues/' },
 ];
 
 const teaser: string[] = ['Request rate', 'Latency p95', 'Publish success (Temporal)', 'AI cost / day'];
