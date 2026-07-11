@@ -120,6 +120,66 @@ export class AdminController {
     return { items, total, page: page ? parseInt(page, 10) : 0, limit: take };
   }
 
+  @Get('/users')
+  async listUsers(
+    @GetUserFromRequest() user: User,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string
+  ) {
+    this.assertSuperAdmin(user);
+    const take = limit ? parseInt(limit, 10) : 20;
+    const skip = page ? parseInt(page, 10) * take : 0;
+
+    const where = search
+      ? {
+          OR: [
+            { email: { contains: search, mode: 'insensitive' as const } },
+            { name: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
+      : {};
+
+    const [items, total] = await Promise.all([
+      this._prisma.user.findMany({
+        where,
+        take,
+        skip,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          lastName: true,
+          providerName: true,
+          activated: true,
+          isSuperAdmin: true,
+          createdAt: true,
+          lastOnline: true,
+          organizations: {
+            // UserOrganization id — it is what POST /user/impersonate expects
+            select: {
+              id: true,
+              role: true,
+              organization: {
+                select: {
+                  id: true,
+                  name: true,
+                  subscription: {
+                    select: { subscriptionTier: true, isLifetime: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      }),
+      this._prisma.user.count({ where }),
+    ]);
+
+    return { items, total, page: page ? parseInt(page, 10) : 0, limit: take };
+  }
+
   @Get('/health')
   async getSystemHealth(@GetUserFromRequest() user: User) {
     this.assertSuperAdmin(user);
