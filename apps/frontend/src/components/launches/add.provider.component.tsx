@@ -19,6 +19,11 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import clsx from 'clsx';
 import copy from 'copy-to-clipboard';
 import { capitalize } from 'lodash';
+import { useUser } from '@gitroom/frontend/components/layout/user.context';
+import {
+  pricing,
+  planLabel,
+} from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 const resolver = classValidatorResolver(ApiKeyDto);
 
 export const useAddProvider = (update?: () => void, invite?: boolean) => {
@@ -389,6 +394,18 @@ export const AddProviderComponent: FC<{
 }> = (props) => {
   const { update, social, article, onboarding, isMobile } = props;
   const { isGeneral, extensionId } = useVariables();
+  const user = useUser();
+  // Platforms the current tier may connect; anything outside the list is shown
+  // locked (dimmed + a badge) rather than hidden, so users can see what a higher
+  // plan unlocks. Undefined when billing is off / no user ⇒ nothing is locked.
+  const allowedProviders = user?.tier?.allowedProviders;
+  const unlockTierLabel = useCallback(
+    (identifier: string) =>
+      pricing.PRO.allowedProviders.includes(identifier)
+        ? planLabel('PRO')
+        : planLabel('ULTIMATE'),
+    []
+  );
   const toaster = useToaster();
   const router = useRouter();
   const fetch = useFetch();
@@ -686,6 +703,10 @@ export const AddProviderComponent: FC<{
             })
             .map((item) => {
               const isEnabled = item.enabled !== false;
+              const lockedByTier =
+                isEnabled &&
+                !!allowedProviders &&
+                !allowedProviders.includes(item.identifier);
               return (
                 <div
                   key={item.identifier}
@@ -721,12 +742,19 @@ export const AddProviderComponent: FC<{
                       ? 'flex-row h-[72px] p-[16px]'
                       : 'flex-col p-[10px] h-[100px] justify-center',
                     'launches-provider-card w-full text-[14px] rounded-[14px] border relative items-center flex gap-[10px] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-all duration-200',
-                    isEnabled
-                      ? 'border-white/8 bg-[linear-gradient(180deg,rgba(30,41,59,0.46),rgba(15,23,42,0.7))] text-textColor cursor-pointer hover:border-sky-300/20 hover:bg-[linear-gradient(180deg,rgba(30,41,59,0.62),rgba(15,23,42,0.82))]'
-                      : 'border-white/4 bg-[linear-gradient(180deg,rgba(30,41,59,0.2),rgba(15,23,42,0.35))] text-textColor/30 cursor-default'
+                    !isEnabled
+                      ? 'border-white/4 bg-[linear-gradient(180deg,rgba(30,41,59,0.2),rgba(15,23,42,0.35))] text-textColor/30 cursor-default'
+                      : lockedByTier
+                      ? 'border-white/8 bg-[linear-gradient(180deg,rgba(30,41,59,0.28),rgba(15,23,42,0.5))] text-textColor/45 cursor-pointer hover:border-[#a78bfa]/30'
+                      : 'border-white/8 bg-[linear-gradient(180deg,rgba(30,41,59,0.46),rgba(15,23,42,0.7))] text-textColor cursor-pointer hover:border-sky-300/20 hover:bg-[linear-gradient(180deg,rgba(30,41,59,0.62),rgba(15,23,42,0.82))]'
                   )}
                 >
-                  <div className={clsx(!isEnabled && 'opacity-30')}>
+                  <div
+                    className={clsx(
+                      !isEnabled && 'opacity-30',
+                      lockedByTier && 'opacity-60'
+                    )}
+                  >
                     {item.identifier === 'youtube' ? (
                       <img src={`/icons/platforms/youtube.svg`} />
                     ) : (
@@ -735,7 +763,7 @@ export const AddProviderComponent: FC<{
                           'w-[32px] h-[32px]',
                           item.identifier !== 'google_my_business' &&
                             'rounded-full',
-                          !isEnabled && 'grayscale'
+                          (!isEnabled || lockedByTier) && 'grayscale'
                         )}
                         src={`/icons/platforms/${item.identifier}.png`}
                       />
@@ -751,6 +779,12 @@ export const AddProviderComponent: FC<{
                     {!isEnabled && !isMobile && (
                       <div className="text-[10px] text-textColor/20 mt-[2px]">
                         {t('coming_soon_short', 'Soon')}
+                      </div>
+                    )}
+                    {lockedByTier && !isMobile && (
+                      <div className="text-[10px] text-[#a78bfa] mt-[2px] font-[600] flex items-center justify-center gap-[3px]">
+                        <span>🔒</span>
+                        {unlockTierLabel(item.identifier)}
                       </div>
                     )}
                     {!!item.toolTip && isEnabled && !isMobile && (

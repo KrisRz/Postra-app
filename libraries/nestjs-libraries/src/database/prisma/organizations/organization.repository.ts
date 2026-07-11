@@ -429,6 +429,31 @@ export class OrganizationRepository {
     return rows.map((r) => r.userId);
   }
 
+  getActiveMemberCount(orgId: string) {
+    return this._userOrg.model.userOrganization.count({
+      where: { organizationId: orgId, disabled: false },
+    });
+  }
+
+  getMembersForSeatReconcile(orgId: string) {
+    return this._userOrg.model.userOrganization.findMany({
+      where: { organizationId: orgId },
+      select: { userId: true, role: true, disabled: true, createdAt: true },
+    });
+  }
+
+  setMembersDisabled(orgId: string, userIds: string[], disabled: boolean) {
+    return this._userOrg.model.userOrganization.updateMany({
+      where: {
+        organizationId: orgId,
+        userId: { in: userIds },
+        // Never disable the owner — the seat cap always keeps SUPERADMIN.
+        role: { not: Role.SUPERADMIN },
+      },
+      data: { disabled },
+    });
+  }
+
   getShortlinkPreference(orgId: string) {
     return this._organization.model.organization.findUnique({
       where: {

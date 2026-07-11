@@ -559,6 +559,8 @@
   "billing_unlimited": "Nieograniczony",
   "billing_posts_per_month": "postów miesięcznie",
   "billing_unlimited_team_members": "Nieograniczona liczba członków zespołu",
+  "billing_team_member": "członek zespołu",
+  "billing_team_members": "członków zespołu",
   "billing_ai_auto_complete": "Automatyczne uzupełnianie AI",
   "billing_ai_copilots": "Drugi piloci AI",
   "billing_ai_autocomplete": "Autouzupełnianie AI",

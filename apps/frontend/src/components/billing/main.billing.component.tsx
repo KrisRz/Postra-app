@@ -95,12 +95,15 @@ export const Features: FC<{
       } posts per month`
     );
     if (currentPricing.team_members) {
-      list.push(`Unlimited team members`);
+      list.push(
+        `${currentPricing.team_members} ${
+          currentPricing.team_members === 1 ? 'team member' : 'team members'
+        }`
+      );
     }
     if (currentPricing?.ai) {
       list.push(`AI auto-complete`);
       list.push(`AI copilots`);
-      list.push(`AI Autocomplete`);
     }
     list.push(`Advanced Picture Editor`);
     if (currentPricing?.image_generator) {
@@ -361,11 +364,11 @@ export const MainBillingComponent: FC<{
 
           const messages = [];
           if (
-            !pricing[billing].team_members &&
-            pricing[subscription?.subscriptionTier!]?.team_members
+            pricing[billing].team_members <
+            (pricing[subscription?.subscriptionTier!]?.team_members ?? 0)
           ) {
             messages.push(
-              `Your team members will be removed from your organization`
+              `Some team members may be removed to fit your new plan`
             );
           }
           if (billing === 'FREE') {

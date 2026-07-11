@@ -130,7 +130,6 @@ export class SubscriptionService {
         organizationId
       ))!;
 
-    const from = pricing[getCurrentSubscription?.subscriptionTier || 'FREE'];
     const to = pricing[billing];
 
     const currentTotalChannels = (
@@ -144,19 +143,13 @@ export class SubscriptionService {
       );
     }
 
-    if (from.team_members && !to.team_members) {
-      await this._organizationService.disableOrEnableNonSuperAdminUsers(
-        organizationId,
-        true
-      );
-    }
-
-    if (!from.team_members && to.team_members) {
-      await this._organizationService.disableOrEnableNonSuperAdminUsers(
-        organizationId,
-        false
-      );
-    }
+    // Reconcile active team seats to the new tier (owner + earliest-joined
+    // members up to the cap stay; overflow is disabled on downgrade and
+    // re-enabled within the cap on upgrade).
+    await this._organizationService.reconcileTeamSeats(
+      organizationId,
+      to.team_members
+    );
 
     if (billing === 'FREE') {
       await this._integrationService.changeActiveCron(organizationId);
@@ -191,7 +184,6 @@ export class SubscriptionService {
       return false;
     }
 
-    const from = pricing[getCurrentSubscription?.subscriptionTier || 'FREE'];
     const to = pricing[billing];
 
     const currentTotalChannels = (
@@ -224,19 +216,13 @@ export class SubscriptionService {
       );
     }
 
-    if (from.team_members && !to.team_members) {
-      await this._organizationService.disableOrEnableNonSuperAdminUsers(
-        getOrgByCustomerId?.id!,
-        true
-      );
-    }
-
-    if (!from.team_members && to.team_members) {
-      await this._organizationService.disableOrEnableNonSuperAdminUsers(
-        getOrgByCustomerId?.id!,
-        false
-      );
-    }
+    // Reconcile active team seats to the new tier (owner + earliest-joined
+    // members up to the cap stay; overflow is disabled on downgrade and
+    // re-enabled within the cap on upgrade).
+    await this._organizationService.reconcileTeamSeats(
+      getOrgByCustomerId?.id!,
+      to.team_members
+    );
 
     if (billing === 'FREE') {
       await this._integrationService.changeActiveCron(getOrgByCustomerId?.id!);

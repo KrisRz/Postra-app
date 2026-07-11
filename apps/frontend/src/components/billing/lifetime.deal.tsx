@@ -71,7 +71,11 @@ export const LifetimeDeal = () => {
       } posts per month`
     );
     if (currentPricing.team_members) {
-      list.push(`Unlimited team members`);
+      list.push(
+        `${currentPricing.team_members} ${
+          currentPricing.team_members === 1 ? 'team member' : 'team members'
+        }`
+      );
     }
     if (currentPricing?.ai) {
       list.push(`AI auto-complete`);
@@ -94,7 +98,11 @@ export const LifetimeDeal = () => {
       } posts per month`
     );
     if (currentPricing.team_members) {
-      list.push(`Unlimited team members`);
+      list.push(
+        `${currentPricing.team_members} ${
+          currentPricing.team_members === 1 ? 'team member' : 'team members'
+        }`
+      );
     }
     if (currentPricing?.ai) {
       list.push(`AI auto-complete`);

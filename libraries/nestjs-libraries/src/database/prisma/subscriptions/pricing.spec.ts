@@ -99,6 +99,20 @@ describe('pricing matrix', () => {
     expect(pricing.FREE.posts_per_month).toBe(0);
     expect(pricing.FREE.ai).toBe(false);
   });
+
+  it('sets team seats (owner-inclusive) to Starter=1, Pro=2, Business=5', () => {
+    expect(pricing.STANDARD.team_members).toBe(1);
+    expect(pricing.PRO.team_members).toBe(2);
+    expect(pricing.ULTIMATE.team_members).toBe(5);
+  });
+
+  it('gives Starter AI images (not videos); videos start at Pro', () => {
+    expect(pricing.STANDARD.image_generator).toBe(true);
+    expect(pricing.STANDARD.image_generation_count).toBe(30);
+    expect(pricing.STANDARD.generate_videos).toBe(0);
+    expect(pricing.PRO.generate_videos).toBe(30);
+    expect(pricing.ULTIMATE.generate_videos).toBe(60);
+  });
 });
 
 describe('planLabel', () => {
