@@ -5,6 +5,7 @@ import { RefreshTokens } from './tasks/refresh.tokens';
 import { ConfigurationTask } from './tasks/configuration';
 import { EncryptTokens } from './tasks/encrypt.tokens';
 import { GrandfatherSubscriptions } from './tasks/grandfather.subscriptions';
+import { GrantLifetime } from './tasks/grant.lifetime';
 import { AgentModule } from '@gitroom/nestjs-libraries/agent/agent.module';
 import { TemporalStubModule } from './temporal.stub.module';
 
@@ -26,6 +27,7 @@ import { TemporalStubModule } from './temporal.stub.module';
     ConfigurationTask,
     EncryptTokens,
     GrandfatherSubscriptions,
+    GrantLifetime,
   ],
   get exports() {
     return [...this.imports, ...this.providers];
