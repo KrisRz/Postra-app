@@ -138,7 +138,7 @@ export const BrandKitPanel: FC = () => {
         <p>
           {t(
             'brand_kit_intro_body',
-            'Your colors, font, tone and logo are applied automatically with ✨ AI Generate. Set once, used every time. The logo goes bottom-right on every AI graphic.'
+            'Set once — every ✨ AI Generate design, 📐 template and 🎬 video text comes out in these colours and font. The logo goes bottom-right on every AI graphic. Tone shapes the wording AI writes.'
           )}
         </p>
       </div>
@@ -146,16 +146,19 @@ export const BrandKitPanel: FC = () => {
       <div className="flex flex-col gap-2">
         <ColorRow
           label={t('color_primary', 'Primary')}
+          hint={t('color_primary_hint', 'Accents: buttons, badges, highlights')}
           value={kit.primaryColor}
           onChange={(v) => update('primaryColor', v)}
         />
         <ColorRow
           label={t('color_secondary', 'Background')}
+          hint={t('color_secondary_hint', 'The canvas behind your designs')}
           value={kit.secondaryColor}
           onChange={(v) => update('secondaryColor', v)}
         />
         <ColorRow
           label={t('color_text', 'Text')}
+          hint={t('color_text_hint', 'Headlines and body copy')}
           value={kit.textColor}
           onChange={(v) => update('textColor', v)}
         />
@@ -249,11 +252,12 @@ export const BrandKitPanel: FC = () => {
   );
 };
 
-const ColorRow: FC<{ label: string; value: string; onChange: (v: string) => void }> = ({
-  label,
-  value,
-  onChange,
-}) => (
+const ColorRow: FC<{
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (v: string) => void;
+}> = ({ label, hint, value, onChange }) => (
   <div className="flex items-center gap-2">
     <div className="relative w-9 h-9 shrink-0">
       <div
@@ -273,8 +277,11 @@ const ColorRow: FC<{ label: string; value: string; onChange: (v: string) => void
       type="text"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="flex-1 min-w-0 text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth font-mono"
+      className="w-20 min-w-0 text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth font-mono"
     />
-    <span className="text-[10px] text-textColor/60 w-14 text-right shrink-0">{label}</span>
+    <div className="flex-1 min-w-0 flex flex-col text-right">
+      <span className="text-[10px] text-textColor/80">{label}</span>
+      <span className="text-[9px] text-textColor/45 leading-tight">{hint}</span>
+    </div>
   </div>
 );
