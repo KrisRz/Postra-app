@@ -392,12 +392,21 @@ export class AdminController {
   @Get('/growth')
   async getGrowth(
     @GetUserFromRequest() user: User,
-    @Query('days') days?: string
+    @Query('days') days?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string
   ) {
     this.assertSuperAdmin(user);
 
-    const numDays = days ? parseInt(days, 10) : 30;
-    const since = dayjs().subtract(numDays, 'day').startOf('day').toDate();
+    const untilDay = to ? dayjs(to).endOf('day') : dayjs().endOf('day');
+    const sinceDay = from
+      ? dayjs(from).startOf('day')
+      : untilDay
+          .subtract(days ? parseInt(days, 10) : 30, 'day')
+          .startOf('day');
+    const numDays = untilDay.diff(sinceDay, 'day') + 1;
+    const since = sinceDay.toDate();
+    const until = untilDay.toDate();
 
     const [
       totalUsers,
@@ -412,19 +421,23 @@ export class AdminController {
     ] = await Promise.all([
       this._prisma.user.count(),
       this._prisma.organization.count(),
-      this._prisma.user.count({ where: { createdAt: { gte: since } } }),
-      this._prisma.organization.count({ where: { createdAt: { gte: since } } }),
+      this._prisma.user.count({
+        where: { createdAt: { gte: since, lte: until } },
+      }),
+      this._prisma.organization.count({
+        where: { createdAt: { gte: since, lte: until } },
+      }),
       this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
         SELECT DATE("createdAt") as day, COUNT(*)::bigint as count
         FROM "User"
-        WHERE "createdAt" >= ${since}
+        WHERE "createdAt" >= ${since} AND "createdAt" <= ${until}
         GROUP BY DATE("createdAt")
         ORDER BY day
       `,
       this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
         SELECT DATE("publishDate") as day, COUNT(*)::bigint as count
         FROM "Post"
-        WHERE "publishDate" >= ${since}
+        WHERE "publishDate" >= ${since} AND "publishDate" <= ${until}
           AND "deletedAt" IS NULL
           AND "parentPostId" IS NULL
           AND "state" = 'PUBLISHED'
