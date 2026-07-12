@@ -2225,6 +2225,561 @@ const reelCoverBeforeAfter: DesignTemplate = {
   },
 };
 
+const quoteStatement: DesignTemplate = {
+  key: 'quote-statement',
+  category: 'quote',
+  label: 'Bold Statement',
+  labelPl: 'Mocne stwierdzenie',
+  description: 'Big left-aligned statement on an accent block',
+  descriptionPl: 'Duże stwierdzenie na akcentowym bloku',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+
+    addRect(canvas, {
+      left: 0,
+      top: p.height * 0.3,
+      width: p.width * 0.06,
+      height: p.height * 0.32,
+      fill: brand.primary,
+      selectable: false,
+    });
+
+    addTextbox(canvas, tx('Dobry content\nto rozmowa,\nnie megafon.', 'Great content\nis a conversation,\nnot a megaphone.'), {
+      left: p.width * 0.12,
+      top: p.height * 0.3,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.075,
+      fill: brand.text,
+      textAlign: 'left',
+      fontWeight: 'bold',
+      lineHeight: 1.25,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, '@postra', {
+      left: p.width * 0.12,
+      top: p.height * 0.72,
+      width: p.width * 0.6,
+      fontSize: p.width * 0.032,
+      fill: brand.primary,
+      textAlign: 'left',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const quoteMantra: DesignTemplate = {
+  key: 'quote-mantra',
+  category: 'quote',
+  label: 'Monday Mantra',
+  labelPl: 'Mantra na poniedziałek',
+  description: 'Short centred phrase between divider lines',
+  descriptionPl: 'Krótka fraza między liniami',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, tx('MANTRA NA DZIŚ', "TODAY'S MANTRA"), {
+      left: cx,
+      top: p.height * 0.18,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.032,
+      fill: brand.primary,
+      originX: 'center',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.3,
+      width: p.width * 0.22,
+      height: 3,
+      fill: brand.primary,
+      originX: 'center',
+      selectable: false,
+    });
+
+    addTextbox(canvas, tx('Zrobione jest lepsze\nniż perfekcyjne.', 'Done is better\nthan perfect.'), {
+      left: cx,
+      top: p.height * 0.4,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.08,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      lineHeight: 1.25,
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.66,
+      width: p.width * 0.22,
+      height: 3,
+      fill: brand.primary,
+      originX: 'center',
+      selectable: false,
+    });
+
+    addTextbox(canvas, tx('Udostępnij komuś, kto tego potrzebuje', 'Share this with someone who needs it'), {
+      left: cx,
+      top: p.height * 0.84,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.028,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.5,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const statsBigNumber: DesignTemplate = {
+  key: 'stats-big-number',
+  category: 'stats',
+  label: 'Big Number',
+  labelPl: 'Wielka liczba',
+  description: 'One huge metric with context',
+  descriptionPl: 'Jedna wielka metryka z kontekstem',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, tx('W TYM MIESIĄCU', 'THIS MONTH'), {
+      left: cx,
+      top: p.height * 0.16,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.034,
+      fill: brand.text,
+      originX: 'center',
+      charSpacing: 180,
+      opacity: 0.7,
+      fontFamily: brand.fontFamily,
+    });
+
+    addCircle(canvas, {
+      left: cx,
+      top: p.height * 0.44,
+      radius: p.width * 0.24,
+      fill: brand.primary,
+      opacity: 0.15,
+      originX: 'center',
+      originY: 'center',
+      selectable: false,
+    });
+
+    addTextbox(canvas, '+248%', {
+      left: cx,
+      top: p.height * 0.35,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.19,
+      fill: brand.primary,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('wzrostu zasięgów organicznych', 'growth in organic reach'), {
+      left: cx,
+      top: p.height * 0.58,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.045,
+      fill: brand.text,
+      originX: 'center',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('vs poprzedni kwartał · dane własne', 'vs previous quarter · own data'), {
+      left: cx,
+      top: p.height * 0.82,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.026,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.5,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const statsThree: DesignTemplate = {
+  key: 'stats-three',
+  category: 'stats',
+  label: 'Three Numbers',
+  labelPl: 'Trzy liczby',
+  description: 'Headline with a row of three metrics',
+  descriptionPl: 'Nagłówek i rząd trzech metryk',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, tx('Nasz rok w liczbach', 'Our year in numbers'), {
+      left: cx,
+      top: p.height * 0.16,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.06,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    const stats: [string, string][] = [
+      ['1.2M', tx('wyświetleń', 'views')],
+      ['48k', tx('obserwujących', 'followers')],
+      ['312', tx('publikacji', 'posts')],
+    ];
+    stats.forEach(([num, label], i) => {
+      const colX = p.width * (0.2 + 0.3 * i);
+      addTextbox(canvas, num, {
+        left: colX,
+        top: p.height * 0.42,
+        width: p.width * 0.26,
+        fontSize: p.width * 0.075,
+        fill: brand.primary,
+        originX: 'center',
+        fontWeight: 'bold',
+        fontFamily: brand.fontFamily,
+      });
+      addTextbox(canvas, label, {
+        left: colX,
+        top: p.height * 0.52,
+        width: p.width * 0.26,
+        fontSize: p.width * 0.028,
+        fill: brand.text,
+        originX: 'center',
+        opacity: 0.8,
+        fontFamily: brand.fontFamily,
+      });
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.64,
+      width: p.width * 0.6,
+      height: 2,
+      fill: brand.text,
+      opacity: 0.2,
+      originX: 'center',
+      selectable: false,
+    });
+
+    addTextbox(canvas, tx('Dziękujemy, że jesteście! 🙌', 'Thank you for being here! 🙌'), {
+      left: cx,
+      top: p.height * 0.72,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.038,
+      fill: brand.text,
+      originX: 'center',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const tipChecklist: DesignTemplate = {
+  key: 'tip-checklist',
+  category: 'tip',
+  label: 'Checklist',
+  labelPl: 'Checklista',
+  description: 'Headline with three ticked items',
+  descriptionPl: 'Nagłówek i trzy odhaczone punkty',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, tx('Checklista przed publikacją', 'Pre-publish checklist'), {
+      left: cx,
+      top: p.height * 0.13,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.055,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    const items = [
+      tx('Hook w pierwszej linijce', 'Hook in the first line'),
+      tx('Jedno wyraźne CTA', 'One clear CTA'),
+      tx('Grafika w brandowych kolorach', 'On-brand visuals'),
+    ];
+    items.forEach((item, i) => {
+      const rowTop = p.height * (0.3 + 0.16 * i);
+      addRect(canvas, {
+        left: cx,
+        top: rowTop,
+        width: p.width * 0.82,
+        height: p.height * 0.11,
+        fill: brand.text,
+        opacity: 0.07,
+        rx: p.width * 0.02,
+        ry: p.width * 0.02,
+        originX: 'center',
+        selectable: false,
+      });
+      addTextbox(canvas, '✓', {
+        left: p.width * 0.16,
+        top: rowTop + p.height * 0.025,
+        width: p.width * 0.08,
+        fontSize: p.width * 0.05,
+        fill: brand.primary,
+        fontWeight: 'bold',
+        fontFamily: brand.fontFamily,
+      });
+      addTextbox(canvas, item, {
+        left: p.width * 0.26,
+        top: rowTop + p.height * 0.032,
+        width: p.width * 0.6,
+        fontSize: p.width * 0.038,
+        fill: brand.text,
+        textAlign: 'left',
+        fontFamily: brand.fontFamily,
+      });
+    });
+
+    addTextbox(canvas, tx('Zapisz na później 📌', 'Save for later 📌'), {
+      left: cx,
+      top: p.height * 0.85,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.03,
+      fill: brand.primary,
+      originX: 'center',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const tipProTip: DesignTemplate = {
+  key: 'tip-pro-tip',
+  category: 'tip',
+  label: 'Pro Tip',
+  labelPl: 'Pro Tip',
+  description: 'Badge, one strong tip, save-this footer',
+  descriptionPl: 'Plakietka, jedna mocna rada, stopka „zapisz"',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.16,
+      width: p.width * 0.34,
+      height: p.height * 0.07,
+      fill: brand.primary,
+      rx: p.height * 0.035,
+      ry: p.height * 0.035,
+      originX: 'center',
+      selectable: false,
+    });
+
+    addTextbox(canvas, 'PRO TIP', {
+      left: cx,
+      top: p.height * 0.178,
+      width: p.width * 0.34,
+      fontSize: p.width * 0.035,
+      fill: brand.background,
+      originX: 'center',
+      fontWeight: 'bold',
+      charSpacing: 150,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Odpowiadaj na komentarze\nw pierwszej godzinie —\nalgorytm to wynagradza.', 'Reply to comments\nwithin the first hour —\nthe algorithm rewards it.'), {
+      left: cx,
+      top: p.height * 0.38,
+      width: p.width * 0.85,
+      fontSize: p.width * 0.06,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      lineHeight: 1.3,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('📌 Zapisz ten post', '📌 Save this post'), {
+      left: cx,
+      top: p.height * 0.82,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.032,
+      fill: brand.primary,
+      originX: 'center',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const eventCountdown: DesignTemplate = {
+  key: 'event-countdown',
+  category: 'event',
+  label: 'Countdown',
+  labelPl: 'Odliczanie',
+  description: 'Days-to-go countdown with event name',
+  descriptionPl: 'Odliczanie dni z nazwą wydarzenia',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addTextbox(canvas, tx('JUŻ ZA', 'ONLY'), {
+      left: cx,
+      top: p.height * 0.18,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.04,
+      fill: brand.text,
+      originX: 'center',
+      charSpacing: 250,
+      opacity: 0.7,
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('3 DNI', '3 DAYS'), {
+      left: cx,
+      top: p.height * 0.27,
+      width: p.width * 0.9,
+      fontSize: p.width * 0.17,
+      fill: brand.primary,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('do startu naszego webinaru', 'until our webinar goes live'), {
+      left: cx,
+      top: p.height * 0.5,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.045,
+      fill: brand.text,
+      originX: 'center',
+      fontFamily: brand.fontFamily,
+    });
+
+    addRect(canvas, {
+      left: cx,
+      top: p.height * 0.64,
+      width: p.width * 0.55,
+      height: p.height * 0.08,
+      fill: brand.text,
+      opacity: 0.1,
+      rx: p.height * 0.04,
+      ry: p.height * 0.04,
+      originX: 'center',
+      selectable: false,
+    });
+
+    addTextbox(canvas, tx('Czwartek, 18:00', 'Thursday, 6 PM'), {
+      left: cx,
+      top: p.height * 0.662,
+      width: p.width * 0.55,
+      fontSize: p.width * 0.036,
+      fill: brand.text,
+      originX: 'center',
+      fontWeight: 'bold',
+      fontFamily: brand.fontFamily,
+    });
+
+    addTextbox(canvas, tx('Link w bio 🔗', 'Link in bio 🔗'), {
+      left: cx,
+      top: p.height * 0.84,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.03,
+      fill: brand.primary,
+      originX: 'center',
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
+const eventAgenda: DesignTemplate = {
+  key: 'event-agenda',
+  category: 'event',
+  label: 'Agenda',
+  labelPl: 'Agenda',
+  description: 'Header with three timed agenda rows',
+  descriptionPl: 'Nagłówek i trzy punkty agendy z godzinami',
+  apply: (canvas, p, brand, lang) => {
+    const tx = pick(lang);
+    clearCanvas(canvas, brand.background);
+    const cx = p.width / 2;
+
+    addRect(canvas, {
+      left: 0,
+      top: 0,
+      width: p.width,
+      height: p.height * 0.18,
+      fill: brand.primary,
+      selectable: false,
+    });
+
+    addTextbox(canvas, 'AGENDA', {
+      left: cx,
+      top: p.height * 0.06,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.055,
+      fill: brand.background,
+      originX: 'center',
+      fontWeight: 'bold',
+      charSpacing: 200,
+      fontFamily: brand.fontFamily,
+    });
+
+    const rows: [string, string][] = [
+      ['18:00', tx('Powitanie i networking', 'Welcome & networking')],
+      ['18:30', tx('Prezentacja główna', 'Main talk')],
+      ['19:30', tx('Q&A i podsumowanie', 'Q&A and wrap-up')],
+    ];
+    rows.forEach(([time, item], i) => {
+      const rowTop = p.height * (0.3 + 0.15 * i);
+      addTextbox(canvas, time, {
+        left: p.width * 0.12,
+        top: rowTop,
+        width: p.width * 0.18,
+        fontSize: p.width * 0.045,
+        fill: brand.primary,
+        textAlign: 'left',
+        fontWeight: 'bold',
+        fontFamily: brand.fontFamily,
+      });
+      addTextbox(canvas, item, {
+        left: p.width * 0.34,
+        top: rowTop + p.height * 0.006,
+        width: p.width * 0.55,
+        fontSize: p.width * 0.036,
+        fill: brand.text,
+        textAlign: 'left',
+        fontFamily: brand.fontFamily,
+      });
+      addRect(canvas, {
+        left: cx,
+        top: rowTop + p.height * 0.095,
+        width: p.width * 0.76,
+        height: 1.5,
+        fill: brand.text,
+        opacity: 0.15,
+        originX: 'center',
+        selectable: false,
+      });
+    });
+
+    addTextbox(canvas, tx('Do zobaczenia! 👋', 'See you there! 👋'), {
+      left: cx,
+      top: p.height * 0.85,
+      width: p.width * 0.8,
+      fontSize: p.width * 0.034,
+      fill: brand.text,
+      originX: 'center',
+      opacity: 0.7,
+      fontFamily: brand.fontFamily,
+    });
+  },
+};
+
 export const BUILT_IN_TEMPLATES: DesignTemplate[] = [
   promoModern,
   promoBadge,
@@ -2256,15 +2811,56 @@ export const BUILT_IN_TEMPLATES: DesignTemplate[] = [
   communityQuestion,
   communityFollow,
   reelCoverBeforeAfter,
+  quoteStatement,
+  quoteMantra,
+  statsBigNumber,
+  statsThree,
+  tipChecklist,
+  tipProTip,
+  eventCountdown,
+  eventAgenda,
 ];
 
-export const applyTemplate = (
+// A photo covering at least half the canvas is the design's background — it
+// survives a template apply, with the layout landing ON the photo behind a
+// readability scrim instead of being thrown away. Most common flow: generate
+// a photo design with AI, then try a template on top of it.
+const BG_COVERAGE_THRESHOLD = 0.5;
+
+/** Returns true when the template was laid over a kept background photo. */
+export const applyTemplate = async (
   template: DesignTemplate,
   canvas: fabric.Canvas,
   platform: PlatformSize,
   brand: BrandStyle,
   lang: TemplateLang
-): void => {
+): Promise<boolean> => {
+  const bgPhoto = canvas.getObjects().find((o) => {
+    if (o.type !== 'image') return false;
+    const w = (o.width || 0) * (o.scaleX || 1);
+    const h = (o.height || 0) * (o.scaleY || 1);
+    return w * h >= platform.width * platform.height * BG_COVERAGE_THRESHOLD;
+  });
+  const kept = bgPhoto ? await bgPhoto.clone() : null;
+
   template.apply(canvas, platform, brand, lang);
+
+  if (kept) {
+    canvas.insertAt(0, kept);
+    const scrim = new fabric.Rect({
+      left: 0,
+      top: 0,
+      originX: 'left',
+      originY: 'top',
+      width: platform.width,
+      height: platform.height,
+      fill: '#0a0e1a',
+      opacity: 0.45,
+      selectable: false,
+    });
+    canvas.insertAt(1, scrim);
+  }
+
   canvas.renderAll();
+  return !!kept;
 };

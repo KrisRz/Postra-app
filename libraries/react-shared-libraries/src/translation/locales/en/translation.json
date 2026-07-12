@@ -810,6 +810,7 @@
   "tpl_cat_tip": "Tip",
   "tpl_cat_event": "Event",
   "tpl_cat_community": "Community",
+  "template_kept_photo": "Template applied on your photo — undo with Ctrl+Z for a clean slate.",
   "template_apply_failed": "Could not apply template",
   "template_coming_soon": "More templates coming soon in this category",
   "template_hint": "Template overwrites current canvas. Undo with Ctrl+Z.",

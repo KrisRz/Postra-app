@@ -810,6 +810,7 @@
   "tpl_cat_tip": "Tip",
   "tpl_cat_event": "Wydarzenie",
   "tpl_cat_community": "Społeczność",
+  "template_kept_photo": "Szablon nałożony na Twoje zdjęcie — cofnij Ctrl+Z, jeśli wolisz czysty projekt.",
   "template_apply_failed": "Nie udało się zastosować szablonu",
   "template_coming_soon": "Wkrótce więcej szablonów w tej kategorii",
   "template_hint": "Szablon nadpisuje aktualny canvas. Możesz cofnąć przez Ctrl+Z.",
