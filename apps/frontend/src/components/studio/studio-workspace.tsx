@@ -47,6 +47,21 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
 }) => {
   const t = useT();
   const [mode, setMode] = useState<StudioMode>(initialMode);
+  // Switching tabs unmounts the current editor. The graphic editor snapshots
+  // itself to a restorable draft on unmount; video work has no such net, so a
+  // loaded clip asks for confirmation before it's thrown away.
+  const [videoDirty, setVideoDirty] = useState(false);
+  const [pendingMode, setPendingMode] = useState<StudioMode | null>(null);
+
+  const switchMode = (next: StudioMode) => {
+    if (next === mode) return;
+    if (mode === 'video' && videoDirty) {
+      setPendingMode(next);
+      return;
+    }
+    setPendingMode(null);
+    setMode(next);
+  };
 
   const tabs: { key: StudioMode; label: string }[] = [
     { key: 'graphic', label: t('studio_tab_graphic', '🎨 Graphics') },
@@ -59,7 +74,7 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setMode(tab.key)}
+            onClick={() => switchMode(tab.key)}
             className={clsx(
               'h-9 px-4 text-sm rounded-lg border transition-colors',
               mode === tab.key
@@ -71,6 +86,35 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
           </button>
         ))}
       </div>
+      {pendingMode !== null && (
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-xs text-textColor">
+          <span>
+            ⚠️{' '}
+            {t(
+              'studio_leave_video_confirm',
+              'Leaving the Video tab discards your loaded clip and edits. Continue?'
+            )}
+          </span>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={() => {
+                setVideoDirty(false);
+                setMode(pendingMode);
+                setPendingMode(null);
+              }}
+              className="px-3 py-1 text-xs rounded bg-forth text-white hover:bg-forth/80 transition-colors"
+            >
+              {t('studio_leave_video_btn', 'Leave anyway')}
+            </button>
+            <button
+              onClick={() => setPendingMode(null)}
+              className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth/40 transition-colors"
+            >
+              {t('studio_stay_video_btn', 'Stay')}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex-1 min-h-0 w-full rounded-lg overflow-hidden border border-newBorder">
         {mode === 'graphic' ? (
           <PostDesignEditor
@@ -80,7 +124,11 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
             closeModal={closeModal}
           />
         ) : (
-          <VideoStudio setMedia={setMedia} closeModal={closeModal} />
+          <VideoStudio
+            setMedia={setMedia}
+            closeModal={closeModal}
+            onDirtyChange={setVideoDirty}
+          />
         )}
       </div>
     </div>

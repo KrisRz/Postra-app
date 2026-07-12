@@ -37,18 +37,27 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const brandKit = useBrandKit();
   const abortRef = useRef<AbortController | null>(null);
   const [slidesCount, setSlidesCount] = useState(1);
+  // Prompt parked while the user decides whether to replace a non-empty canvas.
+  const [confirmPrompt, setConfirmPrompt] = useState<string | null>(null);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
   // promptOverride lets the occasion chips generate in one click — the chip
   // passes its prompt directly because setAiPrompt hasn't re-rendered yet.
-  const generate = useCallback(async (promptOverride?: string) => {
+  const generate = useCallback(async (promptOverride?: string, skipConfirm = false) => {
     const prompt = (promptOverride ?? aiPrompt).trim();
     if (!canvas.current || isGenerating) return;
     if (!prompt) {
       toaster.show(t('ai_prompt_required', 'Describe what you want to generate'), 'warning');
       return;
     }
+
+    // Generation replaces the whole canvas — if there's work on it, ask first.
+    if (!skipConfirm && canvas.current.getObjects().length > 0) {
+      setConfirmPrompt(prompt);
+      return;
+    }
+    setConfirmPrompt(null);
 
     abortRef.current?.abort();
     const ctrl = new AbortController();
@@ -278,13 +287,31 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
             ? t('ai_generate_carousel_button', '🎴 Generate carousel ({n})').replace('{n}', String(slidesCount))
             : t('ai_generate_button', '✨ Generate Design')}
       </Button>
-      <div className="rounded-md bg-yellow-500/10 border border-yellow-500/30 px-2 py-1.5 text-[10px] leading-snug text-textColor/80">
-        ⚠️{' '}
-        {t(
-          'ai_generate_warning',
-          'AI creates a new design and replaces the current canvas. To keep your template, generate on an empty canvas or edit manually after generating.'
-        )}
-      </div>
+      {confirmPrompt !== null && (
+        <div className="rounded-md bg-yellow-500/10 border border-yellow-500/30 px-2 py-1.5 flex flex-col gap-1.5">
+          <p className="text-[10px] leading-snug text-textColor/80">
+            ⚠️{' '}
+            {t(
+              'ai_replace_confirm',
+              'This will replace the design currently on the canvas. Save it to the library first if you want to keep it.'
+            )}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => generate(confirmPrompt, true)}
+              className="text-[10px] px-2 py-1 rounded bg-forth text-white hover:bg-forth/80 transition-colors"
+            >
+              {t('ai_replace_confirm_btn', 'Replace & generate')}
+            </button>
+            <button
+              onClick={() => setConfirmPrompt(null)}
+              className="text-[10px] px-2 py-1 rounded bg-newColColor text-textColor hover:bg-forth/40 transition-colors"
+            >
+              {t('ai_replace_cancel', 'Cancel')}
+            </button>
+          </div>
+        </div>
+      )}
       <p className="text-[10px] text-textColor/40 leading-snug">
         {t(
           'ai_generate_hint',

@@ -32,7 +32,14 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useRouter } from 'next/navigation';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { Button } from '@gitroom/frontend/components/ui/button';
+import {
+  readDraft,
+  writeDraft,
+  clearDraft,
+  StudioDraft,
+} from './utils/draft-autosave';
 
 const MultiFormatModal = lazy(() =>
   import('./multi-format-modal').then((m) => ({ default: m.MultiFormatModal }))
@@ -69,6 +76,15 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   const router = useRouter();
   const toaster = useToaster();
   const t = useT();
+  const user = useUser();
+
+  // Draft autosave (crash/refresh/tab-switch insurance). Refs, not state, so
+  // the once-only canvas effect and its interval never see stale values.
+  const orgIdRef = useRef('default');
+  orgIdRef.current = user?.orgId || 'default';
+  const [draftOffer, setDraftOffer] = useState<StudioDraft | null>(null);
+  const draftOfferRef = useRef<StudioDraft | null>(null);
+  draftOfferRef.current = draftOffer;
 
   const { platform, setPlatform, pushHistory, setCanvasReady } =
     useEditorStore();
@@ -113,6 +129,9 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
     const saveState = () => {
       if (isRestoringRef.current) return;
+      // The first real edit implicitly declines a pending draft-restore offer
+      // (the autosave would otherwise clobber the draft the banner promises).
+      if (draftOfferRef.current) setDraftOffer(null);
       pushHistory(JSON.stringify(c.toJSON()));
     };
     saveStateRef.current = saveState;
@@ -120,7 +139,33 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
     HISTORY_EVENTS.forEach((evt) => c.on(evt, saveState));
 
+    // Offer to restore an unsaved draft — unless an existing media item is
+    // being loaded for editing, which takes precedence over the draft.
+    if (!loadMediaId) {
+      const draft = readDraft(orgIdRef.current);
+      if (draft) setDraftOffer(draft);
+    }
+
+    const snapshotDraft = () => {
+      if (isRestoringRef.current || draftOfferRef.current) return;
+      if (!c.getObjects().length) return;
+      writeDraft(orgIdRef.current, {
+        canvasJson: JSON.stringify(c.toJSON()),
+        platformKey: useEditorStore.getState().platform.key,
+        savedAt: Date.now(),
+      });
+    };
+    const autosave = window.setInterval(snapshotDraft, 30_000);
+    // React cleanup never runs on a browser refresh/close — pagehide is the
+    // only chance to snapshot there.
+    window.addEventListener('pagehide', snapshotDraft);
+
     return () => {
+      window.clearInterval(autosave);
+      window.removeEventListener('pagehide', snapshotDraft);
+      // Unmount fires on modal close and on the Graphics↔Video tab switch —
+      // snapshot one last time so neither silently loses the design.
+      snapshotDraft();
       HISTORY_EVENTS.forEach((evt) => c.off(evt, saveState));
       c.dispose();
       fabricRef.current = null;
@@ -155,15 +200,17 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     saveStateRef.current?.();
   }, [platform, getScale]);
 
-  const restoreState = useCallback((json: string | null) => {
-    if (!json || !fabricRef.current || !saveStateRef.current) return;
+  const restoreState = useCallback((json: string | null): Promise<void> => {
+    if (!json || !fabricRef.current || !saveStateRef.current)
+      return Promise.resolve();
     const c = fabricRef.current;
     const handler = saveStateRef.current;
 
     isRestoringRef.current = true;
     HISTORY_EVENTS.forEach((evt) => c.off(evt, handler));
 
-    c.loadFromJSON(json)
+    return c
+      .loadFromJSON(json)
       .then(() => {
         c.renderAll();
         useEditorStore.getState().setBgColor(c.backgroundColor as string || '#1a1a2e');
@@ -256,6 +303,35 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     });
   }, [restoreState]);
 
+  const restoreDraft = useCallback(() => {
+    const draft = draftOfferRef.current;
+    const c = fabricRef.current;
+    if (!draft || !c) return;
+    setDraftOffer(null);
+    const target = PLATFORM_SIZES.find((p) => p.key === draft.platformKey);
+    if (target && target.key !== prevPlatformRef.current.key) {
+      // Resize the canvas by hand and pre-sync prevPlatformRef so the
+      // platform-change effect doesn't reposition layers that are already in
+      // the draft's coordinate space.
+      prevPlatformRef.current = target;
+      setPlatform(target);
+      const scale = getScale(target);
+      c.setDimensions({
+        width: target.width * scale,
+        height: target.height * scale,
+      });
+      c.setZoom(scale);
+    }
+    // Push the restored state into history, otherwise the first undo after a
+    // restore would jump back to the initial empty canvas with no way forward.
+    restoreState(draft.canvasJson).then(() => saveStateRef.current?.());
+  }, [getScale, restoreState, setPlatform]);
+
+  const discardDraft = useCallback(() => {
+    clearDraft(orgIdRef.current);
+    setDraftOffer(null);
+  }, []);
+
   const handleUndo = useCallback(() => {
     restoreState(useEditorStore.getState().undo());
   }, [restoreState]);
@@ -291,6 +367,8 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   // on /launches (NewPost picks up the query param and opens the post modal).
   const finishExport = useCallback(
     (uploaded: { id: string; path: string }[]) => {
+      // The design is safely in the library/post now — stop nagging about it.
+      clearDraft(orgIdRef.current);
       if (mode === 'studio') {
         router.push(
           `/launches?newPostMedia=${encodeURIComponent(
@@ -424,6 +502,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
           body: JSON.stringify({ isTemplate: true }),
         });
       }
+      clearDraft(orgIdRef.current);
     },
     [fetch]
   );
@@ -520,6 +599,28 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
             viewport (it scrolls inside overflow-auto instead) — without it the
             right side of the action bar ("Use in post") lands off-screen. */}
         <div className="flex-1 min-w-0 flex flex-col">
+          {draftOffer && (
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 bg-forth/10 border-b border-forth/30 text-xs text-textColor">
+              <span>
+                💾{' '}
+                {t(
+                  'studio_draft_found',
+                  'You have an unsaved design from your last session.'
+                )}
+              </span>
+              <div className="flex gap-2 shrink-0">
+                <Button onClick={restoreDraft} className="!h-[26px] !text-xs">
+                  {t('studio_draft_restore', 'Restore draft')}
+                </Button>
+                <button
+                  onClick={discardDraft}
+                  className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
+                >
+                  {t('studio_draft_discard', 'Discard')}
+                </button>
+              </div>
+            </div>
+          )}
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 border-b border-newBorder">
             <div className="flex gap-2">
               <button
