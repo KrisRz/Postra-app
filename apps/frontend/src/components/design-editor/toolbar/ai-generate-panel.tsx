@@ -264,18 +264,13 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
           onChange={(e) => setSlidesCount(Number(e.target.value))}
           disabled={isGenerating}
           className="text-xs px-2 py-1 rounded bg-newColColor border border-newBorder text-textColor focus:outline-none focus:border-forth disabled:opacity-50"
-          title={t('ai_slides_hint', 'Choose the number of slides for a carousel (1 = single post, 2-10 = carousel)')}
+          title={t('ai_slides_hint', 'Choose the number of slides for a carousel (1 = single post, 2-5 = carousel)')}
         >
           <option value={1}>1 ({t('ai_single_post', 'single')})</option>
           <option value={2}>2</option>
-          <option value={3}>3</option>
+          <option value={3}>3 ({t('ai_recommended', 'recommended')})</option>
           <option value={4}>4</option>
-          <option value={5}>5 ({t('ai_recommended', 'recommended')})</option>
-          <option value={6}>6</option>
-          <option value={7}>7</option>
-          <option value={8}>8</option>
-          <option value={9}>9</option>
-          <option value={10}>10 ({t('ai_max', 'max')})</option>
+          <option value={5}>5 ({t('ai_max', 'max')})</option>
         </select>
       </div>
       <Button

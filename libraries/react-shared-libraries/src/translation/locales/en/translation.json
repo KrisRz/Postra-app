@@ -1057,7 +1057,7 @@
   "ai_forbidden": "AI is not available on your plan. Check your subscription settings.",
   "ai_rate_limited": "Too many requests — wait a few seconds and try again.",
   "ai_slides_count": "Slides",
-  "ai_slides_hint": "Choose the number of slides for a carousel (1 = single post, 2-10 = carousel)",
+  "ai_slides_hint": "Choose the number of slides for a carousel (1 = single post, 2-5 = carousel)",
   "ai_single_post": "single",
   "ai_recommended": "recommended",
   "ai_max": "max",

@@ -1057,7 +1057,7 @@
   "ai_forbidden": "AI nie jest dostępne w Twoim planie. Sprawdź ustawienia subskrypcji.",
   "ai_rate_limited": "Zbyt wiele żądań — poczekaj kilka sekund i spróbuj ponownie.",
   "ai_slides_count": "Slajdy",
-  "ai_slides_hint": "Wybierz liczbę slajdów dla carousel (1 = pojedynczy post, 2-10 = carousel)",
+  "ai_slides_hint": "Wybierz liczbę slajdów dla carousel (1 = pojedynczy post, 2-5 = karuzela)",
   "ai_single_post": "pojedynczy",
   "ai_recommended": "polecane",
   "ai_max": "max",

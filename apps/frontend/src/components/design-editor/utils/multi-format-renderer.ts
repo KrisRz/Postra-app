@@ -98,7 +98,19 @@ export const repositionObjectFromTo = (
     return;
   }
 
-  const uniformScale = Math.min(dstW / srcW, dstH / srcH);
+  // Short-side ratio, NOT min(dstW/srcW, dstH/srcH): the min of two axis
+  // ratios loses size on every aspect-ratio change and never gains it back,
+  // so clicking through the format bar shrank text until it vanished. A ratio
+  // of single measures is invertible — a round trip restores the original
+  // size. Capped so the element can never outgrow the destination canvas.
+  const fitCap = Math.min(
+    bounds.width > 0 ? dstW / bounds.width : Infinity,
+    bounds.height > 0 ? dstH / bounds.height : Infinity
+  );
+  const uniformScale = Math.min(
+    Math.min(dstW, dstH) / Math.min(srcW, srcH),
+    fitCap
+  );
   const newW = bounds.width * uniformScale;
   const newH = bounds.height * uniformScale;
 
