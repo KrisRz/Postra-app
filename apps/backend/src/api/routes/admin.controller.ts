@@ -320,19 +320,15 @@ export class AdminController {
       checks.database = { status: 'error', latencyMs: Date.now() - dbStart, detail: e.message };
     }
 
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    // Real PING through the app's own client — proves Redis answers commands,
+    // not just that the port accepts TCP.
     const redisStart = Date.now();
     try {
-      const net = await import('net');
-      const url = new URL(redisUrl);
-      await new Promise<void>((resolve, reject) => {
-        const socket = net.createConnection(
-          { host: url.hostname, port: parseInt(url.port || '6379'), timeout: 3000 },
-          () => { socket.destroy(); resolve(); }
-        );
-        socket.on('error', reject);
-        socket.on('timeout', () => { socket.destroy(); reject(new Error('timeout')); });
-      });
+      const { ioRedis } = await import(
+        '@gitroom/nestjs-libraries/redis/redis.service'
+      );
+      if (!ioRedis) throw new Error('REDIS_URL not configured');
+      await ioRedis.ping();
       checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart };
     } catch (e: any) {
       checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, detail: e.message };
@@ -356,17 +352,63 @@ export class AdminController {
       checks.temporal = { status: 'error', latencyMs: Date.now() - temporalStart, detail: e.message };
     }
 
-    const [userCount, orgCount, postCount, errorCount] = await Promise.all([
-      this._prisma.user.count(),
-      this._prisma.organization.count(),
-      this._prisma.post.count({ where: { deletedAt: null } }),
-      this._prisma.errors.count(),
-    ]);
+    const [userCount, orgCount, postCount, errorCount, errors24h, lastPublished] =
+      await Promise.all([
+        this._prisma.user.count(),
+        this._prisma.organization.count(),
+        this._prisma.post.count({ where: { deletedAt: null } }),
+        this._prisma.errors.count(),
+        this._prisma.errors.count({
+          where: { createdAt: { gte: dayjs().subtract(24, 'hour').toDate() } },
+        }),
+        this._prisma.post.findFirst({
+          where: { state: 'PUBLISHED', deletedAt: null },
+          orderBy: { publishDate: 'desc' },
+          select: { publishDate: true },
+        }),
+      ]);
+
+    // Container / is an overlay on the host root disk, so statfs reflects the
+    // real 30GB volume (the one that historically filled up with old images).
+    let disk: { totalGB: number; usedPercent: number } | null = null;
+    try {
+      const { statfs } = await import('fs/promises');
+      const s = await statfs('/');
+      const total = s.blocks * s.bsize;
+      const free = s.bavail * s.bsize;
+      disk = {
+        totalGB: Math.round(total / 1024 / 1024 / 1024),
+        usedPercent: Math.round((1 - free / total) * 100),
+      };
+    } catch {
+      // fs.statfs unavailable — leave the card empty rather than fail health
+    }
+
+    // Docker does not namespace /proc/meminfo — these are HOST numbers.
+    let hostMemory: { totalMB: number; availableMB: number; swapUsedMB: number } | null =
+      null;
+    try {
+      const { readFile } = await import('fs/promises');
+      const meminfo = await readFile('/proc/meminfo', 'utf8');
+      const grab = (key: string) =>
+        parseInt(meminfo.match(new RegExp(`${key}:\\s+(\\d+)`))?.[1] || '0', 10);
+      hostMemory = {
+        totalMB: Math.round(grab('MemTotal') / 1024),
+        availableMB: Math.round(grab('MemAvailable') / 1024),
+        swapUsedMB: Math.round((grab('SwapTotal') - grab('SwapFree')) / 1024),
+      };
+    } catch {
+      // non-Linux dev machines — skip
+    }
 
     return {
       overall: Object.values(checks).every((c) => c.status === 'ok') ? 'healthy' : 'degraded',
       services: checks,
       counts: { users: userCount, organizations: orgCount, posts: postCount, errors: errorCount },
+      errors24h,
+      lastPublishedAt: lastPublished?.publishDate ?? null,
+      disk,
+      hostMemory,
       uptime: process.uptime(),
       memoryMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
       nodeVersion: process.version,
