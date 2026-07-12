@@ -193,8 +193,23 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
       if (!tpl) return;
 
       try {
-        applyTemplate(tpl, canvas.current, platform, brand, lang);
+        const keptPhoto = await applyTemplate(
+          tpl,
+          canvas.current,
+          platform,
+          brand,
+          lang
+        );
         pushHistory(JSON.stringify(canvas.current.toJSON()));
+        if (keptPhoto) {
+          toaster.show(
+            t(
+              'template_kept_photo',
+              'Template applied on your photo — undo with Ctrl+Z for a clean slate.'
+            ),
+            'success'
+          );
+        }
       } catch {
         toaster.show(
           t('template_apply_failed', 'Failed to apply template'),

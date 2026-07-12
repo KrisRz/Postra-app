@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, MutableRefObject, useCallback, useRef, useState } from 'react';
+import { FC, MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import * as fabric from 'fabric';
 import { useEditorStore, EditorTool } from '../editor.store';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -34,7 +34,13 @@ type ShapeType =
   | 'heart'
   | 'arrow'
   | 'speech'
-  | 'line';
+  | 'line'
+  | 'diamond'
+  | 'pentagon'
+  | 'plus'
+  | 'lightning'
+  | 'ring'
+  | 'parallelogram';
 
 const SHAPE_BUTTONS: { type: ShapeType; icon: string; titleKey: string; fallback: string }[] = [
   { type: 'rect', icon: '▭', titleKey: 'shape_rect', fallback: 'Rectangle' },
@@ -46,6 +52,12 @@ const SHAPE_BUTTONS: { type: ShapeType; icon: string; titleKey: string; fallback
   { type: 'arrow', icon: '➜', titleKey: 'shape_arrow', fallback: 'Arrow' },
   { type: 'speech', icon: '💬', titleKey: 'shape_speech', fallback: 'Speech bubble' },
   { type: 'line', icon: '─', titleKey: 'shape_line', fallback: 'Line' },
+  { type: 'diamond', icon: '◆', titleKey: 'shape_diamond', fallback: 'Diamond' },
+  { type: 'pentagon', icon: '⬟', titleKey: 'shape_pentagon', fallback: 'Pentagon' },
+  { type: 'plus', icon: '✚', titleKey: 'shape_plus', fallback: 'Plus' },
+  { type: 'lightning', icon: '⚡', titleKey: 'shape_lightning', fallback: 'Lightning' },
+  { type: 'ring', icon: '◍', titleKey: 'shape_ring', fallback: 'Ring' },
+  { type: 'parallelogram', icon: '▱', titleKey: 'shape_parallelogram', fallback: 'Parallelogram' },
 ];
 
 const BG_COLORS = [
@@ -82,7 +94,8 @@ const TOOLS: { key: EditorTool; icon: string; labelKey: string; fallback: string
 ];
 
 export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
-  const { activeTool, setTool, bgColor, setBgColor, platform } = useEditorStore();
+  const { activeTool, setTool, bgColor, setBgColor, platform, canvasReady } =
+    useEditorStore();
   const t = useT();
   const fetch = useFetch();
   const toaster = useToaster();
@@ -94,19 +107,38 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   const [removingBg, setRemovingBg] = useState(false);
   const [bgProgress, setBgProgress] = useState(0);
 
+  // Image tools shouldn't demand a manual selection: if nothing (or a
+  // non-image) is selected, grab the topmost image on the canvas — users add
+  // a stock photo and immediately click "Remove background" while the import
+  // hasn't been re-selected, then read the old toast as "it can't see my image".
+  const resolveTargetImage = useCallback((): fabric.FabricImage | null => {
+    const c = canvas.current;
+    if (!c) return null;
+    const active = c.getActiveObject();
+    if (active instanceof fabric.FabricImage) return active;
+    const images = c.getObjects().filter(
+      (o): o is fabric.FabricImage => o instanceof fabric.FabricImage
+    );
+    if (!images.length) return null;
+    const img = images[images.length - 1];
+    c.setActiveObject(img);
+    c.renderAll();
+    return img;
+  }, [canvas]);
+
   const cropSelectedImage = useCallback(async () => {
     if (!canvas.current) return;
-    const active = canvas.current.getActiveObject();
-    if (!active || !(active instanceof fabric.FabricImage)) {
+    const active = resolveTargetImage();
+    if (!active) {
       toaster.show(
-        t('crop_no_image', 'Select an image on the canvas'),
+        t('crop_no_image', 'Add an image to the canvas first'),
         'warning'
       );
       return;
     }
     const el = active.getElement();
     if (!(el instanceof HTMLImageElement) || !el.src) {
-      toaster.show(t('crop_no_image', 'Select an image on the canvas'), 'warning');
+      toaster.show(t('crop_no_image', 'Add an image to the canvas first'), 'warning');
       return;
     }
 
@@ -120,14 +152,14 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         'warning'
       );
     }
-  }, [canvas, platform, toaster, t]);
+  }, [canvas, platform, toaster, t, resolveTargetImage]);
 
   const removeImageBackground = useCallback(async () => {
     if (!canvas.current || removingBg) return;
-    const active = canvas.current.getActiveObject();
-    if (!active || !(active instanceof fabric.FabricImage)) {
+    const active = resolveTargetImage();
+    if (!active) {
       toaster.show(
-        t('bg_remove_no_image', 'Select an image on the canvas'),
+        t('bg_remove_no_image', 'Add an image to the canvas first'),
         'warning'
       );
       return;
@@ -135,7 +167,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     const sourceEl = active.getElement();
     if (!(sourceEl instanceof HTMLImageElement)) {
       toaster.show(
-        t('bg_remove_no_image', 'Select an image on the canvas'),
+        t('bg_remove_no_image', 'Add an image to the canvas first'),
         'warning'
       );
       return;
@@ -157,7 +189,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       setRemovingBg(false);
       setBgProgress(0);
     }
-  }, [canvas, removingBg, toaster, t]);
+  }, [canvas, removingBg, toaster, t, resolveTargetImage]);
 
   const addText = useCallback(() => {
     if (!canvas.current) return;
@@ -306,6 +338,89 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
           });
           break;
         }
+        case 'diamond': {
+          const points: fabric.XY[] = [
+            { x: 0, y: -85 },
+            { x: 65, y: 0 },
+            { x: 0, y: 85 },
+            { x: -65, y: 0 },
+          ];
+          obj = new fabric.Polygon(points, {
+            left: cx,
+            top: cy,
+            fill: '#e94560',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
+        case 'pentagon': {
+          const r = 85;
+          const points: fabric.XY[] = [];
+          for (let i = 0; i < 5; i++) {
+            const a = ((Math.PI * 2) / 5) * i - Math.PI / 2;
+            points.push({ x: Math.cos(a) * r, y: Math.sin(a) * r });
+          }
+          obj = new fabric.Polygon(points, {
+            left: cx,
+            top: cy,
+            fill: '#f4a261',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
+        case 'plus': {
+          const path =
+            'M -25 -75 L 25 -75 L 25 -25 L 75 -25 L 75 25 L 25 25 L 25 75 L -25 75 L -25 25 L -75 25 L -75 -25 L -25 -25 Z';
+          obj = new fabric.Path(path, {
+            left: cx,
+            top: cy,
+            fill: '#10b981',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
+        case 'lightning': {
+          const path = 'M 10 -80 L -45 10 L -8 10 L -20 80 L 45 -15 L 8 -15 Z';
+          obj = new fabric.Path(path, {
+            left: cx,
+            top: cy,
+            fill: '#fbbf24',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
+        case 'ring':
+          obj = new fabric.Circle({
+            left: cx,
+            top: cy,
+            radius: 70,
+            fill: 'transparent',
+            stroke: '#38bdf8',
+            strokeWidth: 22,
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        case 'parallelogram': {
+          const points: fabric.XY[] = [
+            { x: -55, y: -55 },
+            { x: 85, y: -55 },
+            { x: 55, y: 55 },
+            { x: -85, y: 55 },
+          ];
+          obj = new fabric.Polygon(points, {
+            left: cx,
+            top: cy,
+            fill: '#a78bfa',
+            originX: 'center',
+            originY: 'center',
+          });
+          break;
+        }
         case 'line':
         default:
           obj = new fabric.Line([cx - 100, cy, cx + 100, cy], {
@@ -378,6 +493,48 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     [canvas, setBgColor]
   );
 
+  // The colour swatches recolour whatever is selected; only with nothing
+  // selected do they fall back to the canvas background. Users kept reading
+  // the old always-background behaviour as "these colours do nothing".
+  const [hasSelection, setHasSelection] = useState(false);
+  useEffect(() => {
+    const c = canvas.current;
+    if (!c) return;
+    const update = () => setHasSelection(!!c.getActiveObject());
+    c.on('selection:created', update);
+    c.on('selection:updated', update);
+    c.on('selection:cleared', update);
+    update();
+    return () => {
+      c.off('selection:created', update);
+      c.off('selection:updated', update);
+      c.off('selection:cleared', update);
+    };
+  }, [canvas, canvasReady]);
+
+  const applyColor = useCallback(
+    (color: string) => {
+      const c = canvas.current;
+      if (!c) return;
+      const active = c.getActiveObjects();
+      if (active.length) {
+        active.forEach((o) => {
+          // Lines and rings are stroke-drawn — recolour the stroke there.
+          if (o.type === 'line' || (o.fill === 'transparent' && o.stroke)) {
+            o.set({ stroke: color });
+          } else {
+            o.set({ fill: color });
+          }
+        });
+        c.renderAll();
+        c.fire('object:modified', { target: active[0] } as never);
+        return;
+      }
+      setBackground(color);
+    },
+    [canvas, setBackground]
+  );
+
   const handleToolClick = useCallback(
     (tool: EditorTool) => {
       const wasActive = activeTool === tool;
@@ -387,7 +544,9 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     [activeTool, setTool, addText]
   );
 
-  const hasPanel = activeTool !== 'select';
+  // Every tool keeps the side panel open — collapsing it for Select made the
+  // whole layout jump, which users read as the editor restarting.
+  const hasPanel = true;
 
   return (
     <div className="flex h-full min-h-0 bg-white/[0.03] border-r border-newBorder shrink-0">
@@ -415,6 +574,20 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
 
       {hasPanel && (
         <div className="w-[280px] shrink-0 p-3 flex flex-col gap-3 min-h-0 overflow-y-auto">
+        {activeTool === 'select' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
+              {t('tool_select', 'Select')}
+            </span>
+            <p className="text-[11px] leading-relaxed text-textColor/70">
+              {t(
+                'select_tool_hint',
+                'Click any object on the canvas to select it. Drag to move, pull the corners to resize, use the handle above to rotate. Delete removes the selected object; Ctrl+Z undoes.'
+              )}
+            </p>
+          </div>
+        )}
+
         {activeTool === 'ai' && <AiGeneratePanel canvas={canvas} />}
 
         {activeTool === 'refine' && <AiRefinePanel canvas={canvas} />}
@@ -519,14 +692,18 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
 
             <button
               onClick={cropSelectedImage}
+              title={t(
+                'crop_smart_hint',
+                'Crops the photo to the current format (bottom bar), keeping the most detailed part of the picture in frame'
+              )}
               className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors"
             >
               ✂ {t('crop_smart', 'Smart crop to platform')}
             </button>
             <p className="text-[10px] text-textColor/40 leading-snug">
               {t(
-                'bg_remove_hint',
-                'Select an image and click. The first run downloads the AI model (~30MB); later runs are faster.'
+                'image_tools_hint',
+                'Both work on the selected image (or the last one added). Remove background downloads an AI model (~30MB) on first run; Smart crop trims the photo to the current post format.'
               )}
             </p>
 
@@ -536,19 +713,31 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
           </div>
         )}
 
-        {(activeTool === 'shapes' || activeTool === 'images') && (
+        {(activeTool === 'shapes' || activeTool === 'images' || activeTool === 'select') && (
           <div className="flex flex-col gap-2">
             <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
-              {t('background', 'Background')}
+              {hasSelection
+                ? t('fill_selected', 'Colour of selected object')
+                : t('background', 'Background')}
             </span>
+            {!hasSelection && (
+              <p className="text-[10px] text-textColor/45 leading-snug">
+                {t(
+                  'fill_hint',
+                  'Nothing selected — these colours set the canvas background. Select an object to recolour it.'
+                )}
+              </p>
+            )}
             <div className="grid grid-cols-6 gap-1.5">
               {BG_COLORS.map((color) => (
                 <button
                   key={color}
-                  onClick={() => setBackground(color)}
+                  onClick={() => applyColor(color)}
                   className={clsx(
                     'w-7 h-7 rounded-full border-2 transition-transform hover:scale-110',
-                    bgColor === color ? 'border-white scale-110' : 'border-newBorder/40'
+                    !hasSelection && bgColor === color
+                      ? 'border-white scale-110'
+                      : 'border-newBorder/40'
                   )}
                   style={{ backgroundColor: color }}
                   aria-label={`${t('background', 'Background')} ${color}`}
@@ -559,9 +748,9 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
             <input
               type="color"
               value={bgColor}
-              onChange={(e) => setBackground(e.target.value)}
+              onChange={(e) => applyColor(e.target.value)}
               className="w-full h-7 rounded cursor-pointer border-0 bg-transparent"
-              aria-label={t('background_custom', 'Custom background color')}
+              aria-label={t('background_custom', 'Custom color')}
             />
           </div>
         )}

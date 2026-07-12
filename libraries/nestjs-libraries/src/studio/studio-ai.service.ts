@@ -71,6 +71,9 @@ const ShapeLayerSchema = z.object({
   originY: ORIGIN,
   width: z.number().optional().nullable(),
   height: z.number().optional().nullable(),
+  // Without opacity on add, a tint overlay (the only way AI can "recolor" a
+  // photo) would render fully opaque and bury the image.
+  opacity: z.number().optional().nullable(),
   fill: z.string().optional().nullable(),
   stroke: z.string().optional().nullable(),
   strokeWidth: z.number().optional().nullable(),
@@ -202,6 +205,9 @@ Rules:
 - Preserve user intent. If they ask "shorter headline", only update the text layer's text.
 - Keep all coordinates inside canvas bounds (0..width / 0..height).
 - Use the brand colors in the spec when changing fills or text colors.
+- Image layers are photos: you CANNOT recolor, retouch or edit their pixels. Setting fill/color on an image layer does nothing — never do it, and never claim you changed a photo.
+- To make the picture warmer/cooler/tinted/darker: ADD a full-canvas rect (x:0, y:0, originX:left, originY:top, width/height = canvas size) with the tint color as fill and opacity 0.15-0.35 — added layers render on top, so it tints the photo. Say in the explanation that you added a colour tint overlay.
+- If the request truly needs photo editing (add/remove objects or people, change the scene), emit no ops and explain that photos can't be edited here — suggest the photo filters in the Images tool or generating a new design.
 - Reply in the same language as the instruction (Polish or English).`;
 
     const userText = [
