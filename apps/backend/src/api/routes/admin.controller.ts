@@ -387,7 +387,7 @@ export class AdminController {
     // NOTE: AI usage is reported from `credits` (real, billable usage). Mastra's
     // own span tables (mastra_ai_spans) are @@ignore'd in the Prisma schema (no @id),
     // so they are NOT in the generated client and cannot be queried via this._prisma.
-    const [creditsByType, creditsByOrg] = await Promise.all([
+    const [creditsByType, creditsByOrg, creditsByDay] = await Promise.all([
       this._prisma.credits.groupBy({
         by: ['type'],
         where: { createdAt: { gte: fromDate, lte: toDate } },
@@ -401,6 +401,13 @@ export class AdminController {
         orderBy: { _sum: { credits: 'desc' } },
         take: 10,
       }),
+      this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
+        SELECT DATE("createdAt") as day, SUM("credits")::bigint as count
+        FROM "Credits"
+        WHERE "createdAt" >= ${fromDate} AND "createdAt" <= ${toDate}
+        GROUP BY DATE("createdAt")
+        ORDER BY day
+      `,
     ]);
 
     const orgIds = creditsByOrg.map((c) => c.organizationId);
@@ -424,6 +431,10 @@ export class AdminController {
         orgId: c.organizationId,
         orgName: orgMap.get(c.organizationId) || 'Unknown',
         totalCredits: c._sum.credits || 0,
+      })),
+      byDay: creditsByDay.map((r) => ({
+        day: String(r.day).slice(0, 10),
+        count: Number(r.count),
       })),
     };
   }
