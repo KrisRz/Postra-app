@@ -543,7 +543,9 @@ export class AdminController {
             isLifetime: true,
             cancelAt: true,
             createdAt: true,
-            organization: { select: { id: true, name: true } },
+            organization: {
+              select: { id: true, name: true, paymentId: true },
+            },
           },
         }),
       ]);

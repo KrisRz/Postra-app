@@ -8,6 +8,7 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 interface SubscriptionOrg {
   id: string;
   name: string;
+  paymentId: string | null;
 }
 
 interface RecentSubscription {
@@ -194,13 +195,14 @@ export const AdminSubscriptionsComponent = () => {
                 <th className="p-[12px] text-[13px] font-[500] text-newTextColor/60">
                   {t('created', 'Created')}
                 </th>
+                <th className="p-[12px]" />
               </tr>
             </thead>
             <tbody>
               {data.recent.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="p-[20px] text-center text-[13px] text-newTextColor/30"
                   >
                     {t('no_recent_subscriptions', 'No recent subscriptions')}
@@ -241,6 +243,20 @@ export const AdminSubscriptionsComponent = () => {
                       </td>
                       <td className="p-[12px] text-[13px] text-newTextColor/50">
                         {new Date(sub.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="p-[12px] text-[13px]">
+                        {sub.organization.paymentId ? (
+                          <a
+                            href={`https://dashboard.stripe.com/customers/${sub.organization.paymentId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#38bdf8] hover:underline whitespace-nowrap"
+                          >
+                            {t('open_in_stripe', 'Stripe')} ↗
+                          </a>
+                        ) : (
+                          <span className="text-newTextColor/30">-</span>
+                        )}
                       </td>
                     </tr>
                   );
