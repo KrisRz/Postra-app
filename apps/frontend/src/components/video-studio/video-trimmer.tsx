@@ -17,7 +17,7 @@ import { safeMediaUrl } from '@gitroom/helpers/utils/safe.media.url';
 
 interface VideoTrimmerProps {
   file: File | null;
-  onTrimmed: (blob: Blob, durationSec: number) => void;
+  onTrimmed: (blob: Blob) => void;
 }
 
 export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
@@ -125,7 +125,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
       const buffer = (output.target as BufferTarget).buffer;
       if (!buffer) throw new Error('empty buffer');
       const blob = new Blob([buffer], { type: 'video/mp4' });
-      onTrimmed(blob, trimEnd - trimStart);
+      onTrimmed(blob);
     } catch (err) {
       toaster.show(
         t(

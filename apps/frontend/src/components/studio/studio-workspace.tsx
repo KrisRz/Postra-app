@@ -128,6 +128,7 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
             setMedia={setMedia}
             closeModal={closeModal}
             onDirtyChange={setVideoDirty}
+            mode={graphicMode}
           />
         )}
       </div>
