@@ -51,6 +51,7 @@ import { FirstBillingComponent } from '@gitroom/frontend/components/billing/firs
 import { MobileNav, BottomNav } from '@gitroom/frontend/components/new-layout/mobile-nav';
 import { AgentHistoryMobile } from '@gitroom/frontend/components/agents/agent.history.mobile';
 import { TrialTracker } from '@gitroom/frontend/components/layout/gtm.component';
+import { ImpersonationBanner } from '@gitroom/frontend/components/new-layout/impersonation-banner';
 
 export const LayoutComponent = ({ children }: { children: ReactNode }) => {
   const fetch = useFetch();
@@ -98,6 +99,7 @@ export const LayoutComponent = ({ children }: { children: ReactNode }) => {
                 GeistSans.className
               )}
             >
+              {user?.impersonate && <ImpersonationBanner email={user?.email} />}
               <div />
               {user.tier === 'FREE' && isGeneral && billingEnabled ? (
                 <FirstBillingComponent />

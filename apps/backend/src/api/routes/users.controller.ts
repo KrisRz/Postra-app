@@ -299,6 +299,22 @@ export class UsersController {
       expires: new Date(0),
     });
 
+    // The impersonate cookie lives for a year — without clearing it here a
+    // superadmin who logs out mid-impersonation gets re-impersonated on the
+    // very next login.
+    response.cookie('impersonate', '', {
+      domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
+      ...(!process.env.NOT_SECURED
+        ? {
+            secure: true,
+            httpOnly: true,
+            sameSite: 'lax' as const,
+          }
+        : {}),
+      maxAge: -1,
+      expires: new Date(0),
+    });
+
     response.cookie('showorg', '', {
       domain: getCookieUrlFromDomain(process.env.FRONTEND_URL!),
       ...(!process.env.NOT_SECURED
