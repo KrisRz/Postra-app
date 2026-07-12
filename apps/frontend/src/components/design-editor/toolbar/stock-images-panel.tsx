@@ -68,6 +68,11 @@ export const StockImagesPanel: FC<Props> = ({ canvas }) => {
           scaleY: scale,
           left: canvasW / 2,
           top: canvasH / 2,
+          // Anchor the CENTRE at canvas centre — with the default left/top
+          // origin the photo's corner sat at the centre and the image hung
+          // off into the bottom-right quadrant.
+          originX: 'center',
+          originY: 'center',
           selectable: true,
           evented: true,
           hasControls: true,

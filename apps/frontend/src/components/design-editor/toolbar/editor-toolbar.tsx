@@ -107,19 +107,38 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
   const [removingBg, setRemovingBg] = useState(false);
   const [bgProgress, setBgProgress] = useState(0);
 
+  // Image tools shouldn't demand a manual selection: if nothing (or a
+  // non-image) is selected, grab the topmost image on the canvas — users add
+  // a stock photo and immediately click "Remove background" while the import
+  // hasn't been re-selected, then read the old toast as "it can't see my image".
+  const resolveTargetImage = useCallback((): fabric.FabricImage | null => {
+    const c = canvas.current;
+    if (!c) return null;
+    const active = c.getActiveObject();
+    if (active instanceof fabric.FabricImage) return active;
+    const images = c.getObjects().filter(
+      (o): o is fabric.FabricImage => o instanceof fabric.FabricImage
+    );
+    if (!images.length) return null;
+    const img = images[images.length - 1];
+    c.setActiveObject(img);
+    c.renderAll();
+    return img;
+  }, [canvas]);
+
   const cropSelectedImage = useCallback(async () => {
     if (!canvas.current) return;
-    const active = canvas.current.getActiveObject();
-    if (!active || !(active instanceof fabric.FabricImage)) {
+    const active = resolveTargetImage();
+    if (!active) {
       toaster.show(
-        t('crop_no_image', 'Select an image on the canvas'),
+        t('crop_no_image', 'Add an image to the canvas first'),
         'warning'
       );
       return;
     }
     const el = active.getElement();
     if (!(el instanceof HTMLImageElement) || !el.src) {
-      toaster.show(t('crop_no_image', 'Select an image on the canvas'), 'warning');
+      toaster.show(t('crop_no_image', 'Add an image to the canvas first'), 'warning');
       return;
     }
 
@@ -133,14 +152,14 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
         'warning'
       );
     }
-  }, [canvas, platform, toaster, t]);
+  }, [canvas, platform, toaster, t, resolveTargetImage]);
 
   const removeImageBackground = useCallback(async () => {
     if (!canvas.current || removingBg) return;
-    const active = canvas.current.getActiveObject();
-    if (!active || !(active instanceof fabric.FabricImage)) {
+    const active = resolveTargetImage();
+    if (!active) {
       toaster.show(
-        t('bg_remove_no_image', 'Select an image on the canvas'),
+        t('bg_remove_no_image', 'Add an image to the canvas first'),
         'warning'
       );
       return;
@@ -148,7 +167,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     const sourceEl = active.getElement();
     if (!(sourceEl instanceof HTMLImageElement)) {
       toaster.show(
-        t('bg_remove_no_image', 'Select an image on the canvas'),
+        t('bg_remove_no_image', 'Add an image to the canvas first'),
         'warning'
       );
       return;
@@ -170,7 +189,7 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       setRemovingBg(false);
       setBgProgress(0);
     }
-  }, [canvas, removingBg, toaster, t]);
+  }, [canvas, removingBg, toaster, t, resolveTargetImage]);
 
   const addText = useCallback(() => {
     if (!canvas.current) return;
@@ -673,14 +692,18 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
 
             <button
               onClick={cropSelectedImage}
+              title={t(
+                'crop_smart_hint',
+                'Crops the photo to the current format (bottom bar), keeping the most detailed part of the picture in frame'
+              )}
               className="text-xs px-3 py-2 rounded bg-newColColor hover:bg-forth text-textColor transition-colors"
             >
               ✂ {t('crop_smart', 'Smart crop to platform')}
             </button>
             <p className="text-[10px] text-textColor/40 leading-snug">
               {t(
-                'bg_remove_hint',
-                'Select an image and click. The first run downloads the AI model (~30MB); later runs are faster.'
+                'image_tools_hint',
+                'Both work on the selected image (or the last one added). Remove background downloads an AI model (~30MB) on first run; Smart crop trims the photo to the current post format.'
               )}
             </p>
 
