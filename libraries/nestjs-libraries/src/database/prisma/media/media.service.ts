@@ -508,19 +508,22 @@ export class MediaService {
       throw new Error(`Video with identifier ${identifier} not found`);
     }
 
-    // @ts-ignore
-    const functionToCall = video.instance[functionName];
-    if (
-      typeof functionToCall !== 'function' ||
-      this._videoManager.checkAvailableVideoFunction(functionToCall)
-    ) {
+    // Resolve the name against the @ExposeVideoFunction allowlist instead of
+    // indexing the instance with raw user input. Calling through the instance
+    // also keeps `this` bound (the old unbound call lost it).
+    const safeName = this._videoManager
+      .listExposedVideoFunctions(video.instance)
+      .find((name) => name === functionName);
+
+    if (!safeName) {
       throw new HttpException(
         `Function ${functionName} not found on video instance`,
         400
       );
     }
 
-    return functionToCall(body);
+    // @ts-ignore
+    return video.instance[safeName](body);
   }
 
   async refineDesign(org: Organization, body: RefineDesignDto) {
