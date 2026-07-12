@@ -22,11 +22,18 @@ import {
 interface VideoStudioProps {
   setMedia: (params: { id: string; path: string }[]) => void;
   closeModal: () => void;
+  /** Reports whether a clip is loaded — video work lives only in this
+   *  component's state, so the host warns before unmounting it. */
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text' | 'slideshow';
 
-export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
+export const VideoStudio: FC<VideoStudioProps> = ({
+  setMedia,
+  closeModal,
+  onDirtyChange,
+}) => {
   const t = useT();
   const fetch = useFetch();
   const toaster = useToaster();
@@ -64,6 +71,11 @@ export const VideoStudio: FC<VideoStudioProps> = ({ setMedia, closeModal }) => {
       setBrowserSupported(false);
     }
   }, []);
+
+  useEffect(() => {
+    onDirtyChange?.(!!file);
+    return () => onDirtyChange?.(false);
+  }, [file, onDirtyChange]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
