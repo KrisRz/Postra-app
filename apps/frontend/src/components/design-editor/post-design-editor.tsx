@@ -575,6 +575,9 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // The editor stays mounted (hidden) while the Video tab is open — its
+      // global shortcuts must not fire at an invisible canvas.
+      if (!canvasRef.current?.offsetParent) return;
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const target = e.target as HTMLElement;
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;

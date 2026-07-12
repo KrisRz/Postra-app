@@ -23,13 +23,13 @@ import {
 interface VideoStudioProps {
   setMedia: (params: { id: string; path: string }[]) => void;
   closeModal: () => void;
-  /** Reports whether a clip is loaded — video work lives only in this
-   *  component's state, so the host warns before unmounting it. */
-  onDirtyChange?: (dirty: boolean) => void;
   /** 'composer' delivers output into the open post; 'studio' (standalone
    *  /studio, where setMedia is a no-op) carries it into a fresh post on
    *  /launches — the same newPostMedia bridge the graphics editor uses. */
   mode?: 'composer' | 'studio';
+  /** Bumped by the host when the user re-clicks the Video tab — show the
+   *  goal-picker start screen again (state and clip stay untouched). */
+  showGoalsSignal?: number;
 }
 
 type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text' | 'slideshow';
@@ -37,8 +37,8 @@ type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text' | 'slideshow';
 export const VideoStudio: FC<VideoStudioProps> = ({
   setMedia,
   closeModal,
-  onDirtyChange,
   mode = 'composer',
+  showGoalsSignal = 0,
 }) => {
   const t = useT();
   const fetch = useFetch();
@@ -97,9 +97,8 @@ export const VideoStudio: FC<VideoStudioProps> = ({
   }, []);
 
   useEffect(() => {
-    onDirtyChange?.(!!file);
-    return () => onDirtyChange?.(false);
-  }, [file, onDirtyChange]);
+    if (showGoalsSignal > 0) setShowGoals(true);
+  }, [showGoalsSignal]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
