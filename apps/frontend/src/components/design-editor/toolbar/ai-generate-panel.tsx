@@ -33,7 +33,9 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const user = useUser();
   const allowed = !!user?.tier?.image_generator;
   const holidays = useHolidays();
-  const upcoming = getUpcomingHolidays(holidays, 4, 90);
+  // Nearest 4 with no day cap — the UK calendar has a July→October desert
+  // where a 90-day window left one lonely chip that never seemed to change.
+  const upcoming = getUpcomingHolidays(holidays, 4, 365);
   const brandKit = useBrandKit();
   const abortRef = useRef<AbortController | null>(null);
   const [slidesCount, setSlidesCount] = useState(1);
