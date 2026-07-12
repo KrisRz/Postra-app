@@ -800,6 +800,7 @@
   "bg_remove_no_image": "Select an image on canvas first",
   "bg_remove_failed": "Background removal failed",
   "bg_remove_hint": "Select image, click. First run downloads AI model (~30MB), subsequent runs are faster.",
+  "select_tool_hint": "Click any object on the canvas to select it. Drag to move, pull the corners to resize, use the handle above to rotate. Delete removes the selected object; Ctrl+Z undoes.",
   "brand_kit_intro_title": "💡 What does Brand Kit do?",
   "brand_kit_intro_body": "Set once — every ✨ AI Generate design, 📐 template and 🎬 video text comes out in these colours and font. The logo goes bottom-right on every AI graphic. Tone shapes the wording AI writes.",
   "color_primary_hint": "Accents: buttons, badges, highlights",

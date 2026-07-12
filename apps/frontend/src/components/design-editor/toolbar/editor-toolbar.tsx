@@ -387,7 +387,9 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
     [activeTool, setTool, addText]
   );
 
-  const hasPanel = activeTool !== 'select';
+  // Every tool keeps the side panel open — collapsing it for Select made the
+  // whole layout jump, which users read as the editor restarting.
+  const hasPanel = true;
 
   return (
     <div className="flex h-full min-h-0 bg-white/[0.03] border-r border-newBorder shrink-0">
@@ -415,6 +417,20 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
 
       {hasPanel && (
         <div className="w-[280px] shrink-0 p-3 flex flex-col gap-3 min-h-0 overflow-y-auto">
+        {activeTool === 'select' && (
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
+              {t('tool_select', 'Select')}
+            </span>
+            <p className="text-[11px] leading-relaxed text-textColor/70">
+              {t(
+                'select_tool_hint',
+                'Click any object on the canvas to select it. Drag to move, pull the corners to resize, use the handle above to rotate. Delete removes the selected object; Ctrl+Z undoes.'
+              )}
+            </p>
+          </div>
+        )}
+
         {activeTool === 'ai' && <AiGeneratePanel canvas={canvas} />}
 
         {activeTool === 'refine' && <AiRefinePanel canvas={canvas} />}

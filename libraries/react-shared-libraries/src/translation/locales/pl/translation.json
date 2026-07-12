@@ -800,6 +800,7 @@
   "bg_remove_no_image": "Zaznacz obraz na canvas",
   "bg_remove_failed": "Usuwanie tła nie powiodło się",
   "bg_remove_hint": "Zaznacz obraz, kliknij. Pierwsze uruchomienie pobiera model AI (~30MB), kolejne są szybsze.",
+  "select_tool_hint": "Kliknij dowolny obiekt na canvasie, aby go zaznaczyć. Przeciągnij, by przesunąć; rogi skalują; uchwyt u góry obraca. Delete usuwa zaznaczony obiekt; Ctrl+Z cofa.",
   "brand_kit_intro_title": "💡 Co robi Brand Kit?",
   "brand_kit_intro_body": "Ustaw raz — każdy projekt z ✨ AI Generate, 📐 szablonu i tekst na 🎬 wideo wychodzi w tych kolorach i czcionce. Logo trafia w prawy dolny róg każdej grafiki AI. Ton wpływa na styl tekstów pisanych przez AI.",
   "color_primary_hint": "Akcenty: przyciski, plakietki, wyróżnienia",
