@@ -53,6 +53,7 @@ const PRESETS: { label: string; range: () => { from: string; to: string } }[] = 
   { label: 'This month', range: () => ({ from: startOfMonth(), to: today() }) },
   { label: 'Last 7 days', range: () => ({ from: isoDaysAgo(7), to: today() }) },
   { label: 'Last 30 days', range: () => ({ from: isoDaysAgo(30), to: today() }) },
+  { label: 'Last year', range: () => ({ from: isoDaysAgo(365), to: today() }) },
 ];
 
 const useStats = (params: {

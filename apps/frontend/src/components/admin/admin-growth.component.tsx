@@ -21,7 +21,15 @@ interface GrowthResponse {
   };
 }
 
-const PERIODS = [7, 30, 90] as const;
+const PERIODS: { label: string; days: number }[] = [
+  { label: '7d', days: 7 },
+  { label: '30d', days: 30 },
+  { label: '90d', days: 90 },
+  { label: '6m', days: 180 },
+  { label: '12m', days: 365 },
+];
+
+const isoToday = () => new Date().toISOString().slice(0, 10);
 
 const MetricCard = ({ label, value }: { label: string; value: number }) => (
   <div className="border border-white/10 rounded-[12px] p-[16px] bg-white/[0.03]">
@@ -49,9 +57,16 @@ const BarChart = ({
         {title}
       </div>
       <div className="flex items-end gap-[2px] h-[120px]">
-        {data.map((point) => {
+        {data.map((point, index) => {
           const height = (point.count / max) * 100;
-          const dayLabel = point.day.slice(-2).replace(/^0/, '');
+          // With long ranges per-day labels collide — thin them out and
+          // switch to month/day so the axis stays readable.
+          const labelEvery = Math.max(1, Math.ceil(data.length / 24));
+          const showLabel = index % labelEvery === 0;
+          const dayLabel =
+            data.length > 40
+              ? point.day.slice(5).replace('-', '/')
+              : point.day.slice(-2).replace(/^0/, '');
           return (
             <div
               key={point.day}
@@ -62,8 +77,8 @@ const BarChart = ({
                 style={{ height: `${height}%` }}
                 title={`${point.day}: ${point.count}`}
               />
-              <div className="text-[9px] text-newTextColor opacity-50 mt-[4px]">
-                {dayLabel}
+              <div className="text-[9px] text-newTextColor opacity-50 mt-[4px] whitespace-nowrap">
+                {showLabel ? dayLabel : ' '}
               </div>
             </div>
           );
@@ -77,9 +92,20 @@ export const AdminGrowthComponent = () => {
   const fetch = useFetch();
   const t = useT();
   const [days, setDays] = useState<number>(30);
+  const [fromInput, setFromInput] = useState(isoToday());
+  const [toInput, setToInput] = useState(isoToday());
+  // null = preset mode (days); set = custom from/to range
+  const [customRange, setCustomRange] = useState<{
+    from: string;
+    to: string;
+  } | null>(null);
+
+  const query = customRange
+    ? `/admin/growth?from=${customRange.from}&to=${customRange.to}`
+    : `/admin/growth?days=${days}`;
 
   const { data, isLoading, error } = useSWR<GrowthResponse>(
-    `/admin/growth?days=${days}`,
+    query,
     useCallback(
       async (url: string) => {
         const res = await fetch(url);
@@ -93,20 +119,51 @@ export const AdminGrowthComponent = () => {
 
   return (
     <div className="flex flex-col gap-[16px] text-newTextColor">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-[8px]">
         <div className="text-[20px] font-[600]">{t('admin.growth', 'Growth')}</div>
         <div className="flex gap-[6px]">
           {PERIODS.map((p) => (
             <button
-              key={p}
+              key={p.label}
               type="button"
-              onClick={() => setDays(p)}
-              className={adminSegment(days === p)}
+              onClick={() => {
+                setDays(p.days);
+                setCustomRange(null);
+              }}
+              className={adminSegment(!customRange && days === p.days)}
             >
-              {p}d
+              {p.label}
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="flex items-end flex-wrap gap-[12px] border border-white/10 rounded-[12px] p-[12px] bg-white/[0.03]">
+        <div className="flex flex-col gap-[4px]">
+          <label className="text-[12px] opacity-70">{t('from', 'From')}</label>
+          <input
+            type="date"
+            value={fromInput}
+            onChange={(e) => setFromInput(e.target.value)}
+            className="bg-input border border-tableBorder rounded-[8px] px-[10px] h-[36px] text-newTextColor text-[13px] outline-none"
+          />
+        </div>
+        <div className="flex flex-col gap-[4px]">
+          <label className="text-[12px] opacity-70">{t('to', 'To')}</label>
+          <input
+            type="date"
+            value={toInput}
+            onChange={(e) => setToInput(e.target.value)}
+            className="bg-input border border-tableBorder rounded-[8px] px-[10px] h-[36px] text-newTextColor text-[13px] outline-none"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => setCustomRange({ from: fromInput, to: toInput })}
+          className={adminSegment(!!customRange)}
+        >
+          {t('apply', 'Apply')}
+        </button>
       </div>
 
       {error ? (

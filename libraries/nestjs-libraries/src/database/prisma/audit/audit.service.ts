@@ -7,6 +7,7 @@ export type AuditAction =
   | 'auth.register'
   | 'auth.password.reset'
   | 'admin.impersonate'
+  | 'admin.grant-lifetime'
   | 'integration.connect'
   | 'integration.disconnect'
   | 'subscription.change'

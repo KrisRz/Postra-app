@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   HttpException,
+  Post,
   Query,
 } from '@nestjs/common';
 import { GetUserFromRequest } from '@gitroom/nestjs-libraries/user/user.from.request';
@@ -10,6 +12,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ErrorsService } from '@gitroom/nestjs-libraries/database/prisma/errors/errors.service';
 import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.service';
 import { PrismaService } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
+import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
+import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 import dayjs from 'dayjs';
 import { fetch } from 'undici';
 
@@ -19,7 +23,9 @@ export class AdminController {
   constructor(
     private _errorsService: ErrorsService,
     private _adminStatsService: AdminStatsService,
-    private _prisma: PrismaService
+    private _prisma: PrismaService,
+    private _subscriptionService: SubscriptionService,
+    private _auditService: AuditService
   ) {}
 
   private assertSuperAdmin(user: User) {
@@ -181,6 +187,39 @@ export class AdminController {
     return { items, total, page: page ? parseInt(page, 10) : 0, limit: take };
   }
 
+  @Post('/grant-lifetime')
+  async grantLifetime(
+    @GetUserFromRequest() user: User,
+    @Body('email') email: string,
+    @Body('apply') apply: boolean
+  ) {
+    this.assertSuperAdmin(user);
+    if (!email?.trim()) {
+      throw new HttpException('Missing email', 400);
+    }
+
+    // Same engine as the grant-lifetime CLI (#142): lifetime Business for
+    // every org the email OWNS; dry-run unless apply=true.
+    const report = await this._subscriptionService.grantLifetimeByEmail(
+      email,
+      apply === true
+    );
+
+    if (apply === true) {
+      this._auditService.record({
+        action: 'admin.grant-lifetime',
+        userId: user.id,
+        metadata: {
+          email,
+          granted: report.granted.map((g) => g.id),
+          skipped: report.skipped.length,
+        },
+      });
+    }
+
+    return report;
+  }
+
   @Get('/metrics')
   async getAppMetrics(@GetUserFromRequest() user: User) {
     this.assertSuperAdmin(user);
@@ -281,19 +320,15 @@ export class AdminController {
       checks.database = { status: 'error', latencyMs: Date.now() - dbStart, detail: e.message };
     }
 
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    // Real PING through the app's own client — proves Redis answers commands,
+    // not just that the port accepts TCP.
     const redisStart = Date.now();
     try {
-      const net = await import('net');
-      const url = new URL(redisUrl);
-      await new Promise<void>((resolve, reject) => {
-        const socket = net.createConnection(
-          { host: url.hostname, port: parseInt(url.port || '6379'), timeout: 3000 },
-          () => { socket.destroy(); resolve(); }
-        );
-        socket.on('error', reject);
-        socket.on('timeout', () => { socket.destroy(); reject(new Error('timeout')); });
-      });
+      const { ioRedis } = await import(
+        '@gitroom/nestjs-libraries/redis/redis.service'
+      );
+      if (!ioRedis) throw new Error('REDIS_URL not configured');
+      await ioRedis.ping();
       checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart };
     } catch (e: any) {
       checks.redis = { status: 'error', latencyMs: Date.now() - redisStart, detail: e.message };
@@ -317,17 +352,63 @@ export class AdminController {
       checks.temporal = { status: 'error', latencyMs: Date.now() - temporalStart, detail: e.message };
     }
 
-    const [userCount, orgCount, postCount, errorCount] = await Promise.all([
-      this._prisma.user.count(),
-      this._prisma.organization.count(),
-      this._prisma.post.count({ where: { deletedAt: null } }),
-      this._prisma.errors.count(),
-    ]);
+    const [userCount, orgCount, postCount, errorCount, errors24h, lastPublished] =
+      await Promise.all([
+        this._prisma.user.count(),
+        this._prisma.organization.count(),
+        this._prisma.post.count({ where: { deletedAt: null } }),
+        this._prisma.errors.count(),
+        this._prisma.errors.count({
+          where: { createdAt: { gte: dayjs().subtract(24, 'hour').toDate() } },
+        }),
+        this._prisma.post.findFirst({
+          where: { state: 'PUBLISHED', deletedAt: null },
+          orderBy: { publishDate: 'desc' },
+          select: { publishDate: true },
+        }),
+      ]);
+
+    // Container / is an overlay on the host root disk, so statfs reflects the
+    // real 30GB volume (the one that historically filled up with old images).
+    let disk: { totalGB: number; usedPercent: number } | null = null;
+    try {
+      const { statfs } = await import('fs/promises');
+      const s = await statfs('/');
+      const total = s.blocks * s.bsize;
+      const free = s.bavail * s.bsize;
+      disk = {
+        totalGB: Math.round(total / 1024 / 1024 / 1024),
+        usedPercent: Math.round((1 - free / total) * 100),
+      };
+    } catch {
+      // fs.statfs unavailable — leave the card empty rather than fail health
+    }
+
+    // Docker does not namespace /proc/meminfo — these are HOST numbers.
+    let hostMemory: { totalMB: number; availableMB: number; swapUsedMB: number } | null =
+      null;
+    try {
+      const { readFile } = await import('fs/promises');
+      const meminfo = await readFile('/proc/meminfo', 'utf8');
+      const grab = (key: string) =>
+        parseInt(meminfo.match(new RegExp(`${key}:\\s+(\\d+)`))?.[1] || '0', 10);
+      hostMemory = {
+        totalMB: Math.round(grab('MemTotal') / 1024),
+        availableMB: Math.round(grab('MemAvailable') / 1024),
+        swapUsedMB: Math.round((grab('SwapTotal') - grab('SwapFree')) / 1024),
+      };
+    } catch {
+      // non-Linux dev machines — skip
+    }
 
     return {
       overall: Object.values(checks).every((c) => c.status === 'ok') ? 'healthy' : 'degraded',
       services: checks,
       counts: { users: userCount, organizations: orgCount, posts: postCount, errors: errorCount },
+      errors24h,
+      lastPublishedAt: lastPublished?.publishDate ?? null,
+      disk,
+      hostMemory,
       uptime: process.uptime(),
       memoryMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
       nodeVersion: process.version,
@@ -348,7 +429,7 @@ export class AdminController {
     // NOTE: AI usage is reported from `credits` (real, billable usage). Mastra's
     // own span tables (mastra_ai_spans) are @@ignore'd in the Prisma schema (no @id),
     // so they are NOT in the generated client and cannot be queried via this._prisma.
-    const [creditsByType, creditsByOrg] = await Promise.all([
+    const [creditsByType, creditsByOrg, creditsByDay] = await Promise.all([
       this._prisma.credits.groupBy({
         by: ['type'],
         where: { createdAt: { gte: fromDate, lte: toDate } },
@@ -362,6 +443,13 @@ export class AdminController {
         orderBy: { _sum: { credits: 'desc' } },
         take: 10,
       }),
+      this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
+        SELECT DATE("createdAt") as day, SUM("credits")::bigint as count
+        FROM "Credits"
+        WHERE "createdAt" >= ${fromDate} AND "createdAt" <= ${toDate}
+        GROUP BY DATE("createdAt")
+        ORDER BY day
+      `,
     ]);
 
     const orgIds = creditsByOrg.map((c) => c.organizationId);
@@ -386,18 +474,31 @@ export class AdminController {
         orgName: orgMap.get(c.organizationId) || 'Unknown',
         totalCredits: c._sum.credits || 0,
       })),
+      byDay: creditsByDay.map((r) => ({
+        day: String(r.day).slice(0, 10),
+        count: Number(r.count),
+      })),
     };
   }
 
   @Get('/growth')
   async getGrowth(
     @GetUserFromRequest() user: User,
-    @Query('days') days?: string
+    @Query('days') days?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string
   ) {
     this.assertSuperAdmin(user);
 
-    const numDays = days ? parseInt(days, 10) : 30;
-    const since = dayjs().subtract(numDays, 'day').startOf('day').toDate();
+    const untilDay = to ? dayjs(to).endOf('day') : dayjs().endOf('day');
+    const sinceDay = from
+      ? dayjs(from).startOf('day')
+      : untilDay
+          .subtract(days ? parseInt(days, 10) : 30, 'day')
+          .startOf('day');
+    const numDays = untilDay.diff(sinceDay, 'day') + 1;
+    const since = sinceDay.toDate();
+    const until = untilDay.toDate();
 
     const [
       totalUsers,
@@ -412,19 +513,23 @@ export class AdminController {
     ] = await Promise.all([
       this._prisma.user.count(),
       this._prisma.organization.count(),
-      this._prisma.user.count({ where: { createdAt: { gte: since } } }),
-      this._prisma.organization.count({ where: { createdAt: { gte: since } } }),
+      this._prisma.user.count({
+        where: { createdAt: { gte: since, lte: until } },
+      }),
+      this._prisma.organization.count({
+        where: { createdAt: { gte: since, lte: until } },
+      }),
       this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
         SELECT DATE("createdAt") as day, COUNT(*)::bigint as count
         FROM "User"
-        WHERE "createdAt" >= ${since}
+        WHERE "createdAt" >= ${since} AND "createdAt" <= ${until}
         GROUP BY DATE("createdAt")
         ORDER BY day
       `,
       this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
         SELECT DATE("publishDate") as day, COUNT(*)::bigint as count
         FROM "Post"
-        WHERE "publishDate" >= ${since}
+        WHERE "publishDate" >= ${since} AND "publishDate" <= ${until}
           AND "deletedAt" IS NULL
           AND "parentPostId" IS NULL
           AND "state" = 'PUBLISHED'
@@ -491,7 +596,9 @@ export class AdminController {
             isLifetime: true,
             cancelAt: true,
             createdAt: true,
-            organization: { select: { id: true, name: true } },
+            organization: {
+              select: { id: true, name: true, paymentId: true },
+            },
           },
         }),
       ]);

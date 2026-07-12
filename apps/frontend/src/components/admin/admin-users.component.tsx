@@ -14,6 +14,7 @@ import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions
 import { deleteDialog } from '@gitroom/react/helpers/delete.dialog';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import { ImportDebugPostModal } from '@gitroom/frontend/components/launches/import-debug-post.modal';
+import { useToaster } from '@gitroom/react/toaster/toaster';
 
 const Subscription = () => {
   const fetch = useFetch();
@@ -103,6 +104,7 @@ export const AdminUsersComponent = () => {
   const user = useUser();
   const t = useT();
   const { openModal } = useModals();
+  const toaster = useToaster();
 
   const load = useCallback(async () => {
     const params = new URLSearchParams({
@@ -115,7 +117,7 @@ export const AdminUsersComponent = () => {
     return res.json() as Promise<UsersResponse>;
   }, [page, search]);
 
-  const { data, isLoading, error } = useSWR<UsersResponse>(
+  const { data, isLoading, error, mutate } = useSWR<UsersResponse>(
     `/admin/users-${page}-${search}`,
     load,
     {
@@ -166,6 +168,42 @@ export const AdminUsersComponent = () => {
       children: (close) => <ImportDebugPostModal close={close} />,
     });
   }, []);
+
+  const grantLifetime = useCallback(
+    (u: UserItem) => async () => {
+      if (
+        !(await deleteDialog(
+          t(
+            'grant_lifetime_confirm',
+            `Grant lifetime Business (100 channels, no paywall) to every org owned by ${u.email}?`
+          ),
+          t('grant', 'Grant')
+        ))
+      ) {
+        return;
+      }
+      const res = await fetch('/admin/grant-lifetime', {
+        method: 'POST',
+        body: JSON.stringify({ email: u.email, apply: true }),
+      });
+      if (!res.ok) {
+        toaster.show(
+          t('grant_lifetime_failed', 'Failed to grant lifetime'),
+          'warning'
+        );
+        return;
+      }
+      const report = await res.json();
+      toaster.show(
+        `${t('grant_lifetime_done', 'Lifetime granted')}: ${
+          report.granted.length
+        } org(s), ${report.skipped.length} skipped`,
+        'success'
+      );
+      await mutate();
+    },
+    [t, mutate]
+  );
 
   return (
     <div className="flex flex-col gap-[20px]">
@@ -321,6 +359,19 @@ export const AdminUsersComponent = () => {
                           : t('impersonate', 'Impersonate')}
                       </Button>
                     ))}
+                    {u.organizations.some(
+                      (o) =>
+                        o.role === 'SUPERADMIN' &&
+                        !o.organization.subscription?.isLifetime
+                    ) && (
+                      <button
+                        type="button"
+                        onClick={grantLifetime(u)}
+                        className="px-[12px] h-[30px] rounded-[8px] text-[12px] border border-[rgba(167,139,250,0.4)] text-[#a78bfa] hover:bg-[rgba(167,139,250,0.1)] cursor-pointer transition-colors"
+                      >
+                        {t('grant_lifetime', 'Grant lifetime')}
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
