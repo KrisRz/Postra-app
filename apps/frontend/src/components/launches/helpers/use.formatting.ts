@@ -22,13 +22,13 @@ export const useFormatting = (
         newText = params.beforeSpecialFunc(newText);
       }
       if (params.saveBreaklines) {
-        newText = newText.replace('\n', '𝔫𝔢𝔴𝔩𝔦𝔫𝔢');
+        newText = newText.replace(/\n/g, '𝔫𝔢𝔴𝔩𝔦𝔫𝔢');
       }
       newText = newText.replace(/@\w{1,15}/g, function (match) {
         return `<strong>${match}</strong>`;
       });
       if (params.saveBreaklines) {
-        newText = newText.replace('𝔫𝔢𝔴𝔩𝔦𝔫𝔢', '\n');
+        newText = newText.replace(/𝔫𝔢𝔴𝔩𝔦𝔫𝔢/g, '\n');
       }
       if (params.specialFunc) {
         newText = params.specialFunc(newText);

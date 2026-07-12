@@ -146,13 +146,16 @@ export const stripHtmlValidation = (
   const value = serialize(parseFragment(val));
 
   if (type === 'none') {
+    // Unescape &amp; LAST: doing it first turns already-escaped text like
+    // "&amp;gt;" into "&gt;" which the later replaces decode again (CodeQL
+    // double-unescaping). Same ordering rule applies to every branch below.
     return striptags(value)
       .replace(/&gt;/gi, '>')
       .replace(/&lt;/gi, '<')
-      .replace(/&amp;/gi, '&')
       .replace(/&nbsp;/gi, ' ')
       .replace(/&quot;/gi, '"')
-      .replace(/&#39;/gi, "'");
+      .replace(/&#39;/gi, "'")
+      .replace(/&amp;/gi, '&');
   }
 
   if (type === 'html') {
@@ -169,10 +172,10 @@ export const stripHtmlValidation = (
     ])
       .replace(/&gt;/gi, '>')
       .replace(/&lt;/gi, '<')
-      .replace(/&amp;/gi, '&')
       .replace(/&nbsp;/gi, ' ')
       .replace(/&quot;/gi, '"')
-      .replace(/&#39;/gi, "'");
+      .replace(/&#39;/gi, "'")
+      .replace(/&amp;/gi, '&');
   }
 
   if (type === 'markdown') {
@@ -182,7 +185,6 @@ export const stripHtmlValidation = (
           .replace(/<h1>([.\s\S]*?)<\/h1>/g, (match, p1) => {
             return `<h1># ${p1}</h1>\n`;
           })
-          .replace(/&amp;/gi, '&')
           .replace(/&nbsp;/gi, ' ')
           .replace(/&quot;/gi, '"')
           .replace(/&#39;/gi, "'")
@@ -214,15 +216,17 @@ export const stripHtmlValidation = (
       )
     )
       .replace(/&gt;/gi, '>')
-      .replace(/&lt;/gi, '<');
+      .replace(/&lt;/gi, '<')
+      .replace(/&amp;/gi, '&');
   }
 
   if (value.indexOf('<p>') === -1 && !none) {
     return value;
   }
 
+  // &amp; is NOT unescaped here — each terminal return below does it after
+  // &gt;/&lt;, otherwise "&amp;gt;" would decode twice.
   const html = (value || '')
-    .replace(/&amp;/gi, '&')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
@@ -231,7 +235,10 @@ export const stripHtmlValidation = (
     .replace(/<\/p>/gi, '');
 
   if (none) {
-    return striptags(html).replace(/&gt;/gi, '>').replace(/&lt;/gi, '<');
+    return striptags(html)
+      .replace(/&gt;/gi, '>')
+      .replace(/&lt;/gi, '<')
+      .replace(/&amp;/gi, '&');
   }
 
   if (replaceBold) {
@@ -259,13 +266,15 @@ export const stripHtmlValidation = (
       .replace(/&𝗹𝘁;/gi, '<')
       .replace(/&𝗴𝘁;/gi, '>')
       .replace(/&g̲t̲;/gi, '>')
-      .replace(/&l̲t̲;/gi, '<');
+      .replace(/&l̲t̲;/gi, '<')
+      .replace(/&amp;/gi, '&');
   }
 
   // Strip all other tags
   return striptags(html, ['ul', 'li', 'h1', 'h2', 'h3'])
     .replace(/&gt;/gi, '>')
-    .replace(/&lt;/gi, '<');
+    .replace(/&lt;/gi, '<')
+    .replace(/&amp;/gi, '&');
 };
 
 export const convertMention = (

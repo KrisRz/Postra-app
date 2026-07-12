@@ -124,9 +124,21 @@ export class IntegrationService {
       );
     }
 
+    // Parse the hostname instead of substring-matching — a URL like
+    // https://evil.com/imagedelivery.net would pass indexOf() and get
+    // persisted as an external hotlink instead of re-uploaded to our storage.
+    const isImageDeliveryHost = (url: string) => {
+      try {
+        const host = new URL(url).hostname;
+        return host === 'imagedelivery.net' || host.endsWith('.imagedelivery.net');
+      } catch {
+        return false;
+      }
+    };
+
     let uploadedPicture: string | undefined;
     if (picture) {
-      if (picture.indexOf('imagedelivery.net') > -1) {
+      if (isImageDeliveryHost(picture)) {
         uploadedPicture = picture;
       } else {
         try {

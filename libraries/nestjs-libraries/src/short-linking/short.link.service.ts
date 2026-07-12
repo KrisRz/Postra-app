@@ -56,11 +56,12 @@ export class ShortLinkService {
       return messagesList;
     }
 
+    // &amp; last — unescaping it first would decode "&amp;quest;" twice.
     const messages = messagesList.map((text) => {
       return text
-        .replace(/&amp;/g, '&')
         .replace(/&quest;/g, '?')
-        .replace(/&num;/g, '#');
+        .replace(/&num;/g, '#')
+        .replace(/&amp;/g, '&');
     });
 
     const urlRegex =
