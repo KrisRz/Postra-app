@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   HttpException,
+  Post,
   Query,
 } from '@nestjs/common';
 import { GetUserFromRequest } from '@gitroom/nestjs-libraries/user/user.from.request';
@@ -10,6 +12,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ErrorsService } from '@gitroom/nestjs-libraries/database/prisma/errors/errors.service';
 import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.service';
 import { PrismaService } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
+import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
+import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 import dayjs from 'dayjs';
 import { fetch } from 'undici';
 
@@ -19,7 +23,9 @@ export class AdminController {
   constructor(
     private _errorsService: ErrorsService,
     private _adminStatsService: AdminStatsService,
-    private _prisma: PrismaService
+    private _prisma: PrismaService,
+    private _subscriptionService: SubscriptionService,
+    private _auditService: AuditService
   ) {}
 
   private assertSuperAdmin(user: User) {
@@ -179,6 +185,39 @@ export class AdminController {
     ]);
 
     return { items, total, page: page ? parseInt(page, 10) : 0, limit: take };
+  }
+
+  @Post('/grant-lifetime')
+  async grantLifetime(
+    @GetUserFromRequest() user: User,
+    @Body('email') email: string,
+    @Body('apply') apply: boolean
+  ) {
+    this.assertSuperAdmin(user);
+    if (!email?.trim()) {
+      throw new HttpException('Missing email', 400);
+    }
+
+    // Same engine as the grant-lifetime CLI (#142): lifetime Business for
+    // every org the email OWNS; dry-run unless apply=true.
+    const report = await this._subscriptionService.grantLifetimeByEmail(
+      email,
+      apply === true
+    );
+
+    if (apply === true) {
+      this._auditService.record({
+        action: 'admin.grant-lifetime',
+        userId: user.id,
+        metadata: {
+          email,
+          granted: report.granted.map((g) => g.id),
+          skipped: report.skipped.length,
+        },
+      });
+    }
+
+    return report;
   }
 
   @Get('/metrics')
