@@ -962,6 +962,7 @@
   "video_source_library": "From library",
   "video_trim_done": "Trimmed. Continue to pick formats or use the single file.",
   "video_use_in_post": "Use in post",
+  "video_saved_to_library": "Saved to media library — you can use it in any post.",
   "video_trim_invalid": "End point must be after the start point",
   "video_trim_failed": "Video trimming failed. Check that your browser supports WebCodecs (Chrome / Edge).",
   "video_select_file": "Choose a video file to get started.",

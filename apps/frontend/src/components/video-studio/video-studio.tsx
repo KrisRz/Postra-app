@@ -259,6 +259,19 @@ export const VideoStudio: FC<VideoStudioProps> = ({
     }
   }, [uploadedMedia, trimmedBlob, ensureUploaded, deliver, toaster, t]);
 
+  // "Just save" — upload the trimmed clip to the library and stay here.
+  const handleSaveToLibrary = useCallback(async () => {
+    const m = await ensureUploaded();
+    if (m) {
+      toaster.show(
+        t('video_saved_to_library', 'Saved to media library — you can use it in any post.'),
+        'success'
+      );
+    } else {
+      toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
+    }
+  }, [ensureUploaded, toaster, t]);
+
   const handleFormatsExported = useCallback(
     async (results: { format: VideoFormat; blob: Blob }[]) => {
       setIsUploading(true);
@@ -452,17 +465,26 @@ export const VideoStudio: FC<VideoStudioProps> = ({
       </div>
 
       {trimmedBlob && !showGoals && tab === 'trim' && (
-        <div className="px-4 py-2 border-t border-newBorder flex items-center justify-between">
+        <div className="px-4 py-2 border-t border-newBorder flex items-center justify-between gap-2">
           <div className="text-[11px] text-textColor/60">
             {t('video_trim_done', 'Trimmed. Continue to pick formats or use the single file.')}
           </div>
-          <Button
-            loading={isUploading}
-            onClick={handleUseInPost}
-            className="!h-[28px] !text-xs"
-          >
-            {t('video_use_in_post', 'Use in post')}
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleSaveToLibrary}
+              disabled={isUploading}
+              className="text-xs px-3 h-[28px] rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-50"
+            >
+              💾 {t('save_to_library_btn', 'Save to library')}
+            </button>
+            <Button
+              loading={isUploading}
+              onClick={handleUseInPost}
+              className="!h-[28px] !text-xs"
+            >
+              {t('video_use_in_post', 'Use in post')}
+            </Button>
+          </div>
         </div>
       )}
     </div>

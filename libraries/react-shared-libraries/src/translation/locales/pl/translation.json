@@ -962,6 +962,7 @@
   "video_source_library": "Z biblioteki",
   "video_trim_done": "Wycięto. Kliknij dalej, aby wybrać formaty lub użyć pojedynczego pliku.",
   "video_use_in_post": "Użyj w poście",
+  "video_saved_to_library": "Zapisano do biblioteki mediów — możesz użyć w dowolnym poście.",
   "video_trim_invalid": "Punkt końcowy musi być po początkowym",
   "video_trim_failed": "Cięcie wideo nie powiodło się. Sprawdź czy przeglądarka wspiera WebCodecs (Chrome / Edge).",
   "video_select_file": "Wybierz plik wideo aby zacząć.",
