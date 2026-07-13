@@ -85,10 +85,26 @@ async function start() {
     }
   );
 
-  app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-  }));
+  // The backend is a JSON API; the only HTML it serves is Swagger UI (/docs),
+  // so the CSP just needs to cover that: self-hosted bundle + the inline
+  // styles swagger-ui injects. COEP stays off — it would demand CORP headers
+  // on every cross-origin resource (OAuth popups, provider media).
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", 'data:'],
+          connectSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          frameAncestors: ["'none'"],
+        },
+      },
+      crossOriginEmbedderPolicy: false,
+    })
+  );
   app.use(cookieParser());
   app.use(compression());
   app.useGlobalFilters(new SubscriptionExceptionFilter());
