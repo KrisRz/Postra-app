@@ -1,11 +1,13 @@
 import {
   Controller,
   HttpException,
+  Logger,
   Post,
   RawBodyRequest,
   Req,
 } from '@nestjs/common';
 import { StripeService } from '@gitroom/nestjs-libraries/services/stripe.service';
+import { StripeEventStore } from '@gitroom/nestjs-libraries/services/stripe.event.store';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Stripe')
@@ -13,10 +15,11 @@ import { ApiTags } from '@nestjs/swagger';
 export class StripeController {
   constructor(
     private readonly _stripeService: StripeService,
+    private readonly _eventStore: StripeEventStore
   ) {}
 
   @Post('/')
-  stripe(@Req() req: RawBodyRequest<Request>) {
+  async stripe(@Req() req: RawBodyRequest<Request>) {
     const event = this._stripeService.validateRequest(
       req.rawBody,
       // @ts-ignore
@@ -35,7 +38,7 @@ export class StripeController {
       return { ok: true };
     }
 
-    try {
+    const handle = () => {
       switch (event.type) {
         case 'invoice.payment_succeeded':
           return this._stripeService.paymentSucceeded(event);
@@ -48,10 +51,30 @@ export class StripeController {
         case 'invoice.payment_failed':
           return this._stripeService.paymentFailed(event);
         default:
-          return { ok: true };
+          return undefined;
       }
+    };
+
+    // Claim the event id before doing any work. Stripe retries a delivery for
+    // up to 3 days on any 5xx or timeout, and a second run of these handlers
+    // would grant the subscription or the credits twice.
+    if (!(await this._eventStore.claim(event.id, event.type))) {
+      return { ok: true, duplicate: true };
+    }
+
+    try {
+      const result = await handle();
+      return result ?? { ok: true };
     } catch (e) {
-      throw new HttpException(e, 500);
+      // Release the claim so Stripe's retry actually reprocesses the event
+      // instead of finding a claim for work that never completed. Answering 500
+      // is what asks Stripe to retry.
+      await this._eventStore.release(event.id);
+      Logger.error(
+        `Stripe webhook ${event.type} (${event.id}) failed`,
+        e instanceof Error ? e.stack : String(e)
+      );
+      throw new HttpException('Webhook handler failed', 500);
     }
   }
 }

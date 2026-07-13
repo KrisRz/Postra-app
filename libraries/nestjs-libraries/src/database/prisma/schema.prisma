@@ -1044,3 +1044,17 @@ model AuditLog {
   @@index([userId, createdAt])
   @@index([action, createdAt])
 }
+
+// Stripe delivers webhooks at-least-once — it retries for up to 3 days on any
+// 5xx or timeout — so a handler running twice would grant a subscription or
+// top up credits twice. The webhook claims an event id here before doing any
+// work: the row IS the claim, so a redelivery of an id we already finished is
+// dropped. A claim whose handler then threw is released, otherwise a transient
+// failure would permanently swallow the event on Stripe's retry.
+model StripeProcessedEvent {
+  id        String   @id
+  type      String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
