@@ -111,7 +111,12 @@ async function start() {
   app.useGlobalFilters(new PostValidationExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  loadSwagger(app);
+  // Swagger UI is dev-only (NOT_SECURED is never set in prod): the full
+  // endpoint inventory at /docs is free recon for an attacker, and the API
+  // needs no public docs.
+  if (process.env.NOT_SECURED) {
+    loadSwagger(app);
+  }
 
   const port = process.env.PORT || 3000;
 
