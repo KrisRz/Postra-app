@@ -34,6 +34,27 @@ export class ThirdPartyManager {
     return { ...thirdParty, instance: this._moduleRef.get(thirdParty.target) };
   }
 
+  // Lifecycle methods stay off the public /third-party/function/:id/:name
+  // route: checkConnection runs on /add, sendData on /:id/submit.
+  private static readonly NOT_CALLABLE_BY_NAME = new Set([
+    'constructor',
+    'checkConnection',
+    'sendData',
+  ]);
+
+  /**
+   * Provider methods that may be invoked by name from the API. Callers must
+   * resolve the requested name against this list (never index the instance
+   * with raw user input) so `constructor`/inherited properties are unreachable.
+   */
+  listCallableFunctions(instance: ThirdPartyAbstract): string[] {
+    return Object.getOwnPropertyNames(Object.getPrototypeOf(instance)).filter(
+      (name) =>
+        !ThirdPartyManager.NOT_CALLABLE_BY_NAME.has(name) &&
+        typeof (instance as any)[name] === 'function'
+    );
+  }
+
   deleteIntegration(org: string, id: string) {
     return this._thirdPartyService.deleteIntegration(org, id);
   }

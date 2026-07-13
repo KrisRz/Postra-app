@@ -117,7 +117,18 @@ export class ThirdPartyController {
       throw new HttpException('Invalid identifier', 400);
     }
 
-    return thirdPartyInstance?.instance?.[functionName](
+    // Resolve the name against the provider's callable list instead of
+    // indexing the instance with raw user input (constructor/prototype
+    // properties would be reachable otherwise).
+    const safeName = this._thirdPartyManager
+      .listCallableFunctions(thirdPartyInstance.instance)
+      .find((name) => name === functionName);
+
+    if (!safeName) {
+      throw new HttpException('Function not found', 400);
+    }
+
+    return thirdPartyInstance.instance[safeName]!(
       AuthService.fixedDecryption(thirdParty.apiKey),
       data
     );

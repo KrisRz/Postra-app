@@ -45,7 +45,7 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
                   <Chart list={item.stars} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl">
-                    {t('processing_stars', 'Przetwarzanie gwiazdek...')}
+                    {t('processing_stars', 'Processing stars...')}
                   </div>
                 )}
               </div>
@@ -87,7 +87,7 @@ export const StarsAndForks: FC<StarsAndForksInterface> = (props) => {
                   <Chart list={item.forks} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-3xl">
-                    {t('processing_stars', 'Przetwarzanie gwiazdek...')}
+                    {t('processing_stars', 'Processing stars...')}
                   </div>
                 )}
               </div>
