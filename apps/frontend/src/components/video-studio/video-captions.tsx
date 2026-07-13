@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, useCallback, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -31,7 +32,14 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
   const [isGenerating, setIsGenerating] = useState(false);
   const [isBurning, setIsBurning] = useState(false);
   const [burnProgress, setBurnProgress] = useState(0);
-  const [language, setLanguage] = useState('pl');
+  const { i18n } = useTranslation();
+  // Default transcription language follows the UI locale (UK-first product —
+  // 'pl' is only right for the Polish UI), and 'auto' stays one click away.
+  const [language, setLanguage] = useState(() =>
+    (i18n.resolvedLanguage ?? i18n.language ?? 'en').toLowerCase().startsWith('pl')
+      ? 'pl'
+      : 'en'
+  );
 
   const handleGenerate = useCallback(async () => {
     if (!mediaId) {

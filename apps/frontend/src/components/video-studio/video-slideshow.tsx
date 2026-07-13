@@ -190,22 +190,39 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
     t,
   ]);
 
-  const useInPost = useCallback(async () => {
-    if (!resultBlob || uploading) return;
+  const uploadResult = useCallback(async (): Promise<{ id: string; path: string } | null> => {
+    if (!resultBlob || uploading) return null;
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append('file', resultBlob, `postra-slideshow-${Date.now()}.mp4`);
       const res = await fetch('/media/upload-simple', { method: 'POST', body: formData });
       const data = await res.json();
-      if (data?.id && data?.path) onReady({ id: data.id, path: data.path });
-      else throw new Error('upload returned no media');
+      if (data?.id && data?.path) return { id: data.id, path: data.path };
+      throw new Error('upload returned no media');
     } catch {
       toaster.show(t('clip_text_upload_failed', 'Clip upload failed.'), 'warning');
+      return null;
     } finally {
       setUploading(false);
     }
-  }, [resultBlob, uploading, fetch, onReady, toaster, t]);
+  }, [resultBlob, uploading, fetch, toaster, t]);
+
+  const useInPost = useCallback(async () => {
+    const media = await uploadResult();
+    if (media) onReady(media);
+  }, [uploadResult, onReady]);
+
+  // "Just save" without leaving the tool — the honest sibling of Use in post.
+  const saveToLibrary = useCallback(async () => {
+    const media = await uploadResult();
+    if (media) {
+      toaster.show(
+        t('video_saved_to_library', 'Saved to media library — you can use it in any post.'),
+        'success'
+      );
+    }
+  }, [uploadResult, toaster, t]);
 
   return (
     <div className="flex flex-col gap-3 p-3 text-textColor">
@@ -357,6 +374,13 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
             <Button loading={uploading} onClick={useInPost} className="!h-[30px] !text-xs">
               {t('clip_text_use_in_post', 'Use in post')}
             </Button>
+            <button
+              onClick={saveToLibrary}
+              disabled={uploading}
+              className="text-xs px-3 h-[30px] rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-50"
+            >
+              💾 {t('save_to_library_btn', 'Save to library')}
+            </button>
             <a
               href={resultUrl}
               download="postra-slideshow.mp4"

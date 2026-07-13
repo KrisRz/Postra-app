@@ -37,6 +37,11 @@ interface StudioWorkspaceProps {
  * Graphic | Video toggle hosting both editors behind one entry. Shared by the
  * standalone /studio route and the composer's "Studio" button so the two stay
  * in sync — the only difference is whether output goes to a post or the library.
+ *
+ * Both editors stay MOUNTED once opened — the inactive one is just hidden.
+ * Switching tabs therefore loses nothing: the canvas, a loaded clip, captions
+ * in progress all survive a round trip. Re-clicking the active Video tab
+ * brings back its goal-picker start screen.
  */
 export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
   setMedia,
@@ -47,19 +52,17 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
 }) => {
   const t = useT();
   const [mode, setMode] = useState<StudioMode>(initialMode);
-  // Switching tabs unmounts the current editor. The graphic editor snapshots
-  // itself to a restorable draft on unmount; video work has no such net, so a
-  // loaded clip asks for confirmation before it's thrown away.
-  const [videoDirty, setVideoDirty] = useState(false);
-  const [pendingMode, setPendingMode] = useState<StudioMode | null>(null);
+  // Video mounts lazily on first visit, then stays alive in the background.
+  const [videoVisited, setVideoVisited] = useState(initialMode === 'video');
+  // Bumped when the user re-clicks the Video tab while already on it —
+  // VideoStudio reacts by showing the goal screen again.
+  const [goalsSignal, setGoalsSignal] = useState(0);
 
   const switchMode = (next: StudioMode) => {
-    if (next === mode) return;
-    if (mode === 'video' && videoDirty) {
-      setPendingMode(next);
-      return;
+    if (next === 'video') {
+      setVideoVisited(true);
+      if (mode === 'video') setGoalsSignal((s) => s + 1);
     }
-    setPendingMode(null);
     setMode(next);
   };
 
@@ -75,6 +78,11 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
           <button
             key={tab.key}
             onClick={() => switchMode(tab.key)}
+            title={
+              tab.key === 'video' && mode === 'video'
+                ? t('studio_tab_video_again', 'Click again for the start screen')
+                : undefined
+            }
             className={clsx(
               'h-9 px-4 text-sm rounded-lg border transition-colors',
               mode === tab.key
@@ -86,49 +94,24 @@ export const StudioWorkspace: FC<StudioWorkspaceProps> = ({
           </button>
         ))}
       </div>
-      {pendingMode !== null && (
-        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-xs text-textColor">
-          <span>
-            ⚠️{' '}
-            {t(
-              'studio_leave_video_confirm',
-              'Leaving the Video tab discards your loaded clip and edits. Continue?'
-            )}
-          </span>
-          <div className="flex gap-2 shrink-0">
-            <button
-              onClick={() => {
-                setVideoDirty(false);
-                setMode(pendingMode);
-                setPendingMode(null);
-              }}
-              className="px-3 py-1 text-xs rounded bg-forth text-white hover:bg-forth/80 transition-colors"
-            >
-              {t('studio_leave_video_btn', 'Leave anyway')}
-            </button>
-            <button
-              onClick={() => setPendingMode(null)}
-              className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth/40 transition-colors"
-            >
-              {t('studio_stay_video_btn', 'Stay')}
-            </button>
-          </div>
-        </div>
-      )}
       <div className="flex-1 min-h-0 w-full rounded-lg overflow-hidden border border-newBorder">
-        {mode === 'graphic' ? (
+        <div className={clsx('h-full', mode !== 'graphic' && 'hidden')}>
           <PostDesignEditor
             mode={graphicMode}
             loadMediaId={loadMediaId}
             setMedia={setMedia}
             closeModal={closeModal}
           />
-        ) : (
-          <VideoStudio
-            setMedia={setMedia}
-            closeModal={closeModal}
-            onDirtyChange={setVideoDirty}
-          />
+        </div>
+        {videoVisited && (
+          <div className={clsx('h-full', mode !== 'video' && 'hidden')}>
+            <VideoStudio
+              setMedia={setMedia}
+              closeModal={closeModal}
+              mode={graphicMode}
+              showGoalsSignal={goalsSignal}
+            />
+          </div>
         )}
       </div>
     </div>

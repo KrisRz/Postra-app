@@ -14,8 +14,28 @@ export const initializeSentryClient = (environment: string, dsn: string) =>
         maskAllInputs: true,
       }),
       Sentry.feedbackIntegration({
-        // Disable the injection of the default widget
+        // Disable the injection of the default widget — the topbar chat icon
+        // (AttachToFeedbackIcon) opens it instead.
         autoInject: false,
+        showBranding: false,
+        // The app is dark regardless of OS preference — 'system' rendered a
+        // white Sentry-purple dialog inside the dark UI.
+        colorScheme: 'dark',
+        themeDark: {
+          background: '#0a0e1a',
+          foreground: '#e6e8ee',
+          accentBackground: '#38bdf8',
+          accentForeground: '#0a0e1a',
+          successColor: '#10b981',
+          errorColor: '#ef4444',
+          outline: '1px auto #38bdf8',
+          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.55)',
+        },
+        formTitle: 'Report a problem',
+        submitButtonLabel: 'Send report',
+        messagePlaceholder:
+          "What went wrong? What did you expect to happen?",
+        successMessageText: 'Thank you — we read every report.',
       }),
       Sentry.replayCanvasIntegration(),
     ],

@@ -1,6 +1,7 @@
 'use client';
 
 import { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useMediaDirectory } from '@gitroom/react/helpers/use.media.directory';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
@@ -22,9 +23,13 @@ import {
 interface VideoStudioProps {
   setMedia: (params: { id: string; path: string }[]) => void;
   closeModal: () => void;
-  /** Reports whether a clip is loaded — video work lives only in this
-   *  component's state, so the host warns before unmounting it. */
-  onDirtyChange?: (dirty: boolean) => void;
+  /** 'composer' delivers output into the open post; 'studio' (standalone
+   *  /studio, where setMedia is a no-op) carries it into a fresh post on
+   *  /launches — the same newPostMedia bridge the graphics editor uses. */
+  mode?: 'composer' | 'studio';
+  /** Bumped by the host when the user re-clicks the Video tab — show the
+   *  goal-picker start screen again (state and clip stay untouched). */
+  showGoalsSignal?: number;
 }
 
 type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text' | 'slideshow';
@@ -32,12 +37,31 @@ type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text' | 'slideshow';
 export const VideoStudio: FC<VideoStudioProps> = ({
   setMedia,
   closeModal,
-  onDirtyChange,
+  mode = 'composer',
+  showGoalsSignal = 0,
 }) => {
   const t = useT();
   const fetch = useFetch();
   const toaster = useToaster();
+  const router = useRouter();
   const mediaDirectory = useMediaDirectory();
+
+  // Every export path funnels through here. In the composer the media lands
+  // in the open post; standalone /studio has no post to attach to, so carry
+  // it into a fresh post on /launches instead of dead-ending at Download.
+  const deliver = useCallback(
+    (uploaded: { id: string; path: string }[]) => {
+      if (mode === 'studio') {
+        router.push(
+          `/launches?newPostMedia=${encodeURIComponent(JSON.stringify(uploaded))}`
+        );
+        return;
+      }
+      setMedia(uploaded);
+      closeModal();
+    },
+    [mode, router, setMedia, closeModal]
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [file, setFile] = useState<File | null>(null);
@@ -73,9 +97,8 @@ export const VideoStudio: FC<VideoStudioProps> = ({
   }, []);
 
   useEffect(() => {
-    onDirtyChange?.(!!file);
-    return () => onDirtyChange?.(false);
-  }, [file, onDirtyChange]);
+    if (showGoalsSignal > 0) setShowGoals(true);
+  }, [showGoalsSignal]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -223,19 +246,30 @@ export const VideoStudio: FC<VideoStudioProps> = ({
 
   const handleUseInPost = useCallback(async () => {
     if (uploadedMedia) {
-      setMedia([uploadedMedia]);
-      closeModal();
+      deliver([uploadedMedia]);
       return;
     }
     if (!trimmedBlob) return;
     const m = await ensureUploaded();
     if (m) {
-      setMedia([m]);
-      closeModal();
+      deliver([m]);
     } else {
       toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
     }
-  }, [uploadedMedia, trimmedBlob, ensureUploaded, setMedia, closeModal, toaster, t]);
+  }, [uploadedMedia, trimmedBlob, ensureUploaded, deliver, toaster, t]);
+
+  // "Just save" — upload the trimmed clip to the library and stay here.
+  const handleSaveToLibrary = useCallback(async () => {
+    const m = await ensureUploaded();
+    if (m) {
+      toaster.show(
+        t('video_saved_to_library', 'Saved to media library — you can use it in any post.'),
+        'success'
+      );
+    } else {
+      toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
+    }
+  }, [ensureUploaded, toaster, t]);
 
   const handleFormatsExported = useCallback(
     async (results: { format: VideoFormat; blob: Blob }[]) => {
@@ -247,38 +281,34 @@ export const VideoStudio: FC<VideoStudioProps> = ({
       }
       setIsUploading(false);
       if (uploaded.length) {
-        setMedia(uploaded);
-        closeModal();
+        deliver(uploaded);
       } else {
         toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
       }
     },
-    [uploadBlob, setMedia, closeModal, toaster, t]
+    [uploadBlob, deliver, toaster, t]
   );
 
   const handleCaptionedReady = useCallback(
     (newMedia: { id: string; path: string }) => {
       setUploadedMedia(newMedia);
-      setMedia([newMedia]);
-      closeModal();
+      deliver([newMedia]);
     },
-    [setMedia, closeModal]
+    [deliver]
   );
 
   const handleStockImported = useCallback(
     (newMedia: { id: string; path: string }) => {
-      setMedia([newMedia]);
-      closeModal();
+      deliver([newMedia]);
     },
-    [setMedia, closeModal]
+    [deliver]
   );
 
   const handleComposedReady = useCallback(
     (newMedia: { id: string; path: string }) => {
-      setMedia([newMedia]);
-      closeModal();
+      deliver([newMedia]);
     },
-    [setMedia, closeModal]
+    [deliver]
   );
 
   if (!browserSupported) {
@@ -434,17 +464,26 @@ export const VideoStudio: FC<VideoStudioProps> = ({
       </div>
 
       {trimmedBlob && !showGoals && tab === 'trim' && (
-        <div className="px-4 py-2 border-t border-newBorder flex items-center justify-between">
+        <div className="px-4 py-2 border-t border-newBorder flex items-center justify-between gap-2">
           <div className="text-[11px] text-textColor/60">
             {t('video_trim_done', 'Trimmed. Continue to pick formats or use the single file.')}
           </div>
-          <Button
-            loading={isUploading}
-            onClick={handleUseInPost}
-            className="!h-[28px] !text-xs"
-          >
-            {t('video_use_in_post', 'Use in post')}
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleSaveToLibrary}
+              disabled={isUploading}
+              className="text-xs px-3 h-[28px] rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-50"
+            >
+              💾 {t('save_to_library_btn', 'Save to library')}
+            </button>
+            <Button
+              loading={isUploading}
+              onClick={handleUseInPost}
+              className="!h-[28px] !text-xs"
+            >
+              {t('video_use_in_post', 'Use in post')}
+            </Button>
+          </div>
         </div>
       )}
     </div>
