@@ -16,6 +16,9 @@ import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/s
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 import dayjs from 'dayjs';
 import { fetch } from 'undici';
+// Static import — a dynamic import('@gitroom/...') keeps the alias verbatim in
+// the compiled dist and crashes at runtime (Cannot find module).
+import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
 
 @ApiTags('Admin')
 @Controller('/admin')
@@ -324,9 +327,6 @@ export class AdminController {
     // not just that the port accepts TCP.
     const redisStart = Date.now();
     try {
-      const { ioRedis } = await import(
-        '@gitroom/nestjs-libraries/redis/redis.service'
-      );
       if (!ioRedis) throw new Error('REDIS_URL not configured');
       await ioRedis.ping();
       checks.redis = { status: 'ok', latencyMs: Date.now() - redisStart };
