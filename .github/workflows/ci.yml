@@ -45,3 +45,49 @@ jobs:
         timeout-minutes: 5
         run: pnpm test --passWithNoTests
 
+  # Boot applies migration files (prisma migrate deploy), so the schema is only
+  # real once a migration carries it. `db push` used to reconcile the difference
+  # silently; nothing does now, and a schema change without a migration would
+  # ship code expecting columns the database does not have. Fail the PR instead.
+  schema-migrations-match:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shadow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.6.1
+          run_install: false
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Migrations reproduce schema.prisma
+        run: |
+          pnpm dlx prisma@6.5.0 migrate diff \
+            --from-migrations ./libraries/nestjs-libraries/src/database/prisma/migrations \
+            --to-schema-datamodel ./libraries/nestjs-libraries/src/database/prisma/schema.prisma \
+            --shadow-database-url postgresql://postgres:postgres@localhost:5432/shadow \
+            --exit-code
+
