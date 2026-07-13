@@ -176,8 +176,8 @@ const AddOrRemoveSignature: FC<{
       });
       toast.show(
         data?.id
-          ? t('signature_updated', 'Podpis zaktualizowany')
-          : t('signature_added', 'Podpis dodany'),
+          ? t('signature_updated', 'Signature updated')
+          : t('signature_added', 'Signature added'),
         'success'
       );
       modal.closeCurrent();

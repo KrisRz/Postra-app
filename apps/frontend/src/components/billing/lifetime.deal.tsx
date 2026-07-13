@@ -120,7 +120,7 @@ export const LifetimeDeal = () => {
     <div className="flex gap-[30px]">
       <Card className="p-[24px] flex flex-col gap-[20px] flex-1">
         <div className="text-[30px]">
-          {t('current_package', 'Obecny pakiet:')}
+          {t('current_package', 'Current Package:')}
           {user?.totalChannels > 8 ? 'EXTRA' : user?.tier?.current}
         </div>
 
@@ -196,7 +196,7 @@ export const LifetimeDeal = () => {
             </div>
             <div>
               <Button disabled={code.length < 4} onClick={claim}>
-                {t('claim', 'Aktywuj')}
+                {t('claim', 'Claim')}
               </Button>
             </div>
           </div>

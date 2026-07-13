@@ -102,7 +102,7 @@ export const AddMember = () => {
               name="email"
             />
           )}
-          <Select label={t('role', 'Rola')} name="role">
+          <Select label={t('role', 'Role')} name="role">
             <option value="">{t('select_role', 'Select Role')}</option>
             {roles.map((role) => (
               <option key={role.value} value={role.value}>
