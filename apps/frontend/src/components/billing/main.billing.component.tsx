@@ -224,7 +224,7 @@ const Info: FC<{
       <div>
         <Textarea
           className="bg-white/[0.03]"
-          label={t('feedback', 'Opinia')}
+          label={t('feedback', 'Feedback')}
           name="feedback"
           disableForm={true}
           value={feedback}
@@ -629,10 +629,10 @@ export const MainBillingComponent: FC<{
                     )}
                   >
                     {currentPackage === name.toUpperCase()
-                      ? t('current_plan', 'Aktualny plan')
+                      ? t('current_plan', 'Current plan')
                       : name.toUpperCase() === 'FREE'
                       ? subscription?.cancelAt
-                        ? `${t('downgrade_on', 'Zmiana planu')} ${dayjs
+                        ? `${t('downgrade_on', 'Plan change')} ${dayjs
                             .utc(subscription?.cancelAt)
                             .local()
                             .format('D MMM, YYYY')}`
@@ -642,7 +642,7 @@ export const MainBillingComponent: FC<{
                           user?.tier?.current === 'FREE') &&
                         user.allowTrial
                       ? t('start_7_days_free_trial', 'Start 7 days free trial')
-                      : t('purchase', 'Kup pakiet')}
+                      : t('purchase', 'Purchase plan')}
                   </Button>
                 )}
                 {subscription &&

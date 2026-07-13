@@ -36,7 +36,7 @@ const MetricComponent = () => {
   return (
     <Card className="my-[16px] p-[24px] flex flex-col gap-[24px]">
       <div className="text-[15px] font-[600]">
-        {t('date_metrics', 'Format godziny')}
+        {t('date_metrics', 'Time format')}
       </div>
       <Select name="metric" disableForm={true} label="" onChange={changeMetric} value={currentMetric ? 'US' : 'GLOBAL'}>
         {dateMetrics.map((metric) => (

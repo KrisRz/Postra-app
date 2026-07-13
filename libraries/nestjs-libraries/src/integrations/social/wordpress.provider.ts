@@ -15,6 +15,7 @@ import axios from 'axios';
 import { Tool } from '@gitroom/nestjs-libraries/integrations/tool.decorator';
 import { string } from 'yup';
 import { assertSafeInstanceUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
+import { fetchMediaBlob } from '@gitroom/nestjs-libraries/media/fetch.media.buffer';
 
 export class WordpressProvider
   extends SocialAbstract
@@ -206,9 +207,10 @@ export class WordpressProvider
         postDetails[0].settings.main_image.path
       );
 
-      const blob = await this.fetch(
-        postDetails[0].settings.main_image.path
-      ).then((r) => r.blob());
+      // media.path is client-controlled — fetch it through the SSRF-guarded
+      // helper (same defence as every other publish-time media fetch, #139).
+      const blob = await fetchMediaBlob(postDetails[0].settings.main_image.path);
+      const imageBody = Buffer.from(await blob.arrayBuffer());
 
       const mediaResponse = await (
         await this.fetch(`${domain}/wp-json/wp/v2/media`, {
@@ -220,7 +222,7 @@ export class WordpressProvider
               .pop()}"`,
             'Content-Type': blob.type,
           },
-          body: blob,
+          body: imageBody,
         })
       ).json();
 

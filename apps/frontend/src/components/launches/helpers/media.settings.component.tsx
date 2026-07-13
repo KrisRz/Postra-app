@@ -5,6 +5,7 @@ import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { TopTitle } from '@gitroom/frontend/components/launches/helpers/top.title.component';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { hasExtension } from '@gitroom/helpers/utils/has.extension';
+import { safeMediaUrl } from '@gitroom/helpers/utils/safe.media.url';
 import { useLaunchStore } from '@gitroom/frontend/components/new-launch/store';
 import { useVariables } from '@gitroom/react/helpers/variable.context';
 const postUrlEmitter = new EventEmitter();
@@ -389,7 +390,7 @@ export const MediaComponentInner: FC<{
                       Current Thumbnail:
                     </span>
                     <img
-                      src={newThumbnail || thumbnail}
+                      src={safeMediaUrl(newThumbnail || thumbnail)}
                       alt="Current thumbnail"
                       className="max-w-full max-h-[500px] object-contain rounded-lg border border-tableBorder"
                     />

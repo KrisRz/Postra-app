@@ -34,9 +34,19 @@ export class VideoManager {
       }));
   }
 
-  checkAvailableVideoFunction(method: any) {
-    const videoFunction = Reflect.getMetadata('video-function', method);
-    return !videoFunction;
+  /**
+   * Methods decorated with @ExposeVideoFunction, i.e. the only ones callable
+   * by name from the API. Callers must resolve the requested name against
+   * this list instead of indexing the instance with raw user input.
+   */
+  listExposedVideoFunctions(instance: any): string[] {
+    const proto = Object.getPrototypeOf(instance) || {};
+    return Object.getOwnPropertyNames(proto).filter(
+      (name) =>
+        name !== 'constructor' &&
+        typeof instance[name] === 'function' &&
+        !!Reflect.getMetadata('video-function', instance[name])
+    );
   }
 
   getVideoByName(

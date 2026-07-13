@@ -13,6 +13,7 @@ import {
 import WaveSurfer from 'wavesurfer.js';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
+import { safeMediaUrl } from '@gitroom/helpers/utils/safe.media.url';
 
 interface VideoTrimmerProps {
   file: File | null;
@@ -151,7 +152,7 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
       {videoUrl && (
         <video
           ref={videoRef}
-          src={videoUrl}
+          src={safeMediaUrl(videoUrl)}
           controls
           onLoadedMetadata={handleVideoLoaded}
           className="w-full max-h-[300px] rounded bg-black"

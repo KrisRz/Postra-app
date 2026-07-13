@@ -9,10 +9,7 @@ import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/we
 // here: DNS-pinned private-IP guard + pooled SSRF-safe dispatcher + no
 // redirects + a hard timeout so a slow internal host can't pin the worker.
 // Same defence the webhook/autopost/captions surfaces already use.
-export async function fetchMediaBuffer(
-  url: string,
-  timeoutMs = 30_000
-): Promise<Buffer> {
+async function fetchMediaResponse(url: string, timeoutMs: number) {
   if (!(await isSafePublicHttpsUrl(url))) {
     throw new Error('fetchMediaBuffer: blocked request to untrusted URL');
   }
@@ -28,5 +25,20 @@ export async function fetchMediaBuffer(
     throw new Error(`fetchMediaBuffer: upstream returned ${response.status}`);
   }
 
+  return response;
+}
+
+export async function fetchMediaBuffer(
+  url: string,
+  timeoutMs = 30_000
+): Promise<Buffer> {
+  const response = await fetchMediaResponse(url, timeoutMs);
   return Buffer.from(await response.arrayBuffer());
+}
+
+// For sinks that need the content type as well (e.g. re-uploading the media
+// to a third party as multipart/blob). Returns undici's Blob type.
+export async function fetchMediaBlob(url: string, timeoutMs = 30_000) {
+  const response = await fetchMediaResponse(url, timeoutMs);
+  return response.blob();
 }
