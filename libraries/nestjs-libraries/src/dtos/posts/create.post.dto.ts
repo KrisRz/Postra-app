@@ -55,6 +55,11 @@ export class PostContent {
 }
 
 export class Post {
+  // Mirrors CreatePostDto.type on each group entry; the @ValidateIf below
+  // reads it to skip settings validation for drafts. Must stay decorated or
+  // ValidationPipe's whitelist strips it before the condition runs (AE7).
+  @IsOptional()
+  @IsString()
   type?: string;
 
   @IsDefined()

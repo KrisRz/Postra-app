@@ -38,6 +38,8 @@ export class CreateOrgUserDto {
   @MaxLength(128)
   company: string;
 
+  @IsOptional()
+  @IsString()
   datafast_visitor_id: string;
 
   // Market the signup came from (PL landing vs postra.co.uk). Tags the new

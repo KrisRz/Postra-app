@@ -1,4 +1,4 @@
-import { IsDefined, IsString } from 'class-validator';
+import { Allow, IsDefined, IsString } from 'class-validator';
 
 export class IntegrationFunctionDto {
   @IsString()
@@ -9,5 +9,7 @@ export class IntegrationFunctionDto {
   @IsDefined()
   id: string;
 
+  // Opaque provider-function payload — @Allow keeps it past the whitelist.
+  @Allow()
   data: any;
 }
