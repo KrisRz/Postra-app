@@ -990,8 +990,8 @@ export class PostsService {
     return postList;
   }
 
-  async separatePosts(content: string, len: number) {
-    return this._openaiService.separatePosts(content, len);
+  async separatePosts(content: string, len: number, orgId?: string) {
+    return this._openaiService.separatePosts(content, len, orgId);
   }
 
   async changeState(id: string, state: State, err?: any, body?: any) {

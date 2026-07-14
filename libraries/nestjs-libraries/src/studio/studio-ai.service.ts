@@ -188,7 +188,8 @@ export class StudioAiService {
   async refineSpec(
     spec: StudioSpec,
     instruction: string,
-    screenshotDataUrl?: string
+    screenshotDataUrl?: string,
+    orgId?: string
   ): Promise<{ patch: StudioPatch; nextSpec: StudioSpec; explanation: string }> {
     // The client sends the whole spec, which we inline into the prompt. Bound
     // it server-side (same 200-layer cap the patch validator enforces) so a
@@ -237,7 +238,7 @@ Rules:
           model: useImage ? MODEL_VISION : MODEL_GPT,
           messages,
           response_format: zodResponseFormat(RefinePatchSchema, 'refinePatch'),
-        })
+        }, { organizationId: orgId ?? null, engine: 'studio' })
       ).choices[0].message.parsed;
     };
 
@@ -266,7 +267,10 @@ Rules:
    * Score a caption against the user's recent posts + brand tone. Used in
    * the composer as a soft signal (ribbon). Cheap: text-only GPT-4.1 call.
    */
-  async checkBrandVoice(input: BrandVoiceInput): Promise<BrandVoiceResult> {
+  async checkBrandVoice(
+    input: BrandVoiceInput,
+    orgId?: string
+  ): Promise<BrandVoiceResult> {
     const samples = input.recentPosts.slice(0, 5).filter(Boolean);
     const tone = input.brand?.tone || 'professional';
 
@@ -298,7 +302,7 @@ Return concise feedback (2 short sentences, actionable). Tags = up to 4 short la
           { role: 'user', content: userText },
         ],
         response_format: zodResponseFormat(VoiceCheckSchema, 'voiceCheck'),
-      })
+      }, { organizationId: orgId ?? null, engine: 'studio' })
     ).choices[0].message.parsed;
 
     if (!parsed) throw new Error('AI returned no voice check');
@@ -313,12 +317,15 @@ Return concise feedback (2 short sentences, actionable). Tags = up to 4 short la
    * Rewrite a post caption inline in the composer — improve, shorten, expand,
    * adapt to a platform, or fix the tone — in the user's brand voice.
    */
-  async editText(input: {
-    text: string;
-    action: string;
-    platform?: string;
-    tone?: string;
-  }): Promise<{ text: string }> {
+  async editText(
+    input: {
+      text: string;
+      action: string;
+      platform?: string;
+      tone?: string;
+    },
+    orgId?: string
+  ): Promise<{ text: string }> {
     const EditSchema = z.object({ text: z.string() });
 
     const instructions: Record<string, string> = {
@@ -348,7 +355,7 @@ Keep the SAME language as the input. Preserve important facts, @mentions, #hasht
           { role: 'user', content: input.text },
         ],
         response_format: zodResponseFormat(EditSchema, 'editText'),
-      })
+      }, { organizationId: orgId ?? null, engine: 'studio' })
     ).choices[0].message.parsed;
 
     if (!parsed) throw new Error('AI returned no edited text');

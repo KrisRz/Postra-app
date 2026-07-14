@@ -14,6 +14,7 @@ import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/adm
 import { PrismaService } from '@gitroom/nestjs-libraries/database/prisma/prisma.service';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
+import { AiUsageService } from '@gitroom/nestjs-libraries/database/prisma/ai-usage/ai-usage.service';
 import dayjs from 'dayjs';
 import { fetch } from 'undici';
 // Static import — a dynamic import('@gitroom/...') keeps the alias verbatim in
@@ -28,7 +29,8 @@ export class AdminController {
     private _adminStatsService: AdminStatsService,
     private _prisma: PrismaService,
     private _subscriptionService: SubscriptionService,
-    private _auditService: AuditService
+    private _auditService: AuditService,
+    private _aiUsageService: AiUsageService
   ) {}
 
   private assertSuperAdmin(user: User) {
@@ -452,7 +454,20 @@ export class AdminController {
       `,
     ]);
 
-    const orgIds = creditsByOrg.map((c) => c.organizationId);
+    // Observational token metering (AiUsage) — separate from billable credits.
+    const [textByEngine, textTopOrgs] = await this._aiUsageService.summary(
+      fromDate,
+      toDate
+    );
+
+    const orgIds = Array.from(
+      new Set([
+        ...creditsByOrg.map((c) => c.organizationId),
+        ...textTopOrgs
+          .map((t) => t.organizationId)
+          .filter((id): id is string => !!id),
+      ])
+    );
     const orgs = orgIds.length
       ? await this._prisma.organization.findMany({
           where: { id: { in: orgIds } },
@@ -478,6 +493,24 @@ export class AdminController {
         day: String(r.day).slice(0, 10),
         count: Number(r.count),
       })),
+      text: {
+        byEngine: textByEngine.map((t) => ({
+          engine: t.engine,
+          model: t.model,
+          unit: t.unit,
+          inputAmount: t._sum.inputAmount || 0,
+          outputAmount: t._sum.outputAmount || 0,
+          calls: t._count._all,
+        })),
+        topOrgs: textTopOrgs.map((t) => ({
+          orgId: t.organizationId,
+          orgName: t.organizationId
+            ? orgMap.get(t.organizationId) || 'Unknown'
+            : '(no org)',
+          inputTokens: t._sum.inputAmount || 0,
+          outputTokens: t._sum.outputAmount || 0,
+        })),
+      },
     };
   }
 

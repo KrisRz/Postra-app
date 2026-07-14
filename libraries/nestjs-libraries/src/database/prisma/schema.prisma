@@ -1012,6 +1012,24 @@ model Announcement {
   createdAt   DateTime          @default(now())
 }
 
+// Observational text-AI usage metering (tokens / whisper seconds) per org and
+// engine. Scalar organizationId (no relation) to keep this additive and
+// isolated — insert-graph rows have no org at all. NOT billing: credit
+// limits live in Credits and are untouched by this table.
+model AiUsage {
+  id             String   @id @default(uuid())
+  organizationId String?
+  engine         String
+  model          String
+  unit           String   @default("tokens")
+  inputAmount    Int      @default(0)
+  outputAmount   Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([engine, createdAt])
+}
+
 // Expo push tokens for the Postra Mobile app (companion).
 // Scalar userId/organizationId (no relations) to keep this additive and isolated.
 model MobilePushToken {

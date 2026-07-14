@@ -1,3 +1,4 @@
+import { meterLanguageModel } from '@gitroom/nestjs-libraries/services/ai-usage.model-wrap';
 import { Injectable } from '@nestjs/common';
 import { Agent } from '@mastra/core/agent';
 import { openai } from '@ai-sdk/openai';
@@ -111,7 +112,7 @@ ${brandKit}
       // gpt-5.5 is the official successor to gpt-5.2 (retired from ChatGPT
       // 2026-06-12, API snapshot shutdown ~2026-08-10). gpt-5.4-mini is a
       // cheaper lever if agent cost climbs.
-      model: openai('gpt-5.5'),
+      model: meterLanguageModel(openai('gpt-5.5'), 'agent'),
       tools,
       memory: new Memory({
         storage: pStore,

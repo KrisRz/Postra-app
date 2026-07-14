@@ -23,12 +23,32 @@ interface AiUsageDay {
   count: number;
 }
 
+interface AiTextEngine {
+  engine: string;
+  model: string;
+  unit: string;
+  inputAmount: number;
+  outputAmount: number;
+  calls: number;
+}
+
+interface AiTextTopOrg {
+  orgId: string | null;
+  orgName: string;
+  inputTokens: number;
+  outputTokens: number;
+}
+
 interface AiUsageResponse {
   from: string;
   to: string;
   byType: AiUsageByType[];
   topOrgs: AiUsageTopOrg[];
   byDay: AiUsageDay[];
+  text?: {
+    byEngine: AiTextEngine[];
+    topOrgs: AiTextTopOrg[];
+  };
 }
 
 const PERIODS = [7, 30, 90] as const;
@@ -131,6 +151,65 @@ export const AdminAiUsageComponent = () => {
           </div>
         </div>
       )}
+
+      <div className="bg-white/[0.03] border border-white/10 rounded-[12px] overflow-hidden">
+        <div className="px-[16px] py-[12px] border-b border-white/10 text-[14px] font-[500]">
+          {t('ai_text_usage', 'Text AI (observational metering — not billed)')}
+        </div>
+        <div className="grid grid-cols-[1fr_120px_90px_110px_110px] gap-[12px] px-[16px] py-[8px] text-[11px] uppercase opacity-50 border-b border-white/10">
+          <div>Engine</div>
+          <div>Model</div>
+          <div className="text-right">Calls</div>
+          <div className="text-right">In</div>
+          <div className="text-right">Out</div>
+        </div>
+        {!data.text?.byEngine?.length ? (
+          <div className="px-[16px] py-[12px] text-[13px] opacity-50">
+            {t('ai_text_none', 'No text-AI usage recorded in this range yet.')}
+          </div>
+        ) : (
+          data.text.byEngine.map((row) => (
+            <div
+              key={`${row.engine}-${row.model}-${row.unit}`}
+              className="grid grid-cols-[1fr_120px_90px_110px_110px] gap-[12px] px-[16px] py-[10px] text-[13px] border-b border-white/10 last:border-b-0"
+            >
+              <div>{row.engine}</div>
+              <div className="opacity-60">{row.model}</div>
+              <div className="text-right">{row.calls.toLocaleString()}</div>
+              <div className="text-right">
+                {row.inputAmount.toLocaleString()}
+                <span className="opacity-40 ml-[3px]">
+                  {row.unit === 'seconds' ? 's' : 'tok'}
+                </span>
+              </div>
+              <div className="text-right">
+                {row.unit === 'seconds'
+                  ? '-'
+                  : `${row.outputAmount.toLocaleString()} tok`}
+              </div>
+            </div>
+          ))
+        )}
+        {!!data.text?.topOrgs?.length && (
+          <>
+            <div className="px-[16px] py-[8px] text-[11px] uppercase opacity-50 border-t border-b border-white/10">
+              {t('ai_text_top_orgs', 'Top organizations by tokens')}
+            </div>
+            {data.text.topOrgs.map((o) => (
+              <div
+                key={o.orgId ?? 'none'}
+                className="grid grid-cols-[1fr_220px] gap-[12px] px-[16px] py-[8px] text-[13px] border-b border-white/10 last:border-b-0"
+              >
+                <div>{o.orgName}</div>
+                <div className="text-right opacity-70">
+                  {o.inputTokens.toLocaleString()} in /{' '}
+                  {o.outputTokens.toLocaleString()} out
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+      </div>
 
       <div className="bg-white/[0.03] border border-white/10 rounded-[12px] overflow-hidden">
         <div className="px-[16px] py-[12px] border-b border-white/10 text-[14px] font-[500]">

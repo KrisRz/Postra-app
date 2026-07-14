@@ -95,7 +95,7 @@ export class MediaService {
       'ai_images',
       async () => {
         if (generatePromptFirst) {
-          prompt = await this._openAi.generatePromptForPicture(prompt);
+          prompt = await this._openAi.generatePromptForPicture(prompt, org.id);
         }
         const dataUrl = await this._openAi.generateImage(
           prompt,
@@ -124,7 +124,8 @@ export class MediaService {
       dto.prompt,
       dto.platform,
       brandKit,
-      dto.language
+      dto.language,
+      org.id
     );
 
     const cacheKey = `bg:${createHash('md5')
@@ -194,7 +195,8 @@ export class MediaService {
         dto.prompt,
         dto.platform,
         brandKit ?? undefined,
-        dto.language
+        dto.language,
+        org.id
       ),
       this._designRender.renderDesignToPng(spec, platformDesignSize(dto.platform)),
     ]);
@@ -236,7 +238,8 @@ export class MediaService {
       dto.prompt,
       dto.platform,
       dto.slidesCount,
-      brandKit
+      brandKit,
+      org.id
     );
 
     // Each slide gets a DISTINCT background that is a variation of one shared
@@ -534,7 +537,8 @@ export class MediaService {
       const result = await this._studioAi.refineSpec(
         spec,
         body.instruction,
-        body.screenshot
+        body.screenshot,
+        org.id
       );
       return {
         patch: result.patch,
@@ -553,19 +557,22 @@ export class MediaService {
     const recentPosts = await this.getRecentPostBodies(org.id);
 
     return this._subscriptionService.useCredit(org, 'ai_images', () =>
-      this._studioAi.checkBrandVoice({
-        caption: body.caption,
-        recentPosts,
-        brand: brandKit
-          ? {
-              primary: brandKit.colors.primary,
-              secondary: brandKit.colors.secondary,
-              text: brandKit.colors.text,
-              fontFamily: brandKit.font,
-              tone: brandKit.tone,
-            }
-          : undefined,
-      })
+      this._studioAi.checkBrandVoice(
+        {
+          caption: body.caption,
+          recentPosts,
+          brand: brandKit
+            ? {
+                primary: brandKit.colors.primary,
+                secondary: brandKit.colors.secondary,
+                text: brandKit.colors.text,
+                fontFamily: brandKit.font,
+                tone: brandKit.tone,
+              }
+            : undefined,
+        },
+        org.id
+      )
     );
   }
 
@@ -580,12 +587,15 @@ export class MediaService {
     const brandKit = await this._brandKitService.getNormalized(org.id);
 
     return this._subscriptionService.useCredit(org, 'ai_images', () =>
-      this._studioAi.editText({
-        text: body.text,
-        action: body.action,
-        platform: body.platform,
-        tone: brandKit?.tone,
-      })
+      this._studioAi.editText(
+        {
+          text: body.text,
+          action: body.action,
+          platform: body.platform,
+          tone: brandKit?.tone,
+        },
+        org.id
+      )
     );
   }
 

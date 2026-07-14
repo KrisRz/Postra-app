@@ -1,3 +1,4 @@
+import { AiUsageCallbackHandler } from '@gitroom/nestjs-libraries/services/ai-usage.langchain';
 import { Injectable } from '@nestjs/common';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { fetch } from 'undici';
@@ -774,13 +775,24 @@ export class AutopostService {
     // the hourly run resumes from there next time.
     for (const load of loads) {
       try {
-        await app.invoke({
-          messages: [],
-          id,
-          body: getPost,
-          load,
-          integrations: integrationsToSend,
-        });
+        await app.invoke(
+          {
+            messages: [],
+            id,
+            body: getPost,
+            load,
+            integrations: integrationsToSend,
+          },
+          {
+            callbacks: [
+              new AiUsageCallbackHandler({
+                organizationId: getPost.organizationId,
+                engine: 'autopost',
+                model: 'gpt-4.1-mini',
+              }),
+            ],
+          }
+        );
       } catch (err) {
         await this.notifyFailure(getPost, err);
         break;

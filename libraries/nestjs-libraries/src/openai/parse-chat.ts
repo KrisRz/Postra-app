@@ -1,4 +1,8 @@
 import OpenAI from 'openai';
+import {
+  AiUsageEvent,
+  recordAiUsage,
+} from '@gitroom/nestjs-libraries/services/ai-usage.record';
 
 /**
  * openai-node 6.x: `chat.completions.parse()` rejects `response_format`
@@ -9,16 +13,30 @@ import OpenAI from 'openai';
  *
  * Shared by OpenaiService and StudioAiService so the fix lives in one place and
  * the two can't drift back to the broken `.parse()` call.
+ *
+ * `meter` (optional) reports token usage to the observational AiUsage sink —
+ * being the single funnel for structured text completions makes this the one
+ * place where every retry attempt is naturally counted.
  */
 export async function parseChat(
   openai: OpenAI,
-  body: any
+  body: any,
+  meter?: Pick<AiUsageEvent, 'organizationId' | 'engine'>
 ): Promise<{
   choices: Array<{ message: { parsed: any; content: string | null } }>;
 }> {
   const completion = (await openai.chat.completions.create(body)) as unknown as {
     choices: Array<{ message: { content: string | null } }>;
+    usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
+  if (meter) {
+    recordAiUsage({
+      ...meter,
+      model: body?.model ?? 'unknown',
+      inputAmount: completion.usage?.prompt_tokens ?? 0,
+      outputAmount: completion.usage?.completion_tokens ?? 0,
+    });
+  }
   return {
     choices: completion.choices.map((c) => {
       const content = c.message?.content ?? null;

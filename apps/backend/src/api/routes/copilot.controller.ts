@@ -1,3 +1,4 @@
+import { aiUsageOrgContext } from '@gitroom/nestjs-libraries/services/ai-usage.model-wrap';
 import { Throttle } from '@nestjs/throttler';
 import {
   Logger,
@@ -112,7 +113,11 @@ export class CopilotController {
       }),
     });
 
-    return copilotRuntimeHandler.handleRequest(req, res);
+    // ALS scope so the metered gpt-5.5 model (built once at boot) can attribute
+    // its token usage to this request's organization.
+    return aiUsageOrgContext.run(organization.id, () =>
+      copilotRuntimeHandler.handleRequest(req, res)
+    );
   }
 
   @Get('/credits')

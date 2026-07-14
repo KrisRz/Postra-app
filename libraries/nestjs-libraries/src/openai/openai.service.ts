@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { createReadStream } from 'fs';
 import { stat } from 'fs/promises';
 import { parseChat } from '@gitroom/nestjs-libraries/openai/parse-chat';
+import { recordAiUsage } from '@gitroom/nestjs-libraries/services/ai-usage.record';
 import {
   buildBrandVoicePrompt,
   buildBrandDesignPrompt,
@@ -94,11 +95,18 @@ export class OpenaiService {
   // with the same zodResponseFormat() body — the server still enforces the JSON
   // schema (strict) — and JSON.parse the content ourselves, preserving the
   // { choices: [{ message: { parsed } }] } shape so call sites stay unchanged.
-  private parseChat(body: any) {
-    return parseChat(openai, body);
+  private parseChat(body: any, orgId?: string | null) {
+    return parseChat(openai, body, {
+      organizationId: orgId ?? null,
+      engine: 'creator',
+    });
   }
 
-  async transcribeAudioToSrt(audioFilePath: string, language?: string): Promise<string> {
+  async transcribeAudioToSrt(
+    audioFilePath: string,
+    language?: string,
+    orgId?: string
+  ): Promise<string> {
     const info = await stat(audioFilePath);
     if (info.size > 25 * 1024 * 1024) {
       throw new Error('Audio file exceeds Whisper 25MB limit — trim before transcribing');
@@ -109,7 +117,24 @@ export class OpenaiService {
       response_format: 'srt',
       language,
     });
-    return typeof result === 'string' ? result : '';
+    const srt = typeof result === 'string' ? result : '';
+    // Whisper bills per audio minute but the srt response carries no usage —
+    // the last subtitle timecode is a good-enough duration proxy.
+    const timecodes = srt.match(/\d{2}:\d{2}:\d{2},\d{3}/g);
+    const last = timecodes?.[timecodes.length - 1];
+    if (last) {
+      const [h, m, sec] = last.replace(',', '.').split(':');
+      recordAiUsage({
+        organizationId: orgId ?? null,
+        engine: 'whisper',
+        model: 'whisper-1',
+        unit: 'seconds',
+        inputAmount: Math.ceil(
+          parseInt(h, 10) * 3600 + parseInt(m, 10) * 60 + parseFloat(sec)
+        ),
+      });
+    }
+    return srt;
   }
 
   async generateImage(
@@ -157,7 +182,7 @@ export class OpenaiService {
     return `data:image/png;base64,${b64}`;
   }
 
-  async generatePromptForPicture(prompt: string) {
+  async generatePromptForPicture(prompt: string, orgId?: string) {
     return (
       (
         await this.parseChat({
@@ -173,12 +198,12 @@ export class OpenaiService {
             },
           ],
           response_format: zodResponseFormat(PicturePrompt, 'picturePrompt'),
-        })
+        }, orgId)
       ).choices[0].message.parsed?.prompt || ''
     );
   }
 
-  async generateVoiceFromText(prompt: string) {
+  async generateVoiceFromText(prompt: string, orgId?: string) {
     return (
       (
         await this.parseChat({
@@ -194,7 +219,7 @@ export class OpenaiService {
             },
           ],
           response_format: zodResponseFormat(VoicePrompt, 'voice'),
-        })
+        }, orgId)
       ).choices[0].message.parsed?.voice || ''
     );
   }
@@ -278,7 +303,7 @@ export class OpenaiService {
     return this.generatePosts(articleContent!);
   }
 
-  async separatePosts(content: string, len: number) {
+  async separatePosts(content: string, len: number, orgId?: string) {
     // `len` arrives from an unvalidated request body — clamp it to a sane
     // integer before it is interpolated into the system prompt.
     const maxLen = clampInt(len, 10, 100_000, 280);
@@ -311,7 +336,7 @@ export class OpenaiService {
             SeparatePostsPrompt,
             'separatePosts'
           ),
-        })
+        }, orgId)
       ).choices[0].message.parsed?.posts || [];
 
     return {
@@ -342,7 +367,7 @@ export class OpenaiService {
                       SeparatePostPrompt,
                       'separatePost'
                     ),
-                  })
+                  }, orgId)
                 ).choices[0].message.parsed?.post || ''
               );
             } catch (e) {
@@ -364,7 +389,8 @@ export class OpenaiService {
       font?: string;
       tone?: string;
     },
-    language?: string
+    language?: string,
+    orgId?: string
   ) {
     const PostDesignSchema = z.object({
       headline: z.string().max(60),
@@ -430,7 +456,7 @@ ${SETTINGS_BLOCK_RULE}`,
               },
             ],
             response_format: zodResponseFormat(PostDesignSchema, 'postDesign'),
-          })
+          }, orgId)
         ).choices[0].message.parsed;
 
         if (parsed) return parsed;
@@ -450,7 +476,8 @@ ${SETTINGS_BLOCK_RULE}`,
       font?: string;
       tone?: string;
     },
-    language?: string
+    language?: string,
+    orgId?: string
   ): Promise<string> {
     const CaptionSchema = z.object({ caption: z.string() });
     const toneHint = buildBrandVoicePrompt(brandKit);
@@ -486,7 +513,7 @@ ${SETTINGS_BLOCK_RULE}`,
           },
         ],
         response_format: zodResponseFormat(CaptionSchema, 'caption'),
-      })
+      }, orgId)
     ).choices[0].message.parsed;
 
     return parsed?.caption?.trim() || topic;
@@ -500,7 +527,8 @@ ${SETTINGS_BLOCK_RULE}`,
       colors?: { primary?: string; secondary?: string; text?: string };
       font?: string;
       tone?: string;
-    }
+    },
+    orgId?: string
   ) {
     // Not every caller goes through the validated DTO — clamp before the count
     // reaches the system prompt.
@@ -604,7 +632,7 @@ ${SETTINGS_BLOCK_RULE}`,
               },
             ],
             response_format: zodResponseFormat(CarouselSchema, 'carousel'),
-          })
+          }, orgId)
         ).choices[0].message.parsed;
 
         if (parsed?.slides?.length) {
@@ -625,7 +653,7 @@ ${SETTINGS_BLOCK_RULE}`,
     throw new Error('Failed to generate carousel after 3 attempts');
   }
 
-  async generateSlidesFromText(text: string) {
+  async generateSlidesFromText(text: string, orgId?: string) {
     for (let i = 0; i < 3; i++) {
       try {
         const message = `You are an assistant that takes a text and break it into slides, each slide should have an image prompt and voice text to be later used to generate a video and voice, image prompt should capture the essence of the slide and also have a back dark gradient on top, image prompt should not contain text in the picture, generate between 3-5 slides maximum`;
@@ -656,7 +684,7 @@ ${SETTINGS_BLOCK_RULE}`,
                 }),
                 'slides'
               ),
-            })
+            }, orgId)
           ).choices[0].message.parsed?.slides || [];
 
         return parse;
