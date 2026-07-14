@@ -689,7 +689,7 @@ ${SETTINGS_BLOCK_RULE}`,
 
         return parse;
       } catch (err) {
-        console.log(err);
+        console.log('generateSlidesFromText attempt failed:', err);
       }
     }
 

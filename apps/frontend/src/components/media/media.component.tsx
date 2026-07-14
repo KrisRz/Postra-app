@@ -17,6 +17,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { readResponseError } from '@gitroom/helpers/utils/response.error';
 import { Media } from '@prisma/client';
 import { useMediaDirectory } from '@gitroom/react/helpers/use.media.directory';
+import { useVariables } from '@gitroom/react/helpers/variable.context';
 import { useSettings } from '@gitroom/frontend/components/launches/helpers/use.values';
 import EventEmitter from 'events';
 import { useToaster } from '@gitroom/react/toaster/toaster';
@@ -708,6 +709,9 @@ export const MultiMediaComponent: FC<{
   const user = useUser();
   const modals = useModals();
   const t = useT();
+  // Polotno stays behind its licence key: no NEXT_PUBLIC_POLOTNO → no second
+  // graphics editor next to Studio. The dependency stays in package.json.
+  const { plontoKey } = useVariables();
   useEffect(() => {
     if (value) {
       setCurrentMedia(value);
@@ -923,19 +927,21 @@ export const MultiMediaComponent: FC<{
                   </div>
                 </div>
               </div>
-              <div
-                onClick={openPolotno}
-                className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors phone:hidden"
-              >
-                <div className="flex gap-[5px] items-center">
-                  <div>
-                    <DesignMediaIcon />
-                  </div>
-                  <div className="text-[10px] font-[600] iconBreak:hidden block">
-                    Polotno
+              {!!plontoKey && (
+                <div
+                  onClick={openPolotno}
+                  className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors phone:hidden"
+                >
+                  <div className="flex gap-[5px] items-center">
+                    <div>
+                      <DesignMediaIcon />
+                    </div>
+                    <div className="text-[10px] font-[600] iconBreak:hidden block">
+                      Polotno
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
               <div
                 onClick={openStudio}
                 className="cursor-pointer h-[30px] rounded-[6px] justify-center items-center flex bg-newColColor px-[8px] hover:bg-forth transition-colors phone:hidden"
@@ -949,6 +955,12 @@ export const MultiMediaComponent: FC<{
                     {t('studio', 'Studio')}
                   </div>
                 </div>
+              </div>
+
+              {/* The Studio button above is phone:hidden — say why instead of
+                  hiding the feature without a trace. */}
+              <div className="hidden phone:flex items-center text-[10px] text-textColor/50">
+                {t('studio_desktop_hint', '🎨 Studio is available on desktop')}
               </div>
 
               <ThirdPartyMedia allData={allData} onChange={changeMedia} />

@@ -7,10 +7,8 @@ import { buildBrandVoicePrompt } from '@gitroom/nestjs-libraries/openai/brand-pr
 
 import {
   StudioBrandRef,
-  StudioLayer,
   StudioPatch,
   StudioPatchOp,
-  StudioPlatformKey,
   StudioSpec,
   applyPatch,
   validatePatchAgainstSpec,
@@ -23,17 +21,6 @@ const openai = new OpenAI({
   // maxRetries stays at the SDK default (2, backoff on 429/5xx).
   timeout: 90_000,
 });
-
-const PLATFORM_SIZES: Record<StudioPlatformKey, { width: number; height: number }> = {
-  'instagram-feed': { width: 1080, height: 1350 },
-  'instagram-square': { width: 1080, height: 1080 },
-  'instagram-story': { width: 1080, height: 1920 },
-  facebook: { width: 1200, height: 630 },
-  linkedin: { width: 1200, height: 627 },
-  tiktok: { width: 1080, height: 1920 },
-  x: { width: 1200, height: 675 },
-  custom: { width: 1080, height: 1080 },
-};
 
 const ORIGIN = z.enum(['left', 'center', 'right', 'top', 'bottom']);
 
@@ -162,11 +149,6 @@ export interface BrandVoiceResult {
   score: number;
   feedback: string;
   tags: string[];
-}
-
-export interface SemanticTemplate {
-  id: string;
-  text: string;
 }
 
 export interface SemanticSearchResult {
@@ -380,10 +362,6 @@ Keep the SAME language as the input. Preserve important facts, @mentions, #hasht
     return res.data.map((d) => d.embedding);
   }
 }
-
-const toStudioLayer = (layer: unknown): StudioLayer => {
-  return layer as StudioLayer;
-};
 
 export const cosineSimilarity = (a: number[], b: number[]): number => {
   if (a.length !== b.length) return 0;

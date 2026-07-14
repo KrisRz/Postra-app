@@ -35,8 +35,7 @@ export type StudioLayerKind =
   | 'triangle'
   | 'polygon'
   | 'path'
-  | 'line'
-  | 'group';
+  | 'line';
 
 export type StudioOrigin = 'left' | 'center' | 'right' | 'top' | 'bottom';
 
