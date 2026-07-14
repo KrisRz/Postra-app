@@ -4,6 +4,7 @@ import React, {
   createContext,
   FC,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   ReactNode,
@@ -21,7 +22,7 @@ import { useWaitForClass } from '@gitroom/helpers/utils/use.wait.for.class';
 import { MultiMediaComponent } from '@gitroom/frontend/components/media/media.component';
 import { Integration } from '@prisma/client';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
 export const MediaPortal: FC<{
@@ -207,7 +208,6 @@ export const Agent: FC<{ children: ReactNode }> = ({ children }) => {
 
 const Threads: FC = () => {
   const fetch = useFetch();
-  const router = useRouter();
   const pathname = usePathname();
   const t = useT();
   const threads = useCallback(async () => {
@@ -215,7 +215,15 @@ const Threads: FC = () => {
   }, []);
   const { id } = useParams<{ id: string }>();
 
-  const { data } = useSWR('threads', threads);
+  const { data, mutate } = useSWR('threads', threads);
+
+  // A thread only exists server-side once the user sends their first message,
+  // so a chat started in this session is missing from the list that was fetched
+  // when the panel mounted. Re-fetch whenever the active chat changes — by then
+  // the previous one has been persisted and titled.
+  useEffect(() => {
+    mutate();
+  }, [pathname]);
 
   return (
     <div
