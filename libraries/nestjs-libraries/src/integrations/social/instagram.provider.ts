@@ -9,6 +9,7 @@ import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { timer } from '@gitroom/helpers/utils/timer';
 import dayjs from 'dayjs';
 import {
+  ProcessingTimeout,
   SocialAbstract,
   ValidityMedia,
 } from '@gitroom/nestjs-libraries/integrations/social.abstract';
@@ -645,7 +646,13 @@ export class InstagramProvider
         console.log('in progress2', id);
 
         let status = 'IN_PROGRESS';
+        // Capped under the 10-min activity budget (H1): an unbounded poll
+        // used to blow the activity timeout and the retry re-published.
+        let processingAttempts = 0;
         while (status === 'IN_PROGRESS') {
+          if (processingAttempts++ >= 14) {
+            throw new ProcessingTimeout('instagram');
+          }
           const { status_code } = await (
             await this.fetch(
               `https://${type}/v20.0/${photoId}?access_token=${

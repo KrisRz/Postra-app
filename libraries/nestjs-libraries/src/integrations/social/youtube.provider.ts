@@ -430,6 +430,9 @@ export class YoutubeProvider extends SocialAbstract implements SocialProvider {
       url: firstPost?.media?.[0]?.path,
       method: 'GET',
       responseType: 'stream',
+      // A hung CDN download used to stall the publish into the 10-min
+      // activity timeout, and the Temporal retry re-uploaded the video (H1).
+      timeout: 60000,
     });
 
     const all: GaxiosResponse<Schema$Video> = await this.runInConcurrent(

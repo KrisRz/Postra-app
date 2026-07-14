@@ -8,6 +8,7 @@ import {
 import dayjs from 'dayjs';
 import {
   BadBody,
+  ProcessingTimeout,
   SocialAbstract,
   ValidityMedia,
 } from '@gitroom/nestjs-libraries/integrations/social.abstract';
@@ -437,8 +438,9 @@ export class TiktokProvider extends SocialAbstract implements SocialProvider {
     publishId: string,
     accessToken: string
   ): Promise<{ url: string; id: string }> {
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
+    // Capped under the 10-min activity budget (H1): an unbounded poll used to
+    // blow the activity timeout mid-wait and the retry re-published the video.
+    for (let attempt = 0; attempt < 48; attempt++) {
       const post = await (
         await this.fetch(
           'https://open.tiktokapis.com/v2/post/publish/status/fetch/',
@@ -491,6 +493,8 @@ export class TiktokProvider extends SocialAbstract implements SocialProvider {
 
       await timer(10000);
     }
+
+    throw new ProcessingTimeout('tiktok');
   }
 
   private postingMethod(

@@ -12,6 +12,7 @@ import FormData from 'form-data';
 import { timer } from '@gitroom/helpers/utils/timer';
 import {
   BadBody,
+  ProcessingTimeout,
   SocialAbstract,
   ValidityMedia,
 } from '@gitroom/nestjs-libraries/integrations/social.abstract';
@@ -288,7 +289,13 @@ export class PinterestProvider
       await axios.post(upload_url, formData);
 
       let statusCode = '';
+      // Capped under the 10-min activity budget (H1): an unbounded poll used
+      // to blow the activity timeout and the retry re-published the pin.
+      let mediaAttempts = 0;
       while (statusCode !== 'succeeded') {
+        if (mediaAttempts++ >= 16) {
+          throw new ProcessingTimeout('pinterest');
+        }
         const mediafile = await (
           await this.fetch(
             'https://api.pinterest.com/v5/media/' + media_id,
