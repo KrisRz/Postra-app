@@ -45,7 +45,8 @@ export class StripeController {
       // @ts-ignore
       event?.data?.object?.metadata?.service !== 'gitroom' &&
       event.type !== 'invoice.payment_succeeded' &&
-      event.type !== 'invoice.payment_failed'
+      event.type !== 'invoice.payment_failed' &&
+      event.type !== 'invoice.payment_action_required'
     ) {
       return { ok: true };
     }
@@ -62,6 +63,8 @@ export class StripeController {
           return this._stripeService.deleteSubscription(event);
         case 'invoice.payment_failed':
           return this._stripeService.paymentFailed(event);
+        case 'invoice.payment_action_required':
+          return this._stripeService.paymentActionRequired(event);
         default:
           return undefined;
       }

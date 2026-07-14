@@ -77,9 +77,18 @@ export class StripeService {
         confirm: true, // Confirm the PaymentIntent
       });
 
+      // requires_action is not a bad card — the issuer wants 3-D Secure, which
+      // an off-session £1 probe can never complete. The card already passed
+      // on-session SCA at Checkout; if the bank asks again at invoice time,
+      // the invoice.payment_action_required handler sends the customer a link.
+      if (paymentIntent.status === 'requires_action') {
+        await stripe.paymentIntents.cancel(paymentIntent.id);
+        return true;
+      }
+
       if (paymentIntent.status !== 'requires_capture') {
         console.error('Cant charge');
-        await stripe.paymentMethods.detach(paymentMethods.data[0].id);
+        await stripe.paymentMethods.detach(latestMethod.id);
         await stripe.subscriptions.cancel(event.data.object.id as string);
         return false;
       }
@@ -87,8 +96,21 @@ export class StripeService {
       await stripe.paymentIntents.cancel(paymentIntent.id as string);
       return true;
     } catch (err) {
+      // Same case as requires_action above, except stripe-node reports it by
+      // throwing when confirm happens off-session.
+      if ((err as Stripe.errors.StripeError)?.code === 'authentication_required') {
+        const intent = (err as Stripe.errors.StripeCardError)?.payment_intent;
+        if (intent?.id) {
+          try {
+            await stripe.paymentIntents.cancel(intent.id);
+          } catch (cancelErr) {
+            /*dont do anything*/
+          }
+        }
+        return true;
+      }
       try {
-        await stripe.paymentMethods.detach(paymentMethods.data[0].id);
+        await stripe.paymentMethods.detach(latestMethod.id);
         await stripe.subscriptions.cancel(event.data.object.id as string);
       } catch (err) {
         /*dont do anything*/
@@ -182,6 +204,31 @@ export class StripeService {
       org.id,
       'Payment failed',
       `We couldn't process your latest payment. Please update your payment method at ${process.env.FRONTEND_URL}/billing to keep your subscription active.`,
+      true,
+      false,
+      'info'
+    );
+
+    return { ok: true };
+  }
+
+  async paymentActionRequired(event: Stripe.InvoicePaymentActionRequiredEvent) {
+    const customer = event.data.object.customer as string;
+    const org = await this._organizationService.getOrgByCustomerId(customer);
+    if (!org) {
+      return { ok: true };
+    }
+
+    // The bank demanded 3-D Secure on an automatic charge, so the payment sits
+    // in requires_action until the customer authenticates — Stripe won't retry
+    // its way out of this one. The hosted invoice page is where they finish it.
+    const url =
+      event.data.object.hosted_invoice_url ||
+      `${process.env.FRONTEND_URL}/billing`;
+    await this._notificationService.inAppNotification(
+      org.id,
+      'Confirm your payment',
+      `Your bank needs you to confirm your latest payment before it goes through. Please complete the verification at ${url} to keep your subscription active.`,
       true,
       false,
       'info'
