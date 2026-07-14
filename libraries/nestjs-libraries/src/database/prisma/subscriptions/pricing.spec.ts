@@ -21,11 +21,17 @@ describe('pricing matrix', () => {
     }
   });
 
-  it('keeps channel slots at FREE=3, Starter=3, Pro=6, Business=10', () => {
+  it('keeps channel slots at FREE=3, Starter=3, Pro=6, Business=11', () => {
     expect(pricing.FREE.channel).toBe(3);
     expect(pricing.STANDARD.channel).toBe(3);
     expect(pricing.PRO.channel).toBe(6);
-    expect(pricing.ULTIMATE.channel).toBe(10);
+    expect(pricing.ULTIMATE.channel).toBe(11);
+  });
+
+  it('gives Business a slot for every provider in its allowlist', () => {
+    expect(pricing.ULTIMATE.channel).toBe(
+      pricing.ULTIMATE.allowedProviders.length
+    );
   });
 
   it('keeps the per-tier platform allowlists', () => {
@@ -80,11 +86,11 @@ describe('pricing matrix', () => {
 
   it('gives each tier at least as many platforms as channel slots', () => {
     for (const tier of Object.keys(pricing)) {
-      // linkedin-page rides with linkedin — one LinkedIn entitlement
-      const platforms = pricing[tier].allowedProviders.filter(
-        (p) => p !== 'linkedin-page'
+      // Every provider is its own picker tile and consumes its own slot —
+      // including linkedin-page, which connects separately from linkedin.
+      expect(pricing[tier].allowedProviders.length).toBeGreaterThanOrEqual(
+        pricing[tier].channel || 0
       );
-      expect(platforms.length).toBeGreaterThanOrEqual(pricing[tier].channel || 0);
     }
   });
 

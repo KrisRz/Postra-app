@@ -377,6 +377,50 @@ export class SubscriptionService {
     return { email: email.trim(), total: orgs.length, granted, skipped };
   }
 
+  // Active subscriptions persist their channel quota (totalChannels), so
+  // raising pricing[tier].channel only affects NEW checkouts. This brings
+  // existing rows up to the current quota after a channel launch. Never
+  // lowers (grandfathered quotas stay) and skips lifetime rows (they carry
+  // their own, higher allowance).
+  async syncChannelSlots(apply: boolean) {
+    const subs = await this._subscriptionRepository.listActiveNonLifetime();
+
+    const updated: Array<{
+      org: string;
+      tier: string;
+      from: number;
+      to: number;
+    }> = [];
+    const skipped: Array<{ org: string; tier: string; channels: number }> = [];
+
+    for (const sub of subs) {
+      const expected =
+        pricing[sub.subscriptionTier as keyof typeof pricing]?.channel || 0;
+      if (expected > sub.totalChannels) {
+        updated.push({
+          org: sub.organization.name,
+          tier: sub.subscriptionTier,
+          from: sub.totalChannels,
+          to: expected,
+        });
+        if (apply) {
+          await this._subscriptionRepository.updateTotalChannels(
+            sub.id,
+            expected
+          );
+        }
+      } else {
+        skipped.push({
+          org: sub.organization.name,
+          tier: sub.subscriptionTier,
+          channels: sub.totalChannels,
+        });
+      }
+    }
+
+    return { total: subs.length, updated, skipped };
+  }
+
   getSubscriptionByIdentifier(identifier: string) {
     return this._subscriptionRepository.getSubscriptionByIdentifier(identifier);
   }
