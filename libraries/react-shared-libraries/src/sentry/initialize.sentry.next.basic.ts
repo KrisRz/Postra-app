@@ -51,6 +51,15 @@ export const initializeSentryBasic = (environment: string, dsn: string, extensio
       beforeSend(event, hint) {
         if (event.exception && event.exception.values) {
           for (const exception of event.exception.values) {
+            // customFetch rejects with FetchHandledError when the response was
+            // already handled globally (402 payment dialog, trial gate) — an
+            // expected business answer, not a crash. Sentry's own
+            // unhandledrejection hook still captures it (our logger's
+            // preventDefault doesn't stop other listeners), so drop it here
+            // before it burns the event quota.
+            if (exception.type === 'FetchHandledError') {
+              return null;
+            }
             if (exception.value) {
               for (const pattern of ignorePatterns) {
                 if (pattern.test(exception.value)) {
