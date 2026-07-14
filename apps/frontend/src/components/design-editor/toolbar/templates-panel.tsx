@@ -14,6 +14,10 @@ import {
   applyTemplate,
 } from '../templates/built-in-templates';
 import {
+  renderTemplateThumbnail,
+  templateThumbnailKey,
+} from '../templates/template-thumbnails';
+import {
   TEMPLATE_CATEGORIES,
   TemplateCategory,
   TemplateLang,
@@ -186,6 +190,31 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
     return BUILT_IN_TEMPLATES.filter((tpl) => tpl.category === category);
   }, [category, searchHits]);
 
+  // Offscreen-rendered previews of the visible templates, in the org's brand
+  // colours. Generated one per tick so opening the panel never freezes it;
+  // the module cache makes revisits instant.
+  const [thumbs, setThumbs] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      await document.fonts?.ready;
+      for (const tpl of filtered) {
+        if (cancelled) return;
+        const key = templateThumbnailKey(tpl, platform, brand, lang);
+        try {
+          const url = renderTemplateThumbnail(tpl, platform, brand, lang);
+          setThumbs((prev) => (prev[key] ? prev : { ...prev, [key]: url }));
+        } catch {
+          // a template that fails to render just keeps its text-only card
+        }
+        await new Promise((r) => setTimeout(r, 0));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [filtered, platform, brand, lang]);
+
   const handleApply = useCallback(
     async (templateKey: string) => {
       if (!canvas.current) return;
@@ -295,26 +324,41 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-2 gap-1.5">
         {filtered.length === 0 && (
-          <div className="text-center text-[11px] text-textColor/50 py-4">
+          <div className="col-span-2 text-center text-[11px] text-textColor/50 py-4">
             {t('template_coming_soon', 'More templates coming soon in this category')}
           </div>
         )}
-        {filtered.map((tpl) => (
-          <button
-            key={tpl.key}
-            onClick={() => handleApply(tpl.key)}
-            className="text-left p-2 rounded bg-newColColor hover:bg-forth hover:text-white text-textColor transition-colors group"
-          >
-            <div className="text-xs font-semibold">
-              {isPl ? tpl.labelPl : tpl.label}
-            </div>
-            <div className="text-[10px] text-textColor/60 group-hover:text-white/70 mt-0.5">
-              {isPl ? tpl.descriptionPl : tpl.description}
-            </div>
-          </button>
-        ))}
+        {filtered.map((tpl) => {
+          const thumb = thumbs[templateThumbnailKey(tpl, platform, brand, lang)];
+          return (
+            <button
+              key={tpl.key}
+              onClick={() => handleApply(tpl.key)}
+              title={isPl ? tpl.descriptionPl : tpl.description}
+              className="text-left rounded overflow-hidden bg-newColColor hover:bg-forth hover:text-white text-textColor transition-colors border border-newBorder/60 hover:border-forth"
+            >
+              {thumb ? (
+                <img
+                  src={thumb}
+                  alt={isPl ? tpl.labelPl : tpl.label}
+                  className="w-full block"
+                />
+              ) : (
+                <div
+                  className="w-full bg-white/5 animate-pulse"
+                  style={{
+                    aspectRatio: `${platform.width} / ${platform.height}`,
+                  }}
+                />
+              )}
+              <div className="text-[10px] font-semibold px-1.5 py-1 leading-tight">
+                {isPl ? tpl.labelPl : tpl.label}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       <p className="text-[10px] text-textColor/40 leading-snug">
