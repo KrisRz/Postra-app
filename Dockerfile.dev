@@ -40,6 +40,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends fontconfig \
 
 RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm run build
 
+# Prebuild the maintenance CLI (apps/commands — e.g. `sync-channel-slots` after
+# enabling a new platform). It must ship in the image: the prod box is a
+# t3.medium and a nest build inside the running container OOMs (2026-07-14).
+# Run on prod with:
+#   docker compose exec -T app node /app/apps/commands/dist/apps/commands/src/main.js <command>
+RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm run commands:build:development
+
 RUN chown -R www:www /app
 
 USER www
