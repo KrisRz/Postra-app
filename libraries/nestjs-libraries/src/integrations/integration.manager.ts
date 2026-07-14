@@ -85,6 +85,7 @@ const enabledProviders = new Set([
   'mastodon',
   'telegram',
   'threads',
+  'x',
 ]);
 
 const hiddenProviders = new Set([
