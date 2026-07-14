@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   HttpException,
   Logger,
@@ -20,12 +21,23 @@ export class StripeController {
 
   @Post('/')
   async stripe(@Req() req: RawBodyRequest<Request>) {
-    const event = this._stripeService.validateRequest(
-      req.rawBody,
-      // @ts-ignore
-      req.headers['stripe-signature'],
-      process.env.STRIPE_SIGNING_KEY
-    );
+    // The endpoint is public, so anything that reaches it without a valid
+    // signature is not Stripe — a scanner, a stray request, a misconfigured
+    // endpoint. That is a bad request (400), not a server error: a 500 both
+    // reports a Sentry event (a free 5k/month quota anyone could exhaust from
+    // the outside) and tells a real Stripe delivery to retry something that can
+    // never succeed.
+    let event: ReturnType<StripeService['validateRequest']>;
+    try {
+      event = this._stripeService.validateRequest(
+        req.rawBody,
+        // @ts-ignore
+        req.headers['stripe-signature'],
+        process.env.STRIPE_SIGNING_KEY
+      );
+    } catch (e) {
+      throw new BadRequestException('Invalid Stripe signature');
+    }
 
     // Maybe it comes from another stripe webhook
     if (
