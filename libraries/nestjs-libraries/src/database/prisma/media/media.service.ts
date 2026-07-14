@@ -486,9 +486,7 @@ export class MediaService {
       throw new HttpException('This video is not available in trial mode', 406);
     }
 
-    console.log(body.customParams);
     await video.instance.processAndValidate(body.customParams);
-    console.log('no err');
 
     return await this._subscriptionService.useCredit(
       org,

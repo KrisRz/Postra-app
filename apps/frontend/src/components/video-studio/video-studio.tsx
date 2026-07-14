@@ -134,6 +134,9 @@ export const VideoStudio: FC<VideoStudioProps> = ({
         setUploadedMedia({ id: media.id, path: media.path });
         setTab('trim');
         setShowLibrary(false);
+        // Picking from the library can happen while the goals screen is up —
+        // without this the clip loads invisibly "underneath" it.
+        setShowGoals(false);
       } catch (e) {
         toaster.show(
           e instanceof VideoTooLargeError

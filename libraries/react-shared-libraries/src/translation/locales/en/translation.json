@@ -1169,6 +1169,7 @@
   "announcement_description_placeholder": "Announcement description",
   "design_media_edit_hint": "Edit design — open in Studio",
   "studio_hint": "Create graphics and video clips — straight into your post",
+  "studio_desktop_hint": "🎨 Studio is available on desktop",
   "voice_failed": "Could not check the tone — try again later.",
   "voice_check": "🎯 Check tone",
   "voice_recheck": "check again",

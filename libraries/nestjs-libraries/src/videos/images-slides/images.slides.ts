@@ -167,8 +167,6 @@ export class ImagesSlides extends VideoAbstract<ImagesSlidesParams> {
       { format: 'SRT' }
     );
 
-    console.log(split);
-
     const { results } = await transloadit.createAssembly({
       uploads: {
         'subtitles.srt': srt,
