@@ -33,6 +33,22 @@ export class BadBody extends ApplicationFailure {
   }
 }
 
+// Thrown when the platform accepted our upload but its media processing did
+// not finish inside the activity budget. nonRetryable: the post may already
+// be live on the platform, and an automatic retry of the whole publish is
+// exactly how duplicate posts happen (H1). The workflow surfaces it as a
+// regular publish error and the post ends in ERROR for the user to check.
+export class ProcessingTimeout extends ApplicationFailure {
+  constructor(identifier: string, message = '') {
+    super(
+      message || `${identifier}: media processing did not finish in time`,
+      'processing_timeout',
+      true,
+      [{ identifier }]
+    );
+  }
+}
+
 export class NotEnoughScopes {
   constructor(
     public message = 'Not enough scopes, when choosing a provider, please add all the scopes'

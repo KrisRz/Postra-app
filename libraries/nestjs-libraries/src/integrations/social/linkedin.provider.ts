@@ -12,6 +12,7 @@ import { hasExtension } from '@gitroom/helpers/utils/has.extension';
 import { timer } from '@gitroom/helpers/utils/timer';
 import {
   BadBody,
+  ProcessingTimeout,
   SocialAbstract,
   ValidityMedia,
 } from '@gitroom/nestjs-libraries/integrations/social.abstract';
@@ -421,7 +422,10 @@ export class LinkedinProvider extends SocialAbstract implements SocialProvider {
     urn: string,
     accessToken: string,
     type: 'videos' | 'images' | 'documents',
-    maxAttempts = 20,
+    // 7 min: the whole publish shares a 10-min activity budget, and hitting
+    // that budget mid-upload triggers a Temporal retry — the H1 duplicate
+    // path. Better to fail cleanly with time to spare.
+    maxAttempts = 14,
     intervalMs = 30000
   ): Promise<void> {
     const label =
@@ -464,10 +468,8 @@ export class LinkedinProvider extends SocialAbstract implements SocialProvider {
       await timer(intervalMs);
     }
 
-    throw new BadBody(
+    throw new ProcessingTimeout(
       this.identifier,
-      '{}',
-      '{}',
       `Timed out waiting for LinkedIn ${label} to be ready`
     );
   }

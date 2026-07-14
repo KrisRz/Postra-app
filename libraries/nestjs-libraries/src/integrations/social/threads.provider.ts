@@ -8,7 +8,10 @@ import {
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { timer } from '@gitroom/helpers/utils/timer';
 import dayjs from 'dayjs';
-import { SocialAbstract } from '@gitroom/nestjs-libraries/integrations/social.abstract';
+import {
+  ProcessingTimeout,
+  SocialAbstract,
+} from '@gitroom/nestjs-libraries/integrations/social.abstract';
 import { capitalize, chunk } from 'lodash';
 import { Plug } from '@gitroom/helpers/decorators/plug.decorator';
 import { Integration } from '@prisma/client';
@@ -170,23 +173,29 @@ export class ThreadsProvider extends SocialAbstract implements SocialProvider {
     mediaContainerId: string,
     accessToken: string
   ): Promise<boolean> {
-    const { status, id, error_message } = await (
-      await this.fetch(
-        `https://graph.threads.net/v1.0/${mediaContainerId}?fields=status,error_message&access_token=${accessToken}`
-      )
-    ).json();
+    // Iterative with a cap under the 10-min activity budget (H1): the old
+    // uncapped recursion blew the activity timeout on a slow container and
+    // the Temporal retry re-published the thread.
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const { status, id, error_message } = await (
+        await this.fetch(
+          `https://graph.threads.net/v1.0/${mediaContainerId}?fields=status,error_message&access_token=${accessToken}`
+        )
+      ).json();
 
-    if (status === 'ERROR') {
-      throw new Error(id);
+      if (status === 'ERROR') {
+        throw new Error(error_message || id);
+      }
+
+      if (status === 'FINISHED') {
+        await timer(2000);
+        return true;
+      }
+
+      await timer(2200);
     }
 
-    if (status === 'FINISHED') {
-      await timer(2000);
-      return true;
-    }
-
-    await timer(2200);
-    return this.checkLoaded(mediaContainerId, accessToken);
+    throw new ProcessingTimeout('threads');
   }
 
   private async fetchUserInfo(accessToken: string) {
