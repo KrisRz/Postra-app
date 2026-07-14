@@ -13,6 +13,7 @@ import { IconsPanel } from './icons-panel';
 import { TemplatesPanel } from './templates-panel';
 import { StockImagesPanel } from './stock-images-panel';
 import { ImageFiltersPanel } from './image-filters-panel';
+import { PropertyInspector } from './property-inspector';
 import { STUDIO_FONTS, DEFAULT_FONT, findFontByFamily } from '../fonts';
 import {
   removeBackgroundFromImage,
@@ -713,7 +714,11 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
           </div>
         )}
 
-        {(activeTool === 'shapes' || activeTool === 'images' || activeTool === 'select') && (
+        {(activeTool === 'shapes' ||
+          activeTool === 'images' ||
+          activeTool === 'select' ||
+          activeTool === 'text') && (
+          <>
           <div className="flex flex-col gap-2">
             <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
               {hasSelection
@@ -753,6 +758,9 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
               aria-label={t('background_custom', 'Custom color')}
             />
           </div>
+
+          <PropertyInspector canvas={canvas} />
+          </>
         )}
         </div>
       )}
