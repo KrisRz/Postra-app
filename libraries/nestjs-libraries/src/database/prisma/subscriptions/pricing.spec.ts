@@ -86,11 +86,11 @@ describe('pricing matrix', () => {
 
   it('gives each tier at least as many platforms as channel slots', () => {
     for (const tier of Object.keys(pricing)) {
-      // linkedin-page rides with linkedin — one LinkedIn entitlement
-      const platforms = pricing[tier].allowedProviders.filter(
-        (p) => p !== 'linkedin-page'
+      // Every provider is its own picker tile and consumes its own slot —
+      // including linkedin-page, which connects separately from linkedin.
+      expect(pricing[tier].allowedProviders.length).toBeGreaterThanOrEqual(
+        pricing[tier].channel || 0
       );
-      expect(platforms.length).toBeGreaterThanOrEqual(pricing[tier].channel || 0);
     }
   });
 
