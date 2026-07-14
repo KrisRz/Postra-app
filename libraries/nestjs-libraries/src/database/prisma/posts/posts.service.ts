@@ -82,6 +82,10 @@ export class PostsService {
     return this._postRepository.updatePost(id, postId, releaseURL, orgId);
   }
 
+  clearReleases(orgId: string, ids: string[]) {
+    return this._postRepository.clearReleases(orgId, ids);
+  }
+
   async getMissingContent(
     orgId: string,
     postId: string,
@@ -778,7 +782,7 @@ export class PostsService {
     try {
       await this._temporalService.client
         .getRawClient()
-        ?.workflow.start('postWorkflowV105', {
+        ?.workflow.start('postWorkflowV106', {
           workflowId: `post_${postId}`,
           taskQueue: 'main',
           workflowIdConflictPolicy: 'TERMINATE_EXISTING',

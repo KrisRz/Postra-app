@@ -8,6 +8,7 @@ import {
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import dayjs from 'dayjs';
 import {
+  ProcessingTimeout,
   SocialAbstract,
   ValidityMedia,
 } from '@gitroom/nestjs-libraries/integrations/social.abstract';
@@ -513,7 +514,13 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
           );
 
           let videoStatus = 'in_progress';
+          // Capped under the 10-min activity budget (H1): an unbounded poll
+          // used to blow the activity timeout and the retry re-published.
+          let storyAttempts = 0;
           while (videoStatus !== 'ready') {
+            if (storyAttempts++ >= 42) {
+              throw new ProcessingTimeout('facebook');
+            }
             const { status } = await (
               await this.fetch(
                 `https://graph.facebook.com/v20.0/${video_id}?fields=status&access_token=${accessToken}`,

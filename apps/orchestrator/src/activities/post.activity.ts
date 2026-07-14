@@ -126,7 +126,7 @@ export class PostActivity {
     for (const post of list) {
       await this._temporalService.client
         .getRawClient()
-        .workflow.signalWithStart('postWorkflowV105', {
+        .workflow.signalWithStart('postWorkflowV106', {
           workflowId: `post_${post.id}`,
           taskQueue: 'main',
           signal: 'poke',
@@ -163,6 +163,11 @@ export class PostActivity {
     orgId?: string
   ) {
     await this._postService.updatePost(id, postId, releaseURL, orgId);
+  }
+
+  @ActivityMethod()
+  async clearReleases(orgId: string, ids: string[]) {
+    await this._postService.clearReleases(orgId, ids);
   }
 
   @ActivityMethod()
@@ -233,12 +238,33 @@ export class PostActivity {
       integration.providerIdentifier
     );
 
+    // Same idempotency guard as postSocial: comments are their own Post rows,
+    // and a retry after the platform accepted one must not post it again.
+    const fresh = await Promise.all(
+      (posts || []).map((p) =>
+        this._postService.getPostById(p.id, integration.organizationId)
+      )
+    );
+    if (fresh.length && fresh.every((p) => p?.releaseId)) {
+      console.log(
+        `[postComment] already published, skipping republish provider=${
+          integration.providerIdentifier
+        } posts=${fresh.map((p) => `${p!.id}:${p!.releaseId}`).join(',')}`
+      );
+      return fresh.map((p) => ({
+        id: p!.id,
+        postId: p!.releaseId!,
+        releaseURL: p!.releaseURL || '',
+        status: 'posted',
+      }));
+    }
+
     const newPosts = await this._postService.updateTags(
       integration.organizationId,
       posts
     );
 
-    return getIntegration.comment(
+    const comments = await getIntegration.comment(
       integration.internalId,
       postId,
       lastPostId,
@@ -265,6 +291,27 @@ export class PostActivity {
       ),
       integration
     );
+
+    // Persist immediately for the same reason as postSocial above.
+    for (const response of comments || []) {
+      if (response?.id && response?.postId) {
+        try {
+          await this._postService.updatePost(
+            response.id,
+            response.postId,
+            response.releaseURL || '',
+            integration.organizationId
+          );
+        } catch (err) {
+          console.error(
+            `[postComment] failed to persist release for post=${response.id}`,
+            err
+          );
+        }
+      }
+    }
+
+    return comments;
   }
 
   @ActivityMethod()
@@ -289,6 +336,30 @@ export class PostActivity {
     const getIntegration = this._integrationManager.getSocialIntegration(
       integration.providerIdentifier
     );
+
+    // Idempotency guard (H1, duplicate posts): a retry — a Temporal
+    // re-attempt or the workflow's repeat loop — re-runs this activity with
+    // posts snapshotted at workflow start. If a previous attempt already got
+    // the post accepted by the platform, publishing again creates a public
+    // duplicate, so re-read the posts and short-circuit with the saved result.
+    const fresh = await Promise.all(
+      (posts || []).map((p) =>
+        this._postService.getPostById(p.id, integration.organizationId)
+      )
+    );
+    if (fresh.length && fresh.every((p) => p?.releaseId)) {
+      console.log(
+        `[postSocial] already published, skipping republish provider=${
+          integration.providerIdentifier
+        } posts=${fresh.map((p) => `${p!.id}:${p!.releaseId}`).join(',')}`
+      );
+      return fresh.map((p) => ({
+        id: p!.id,
+        postId: p!.releaseId!,
+        releaseURL: p!.releaseURL || '',
+        status: 'posted',
+      }));
+    }
 
     const newPosts = await this._postService.updateTags(
       integration.organizationId,
@@ -333,6 +404,29 @@ export class PostActivity {
           .join(',')} error=${err?.message || err}`
       );
       throw err;
+    }
+
+    // Persist the platform's acknowledgement immediately. The workflow's own
+    // updatePost is a separate activity that runs later — any failure in
+    // between used to land back here on retry and publish a duplicate.
+    // A persist failure is swallowed: the publish DID happen, and the
+    // workflow's updatePost is the second chance to record it.
+    for (const response of postNow || []) {
+      if (response?.id && response?.postId) {
+        try {
+          await this._postService.updatePost(
+            response.id,
+            response.postId,
+            response.releaseURL || '',
+            integration.organizationId
+          );
+        } catch (err) {
+          console.error(
+            `[postSocial] failed to persist release for post=${response.id}`,
+            err
+          );
+        }
+      }
     }
 
     await this._temporalService.client

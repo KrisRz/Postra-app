@@ -453,6 +453,19 @@ export class PostsRepository {
     });
   }
 
+  clearReleases(orgId: string, ids: string[]) {
+    return this._post.model.post.updateMany({
+      where: {
+        id: { in: ids },
+        organizationId: orgId,
+      },
+      data: {
+        releaseId: null,
+        releaseURL: null,
+      },
+    });
+  }
+
   updateReleaseId(id: string, orgId: string, releaseId: string) {
     return this._post.model.post.update({
       where: {
