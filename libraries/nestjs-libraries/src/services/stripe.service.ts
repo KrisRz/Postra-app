@@ -5,7 +5,6 @@ import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/s
 import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/organizations/organization.service';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { BillingSubscribeDto } from '@gitroom/nestjs-libraries/dtos/billing/billing.subscribe.dto';
-import { groupBy } from 'lodash';
 import { pricing } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 import { TrackService } from '@gitroom/nestjs-libraries/track/track.service';
@@ -212,30 +211,6 @@ export class StripeService {
       customer.id
     );
     return customer.id;
-  }
-
-  async getPackages() {
-    const products = await stripe.prices.list({
-      active: true,
-      expand: ['data.tiers', 'data.product'],
-      lookup_keys: [
-        'standard_monthly',
-        'standard_yearly',
-        'pro_monthly',
-        'pro_yearly',
-      ],
-    });
-
-    const productsList = groupBy(
-      products.data.map((p) => ({
-        name: (p.product as Stripe.Product)?.name,
-        recurring: p?.recurring?.interval!,
-        price: p?.tiers?.[0]?.unit_amount! / 100,
-      })),
-      'recurring'
-    );
-
-    return { ...productsList };
   }
 
   // Resolve the Stripe product for a plan tier. Matched by metadata.tier first
