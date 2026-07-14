@@ -173,6 +173,25 @@ export class SubscriptionRepository {
     });
   }
 
+  listActiveNonLifetime() {
+    return this._subscription.model.subscription.findMany({
+      where: { deletedAt: null, isLifetime: false },
+      select: {
+        id: true,
+        subscriptionTier: true,
+        totalChannels: true,
+        organization: { select: { id: true, name: true } },
+      },
+    });
+  }
+
+  updateTotalChannels(id: string, totalChannels: number) {
+    return this._subscription.model.subscription.update({
+      where: { id },
+      data: { totalChannels },
+    });
+  }
+
   async getSubscriptionByCustomerId(customerId: string) {
     return this._subscription.model.subscription.findFirst({
       where: {
