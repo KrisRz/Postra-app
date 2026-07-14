@@ -14,7 +14,6 @@ import { sign } from 'jsonwebtoken';
 import { Organization, User } from '@prisma/client';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
 import { GetOrgFromRequest } from '@gitroom/nestjs-libraries/user/org.from.request';
-import { StripeService } from '@gitroom/nestjs-libraries/services/stripe.service';
 import { Response, Request } from 'express';
 import { AuthService } from '@gitroom/backend/services/auth/auth.service';
 import { OrganizationService } from '@gitroom/nestjs-libraries/database/prisma/organizations/organization.service';
@@ -41,7 +40,6 @@ import { bustAuthContextCache } from '@gitroom/backend/services/auth/auth.middle
 export class UsersController {
   constructor(
     private _subscriptionService: SubscriptionService,
-    private _stripeService: StripeService,
     private _authService: AuthService,
     private _orgService: OrganizationService,
     private _userService: UsersService,
@@ -220,12 +218,6 @@ export class UsersController {
       );
 
     return subscription ? { subscription } : { subscription: undefined };
-  }
-
-  @Get('/subscription/tiers')
-  @CheckPolicies([AuthorizationActions.Create, Sections.ADMIN])
-  async tiers() {
-    return this._stripeService.getPackages();
   }
 
   @Post('/join-org')
