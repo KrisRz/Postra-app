@@ -1,4 +1,4 @@
-import { IsIn } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
 
 export class BillingSubscribeDto {
   @IsIn(['MONTHLY', 'YEARLY'])
@@ -10,10 +10,19 @@ export class BillingSubscribeDto {
   @IsIn(['STANDARD', 'PRO', 'ULTIMATE'])
   billing: 'STANDARD' | 'PRO' | 'ULTIMATE';
 
+  @IsOptional()
+  @IsString()
   utm: string;
 
+  @IsOptional()
+  @IsString()
   dub: string;
 
+  @IsOptional()
+  @IsString()
   datafast_session_id: string;
+
+  @IsOptional()
+  @IsString()
   datafast_visitor_id: string;
 }

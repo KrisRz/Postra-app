@@ -11,7 +11,7 @@ import { KickDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings
 import { TwitchDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/twitch.dto';
 import { InstagramDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/instagram.dto';
 import { LinkedinDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/linkedin.dto';
-import { IsIn } from 'class-validator';
+import { Allow, IsIn } from 'class-validator';
 import { MediumSettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/medium.settings.dto';
 import { DevToSettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/dev.to.settings.dto';
 import { HashnodeSettingsDto } from '@gitroom/nestjs-libraries/dtos/posts/providers-settings/hashnode.settings.dto';
@@ -108,4 +108,13 @@ export class EmptySettings {
       .join(', ')}`,
   })
   __type: string;
+}
+
+// The __type discriminator lives on the plain payload, and the services read
+// it back after validation (createPost routes the task queue off it). Only
+// EmptySettings declares it, so ValidationPipe's whitelist (AE7) would strip
+// it from every concrete provider DTO — register @Allow on each of them here
+// instead of hand-decorating ~30 files.
+for (const { value } of allProviders(EmptySettings)) {
+  Allow()(value.prototype, '__type');
 }

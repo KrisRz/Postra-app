@@ -1,5 +1,5 @@
 import {
-  IsIn, Validate, ValidationArguments, ValidatorConstraint, ValidatorConstraintInterface
+  Allow, IsIn, Validate, ValidationArguments, ValidatorConstraint, ValidatorConstraintInterface
 } from 'class-validator';
 import { VideoAbstract } from '@gitroom/nestjs-libraries/videos/video.interface';
 
@@ -30,5 +30,7 @@ export class VideoDto {
   @IsIn(['vertical', 'horizontal'])
   output: 'vertical' | 'horizontal';
 
+  // Opaque per-video-type params — @Allow keeps them past the whitelist.
+  @Allow()
   customParams: any;
 }

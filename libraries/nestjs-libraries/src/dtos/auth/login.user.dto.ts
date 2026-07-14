@@ -1,6 +1,7 @@
 import {
   IsDefined,
   IsEmail,
+  IsOptional,
   IsString,
   MinLength,
   ValidateIf,
@@ -27,5 +28,7 @@ export class LoginUserDto {
   @IsDefined()
   email: string;
 
+  @IsOptional()
+  @IsString()
   datafast_visitor_id: string;
 }
