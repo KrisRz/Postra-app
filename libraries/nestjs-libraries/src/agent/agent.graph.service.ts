@@ -16,6 +16,7 @@ import { MediaService } from '@gitroom/nestjs-libraries/database/prisma/media/me
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
+import { AiUsageCallbackHandler } from '@gitroom/nestjs-libraries/services/ai-usage.langchain';
 import { GeneratorDto } from '@gitroom/nestjs-libraries/dtos/generator/generator.dto';
 
 const tools = !process.env.TAVILY_API_KEY
@@ -425,6 +426,15 @@ export class AgentGraphService {
       {
         streamMode: 'values',
         version: 'v2',
+        // Callbacks propagate to every child run — one handler meters all
+        // LLM calls of the graph (hook, content, categories, ...).
+        callbacks: [
+          new AiUsageCallbackHandler({
+            organizationId: orgId,
+            engine: 'generate-posts',
+            model: 'gpt-4.1',
+          }),
+        ],
       }
     );
   }

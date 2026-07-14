@@ -1,3 +1,4 @@
+import { AiUsageCallbackHandler } from '@gitroom/nestjs-libraries/services/ai-usage.langchain';
 import { Injectable } from '@nestjs/common';
 import { BaseMessage, HumanMessage } from '@langchain/core/messages';
 import { END, START, StateGraph } from '@langchain/langgraph';
@@ -132,8 +133,19 @@ You are an assistant that get a social media post and extract the hook, the hook
       .addEdge('save-post', END);
 
     const app = workflow.compile();
-    return app.invoke({
-      messages: [new HumanMessage(post)],
-    });
+    return app.invoke(
+      {
+        messages: [new HumanMessage(post)],
+      },
+      {
+        callbacks: [
+          new AiUsageCallbackHandler({
+            organizationId: null,
+            engine: 'insert-graph',
+            model: 'gpt-4o-2024-08-06',
+          }),
+        ],
+      }
+    );
   }
 }

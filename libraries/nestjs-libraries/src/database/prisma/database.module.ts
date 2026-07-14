@@ -50,6 +50,7 @@ import { AdminStatsRepository } from '@gitroom/nestjs-libraries/database/prisma/
 import { AdminStatsService } from '@gitroom/nestjs-libraries/database/prisma/admin-stats/admin-stats.service';
 import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mobile-push/mobile.push.service';
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
+import { AiUsageService } from '@gitroom/nestjs-libraries/database/prisma/ai-usage/ai-usage.service';
 
 @Global()
 @Module({
@@ -109,6 +110,7 @@ import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/au
     AdminStatsService,
     MobilePushService,
     AuditService,
+    AiUsageService,
   ],
   get exports() {
     return this.providers;

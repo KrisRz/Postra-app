@@ -269,7 +269,7 @@ export class MediaController {
     if (!media?.path) {
       throw new HttpException('Media not found', 404);
     }
-    const srt = await this._captionsService.generateSrtFromVideoUrl(media.path, body.language);
+    const srt = await this._captionsService.generateSrtFromVideoUrl(media.path, body.language, org.id);
     return { srt };
   }
 

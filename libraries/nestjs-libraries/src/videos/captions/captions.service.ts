@@ -46,7 +46,7 @@ export class CaptionsService {
 
   constructor(private _openai: OpenaiService) {}
 
-  async generateSrtFromVideoUrl(videoUrl: string, language?: string): Promise<string> {
+  async generateSrtFromVideoUrl(videoUrl: string, language?: string, orgId?: string): Promise<string> {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const inputPath = join(tmpdir(), `cap-in-${id}.mp4`);
     const audioPath = join(tmpdir(), `cap-audio-${id}.mp3`);
@@ -79,7 +79,7 @@ export class CaptionsService {
         audioPath,
       ]);
 
-      return await this._openai.transcribeAudioToSrt(audioPath, language);
+      return await this._openai.transcribeAudioToSrt(audioPath, language, orgId);
     } finally {
       await unlink(inputPath).catch(() => {});
       await unlink(audioPath).catch(() => {});
