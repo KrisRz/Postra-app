@@ -10,6 +10,8 @@ export interface ChannelGuide {
   connectType: ChannelConnectType;
   steps: string[];
   gotchas: string[];
+  /** What the channel offers in the post composer (settings tab, limits, threads/first comment). */
+  composer?: string[];
 }
 
 export interface AppTabGuide {
@@ -29,47 +31,344 @@ export interface FaqItem {
   answer: string;
 }
 
-// Channels with a non-standard connect flow (bot dialog, credentials form,
-// instance URL) come first — they generate the most confusion.
+// Channels with a non-standard connect flow (bot dialog, credentials form)
+// come first — they generate the most confusion.
 export const CHANNEL_GUIDES: ChannelGuide[] = [
-  { identifier: 'telegram', name: 'Telegram', connectType: 'bot', steps: [], gotchas: [] },
-  { identifier: 'bluesky', name: 'Bluesky', connectType: 'credentials', steps: [], gotchas: [] },
-  { identifier: 'mastodon', name: 'Mastodon', connectType: 'oauth', steps: [], gotchas: [] },
-  { identifier: 'facebook', name: 'Facebook', connectType: 'oauth', steps: [], gotchas: [] },
-  { identifier: 'instagram', name: 'Instagram', connectType: 'oauth', steps: [], gotchas: [] },
-  { identifier: 'threads', name: 'Threads', connectType: 'oauth', steps: [], gotchas: [] },
-  { identifier: 'x', name: 'X (Twitter)', connectType: 'oauth', steps: [], gotchas: [] },
-  { identifier: 'linkedin', name: 'LinkedIn', connectType: 'oauth', steps: [], gotchas: [] },
-  { identifier: 'linkedin-page', name: 'LinkedIn Page', connectType: 'oauth', steps: [], gotchas: [] },
-  { identifier: 'youtube', name: 'YouTube', connectType: 'oauth', steps: [], gotchas: [] },
-  { identifier: 'tiktok', name: 'TikTok', connectType: 'oauth', steps: [], gotchas: [] },
+  {
+    identifier: 'telegram',
+    name: 'Telegram',
+    connectType: 'bot',
+    steps: [
+      "Postra publishes to a Telegram channel or group, not to your personal account. If you don't have one yet, create it inside your existing Telegram app: tap the pencil (new message) icon and choose \"New Channel\" — no new account or phone number needed, and it can be private.",
+      'In Postra, click "Add Channel" and pick Telegram — a dialog shows our bot name and a one-time /connect code.',
+      'In Telegram, open your channel, tap its name at the top, then Administrators → Add Admin (on desktop: ⋮ → Manage Channel → Administrators). Search for the bot by the name shown in the dialog and add it with the "Post Messages" permission ("Delete Messages" too, so it can clean up the connect code).',
+      'Copy the /connect code from the dialog and send it as a post in that channel or group — not in a private chat with the bot.',
+      'Go back to Postra — the channel is detected automatically within a few seconds and appears in your channel list.',
+      'From now on, Telegram is just another channel in the composer: tick it when creating a post and the bot publishes the post to your channel. Nothing is posted unless you select it.',
+    ],
+    gotchas: [
+      'Bots can only be added to a channel as administrators — if you can\'t add it as a member, that\'s expected; use Administrators → Add Admin.',
+      "The bot must have the \"Post Messages\" admin permission — without it the connect code isn't detected and publishing fails.",
+      "Send the /connect message in the channel or group you're connecting, not in a private chat with the bot.",
+      'Posts are published by the bot, so keep it in the channel — removing it stops publishing.',
+      'Media size limits (set by Telegram): images up to 10 MB, videos up to 50 MB. Larger files fail with a size error on the post.',
+      'Character limit: 4,096 for text-only posts. With media attached, the text becomes the media caption, which Telegram limits to 1,024 characters.',
+    ],
+    composer: [
+      'No extra settings tab — Telegram needs no per-post options.',
+      'First comments: click "Add comment" to attach messages published right under the post. You can add several, and each has a Delay option (1 min – 2 h presets or a custom gap after the previous one).',
+    ],
+  },
+  {
+    identifier: 'bluesky',
+    name: 'Bluesky',
+    connectType: 'credentials',
+    steps: [
+      'In Bluesky, open Settings → Privacy and Security → App Passwords and create a new app password.',
+      'In Postra, click "Add Channel" and pick Bluesky — a form appears with three fields: Service, Identifier and Password.',
+      'Service: leave https://bsky.social as it is (change it only if you run your own Bluesky server).',
+      'Identifier: your full Bluesky handle, e.g. yourname.bsky.social (or your custom domain if you use one).',
+      'Password: paste the app password you created in step 1 (format xxxx-xxxx-xxxx-xxxx) and click Connect.',
+    ],
+    gotchas: [
+      'Use an app password, not your main Bluesky password — app passwords can be revoked any time without changing your login.',
+      'Enter the full handle, including .bsky.social (or your custom domain).',
+    ],
+    composer: [
+      'Character limit: 300. For longer content click "Add post" to build a thread — each follow-up post can have its own Delay (1 min – 2 h or a custom gap after the previous one).',
+      'Settings tab: optional "thread finisher" — a closing post appended at the end of a thread.',
+      'Media: up to 4 images or 1 video per post.',
+    ],
+  },
+  {
+    identifier: 'mastodon',
+    name: 'Mastodon',
+    connectType: 'oauth',
+    steps: [
+      'Click "Add Channel" and pick Mastodon.',
+      'Sign in to Mastodon and approve the requested permissions.',
+    ],
+    gotchas: [
+      'Posts are limited to 500 characters (the standard Mastodon limit).',
+      "Account on a different instance and can't connect? Email us and we'll help.",
+    ],
+    composer: [
+      'No extra settings tab.',
+      'Character limit: 500. For longer content click "Add post" to build a thread — each follow-up post can have its own Delay (1 min – 2 h or a custom gap).',
+    ],
+  },
+  {
+    identifier: 'facebook',
+    name: 'Facebook',
+    connectType: 'oauth',
+    steps: [
+      'Click "Add Channel" and pick Facebook.',
+      'Log in with the Facebook account that manages your Page and approve all requested permissions.',
+      'Choose the Page you want to publish to.',
+    ],
+    gotchas: [
+      'Publishing works with Facebook Pages, not personal profiles.',
+      "Don't untick any permissions during login — missing permissions break publishing later.",
+    ],
+    composer: [
+      'Post Type: Post or Story (a Story needs at least one image or video).',
+      'Embedded URL: attach a link preview to a text-only post.',
+      'First comments: click "Add comment" — text and media. You can add several, and each has a Delay option (1 min – 2 h presets or a custom gap after the previous one).',
+      "Character limit: 63,206 — effectively you won't hit it.",
+    ],
+  },
+  {
+    identifier: 'instagram',
+    name: 'Instagram',
+    connectType: 'oauth',
+    steps: [
+      'Make sure your Instagram account is a Business or Creator account linked to a Facebook Page.',
+      'Click "Add Channel", pick Instagram and log in with the Facebook account that manages that Page.',
+      'Choose the Instagram account.',
+    ],
+    gotchas: [
+      'Personal Instagram accounts won\'t appear — switch to Business/Creator in the Instagram app (Settings → Account type) and link a Facebook Page first.',
+      "Feed images are automatically cropped to Instagram's allowed aspect ratios.",
+    ],
+    composer: [
+      'Post Type: Post, Reel or Story.',
+      "Collaborators: invite up to 3 public accounts to co-author (not available for Stories).",
+      'Trial Reel: show a Reel to non-followers first, with manual or performance-based graduation to everyone.',
+      'First comments: click "Add comment" — text only on Instagram. You can add several, each with its own Delay (1 min – 2 h or a custom gap).',
+      'Media is required; carousels take up to 10 items. Caption limit: 2,200 characters.',
+    ],
+  },
+  {
+    identifier: 'threads',
+    name: 'Threads',
+    connectType: 'oauth',
+    steps: [
+      'Click "Add Channel", pick Threads and sign in with your Instagram credentials.',
+      'Approve the requested permissions.',
+    ],
+    gotchas: [
+      'Threads connects separately from Instagram — connect both if you post to both.',
+    ],
+    composer: [
+      'Character limit: 500. Click "Add post" to build a thread — each follow-up post can have its own Delay (1 min – 2 h or a custom gap).',
+      'Settings tab: optional "thread finisher" — a closing post appended at the end of a thread.',
+    ],
+  },
+  {
+    identifier: 'x',
+    name: 'X (Twitter)',
+    connectType: 'oauth',
+    steps: [
+      'Click "Add Channel", pick X and authorize Postra.',
+    ],
+    gotchas: [
+      'X rejects two identical posts in a row — vary the text when reposting.',
+    ],
+    composer: [
+      'Who can reply: Everyone, accounts you follow, mentioned accounts, subscribers or verified accounts.',
+      'Post to a community: paste the community URL.',
+      '"Made with AI" and "Paid partnership" flags.',
+      'Click "Add post" to build a thread; each follow-up post can have its own Delay (1 min – 2 h or a custom gap). Optional thread finisher.',
+      'Character limit: 280 (4,000 if your X account has Premium).',
+    ],
+  },
+  {
+    identifier: 'linkedin',
+    name: 'LinkedIn',
+    connectType: 'oauth',
+    steps: [
+      'This channel is your personal profile — posts are published under your own name. To post as a company, use "LinkedIn Page" instead.',
+      'Click "Add Channel", pick LinkedIn and sign in.',
+      'Approve the requested permissions.',
+    ],
+    gotchas: [
+      'Personal profile and company page are two separate channels in Postra — you can connect both and pick either (or both) in the composer.',
+    ],
+    composer: [
+      '"Post as images carousel": turns 2+ attached images into a carousel document (you name the slide deck).',
+      'First comments: click "Add comment" — text only on LinkedIn. You can add several, each with its own Delay (1 min – 2 h or a custom gap).',
+      'Character limit: 3,000.',
+    ],
+  },
+  {
+    identifier: 'linkedin-page',
+    name: 'LinkedIn Page',
+    connectType: 'oauth',
+    steps: [
+      'This channel is a company (business) page — posts are published as the company, not under your name.',
+      'Click "Add Channel", pick LinkedIn Page and sign in with the personal account that administers the page.',
+      'After approving, choose the company page you want to publish to from the list.',
+    ],
+    gotchas: [
+      "You need to be an administrator of the company page — if the list is empty, ask the page owner to make you an admin on LinkedIn.",
+    ],
+    composer: [
+      'Same options as LinkedIn: images carousel, first comments (text only, several allowed, each with its own Delay), 3,000-character limit.',
+    ],
+  },
+  {
+    identifier: 'youtube',
+    name: 'YouTube',
+    connectType: 'oauth',
+    steps: [
+      'Click "Add Channel", pick YouTube, choose your Google account and approve access.',
+      'If your Google account has more than one YouTube channel, pick the one to connect from the list.',
+    ],
+    gotchas: [
+      'The Google account needs an existing YouTube channel.',
+      'YouTube accepts video posts only.',
+    ],
+    composer: [
+      'Title (required), visibility (Public / Private / Unlisted), "Made for kids" flag and tags.',
+      'Exactly one video per post; the post text becomes the video description (limit 5,000 characters).',
+      'First comments and threads are not available on YouTube.',
+    ],
+  },
+  {
+    identifier: 'tiktok',
+    name: 'TikTok',
+    connectType: 'oauth',
+    steps: [
+      'Click "Add Channel", pick TikTok, log in and approve access.',
+    ],
+    gotchas: [
+      "TikTok is video-first — publishing can take a moment to process on TikTok's side.",
+    ],
+    composer: [
+      'Privacy level: who can see the video (the options come from your TikTok account).',
+      'Content posting method: publish directly, or upload to your TikTok drafts ("Upload without posting").',
+      'Allow comments / Duet / Stitch toggles (greyed out if your TikTok settings disallow them).',
+      '"Video made with AI" flag and branded-content disclosure (your brand / paid partnership).',
+      'Photo posts additionally get a title and optional auto-added music.',
+      'Caption limit: 2,000 characters.',
+      'First comments and threads are not available on TikTok.',
+    ],
+  },
 ];
 
 export const APP_TABS: AppTabGuide[] = [
-  { id: 'calendar', name: 'Calendar', description: '' },
-  { id: 'agent', name: 'Agent', description: '' },
-  { id: 'analytics', name: 'Analytics', description: '' },
-  { id: 'studio', name: 'Studio', description: '' },
-  { id: 'autopost', name: 'Auto Post', description: '' },
-  { id: 'media', name: 'Media', description: '' },
-  { id: 'plugs', name: 'Plugs', description: '' },
-  { id: 'billing', name: 'Billing', description: '' },
-  { id: 'settings', name: 'Settings', description: '' },
+  {
+    id: 'calendar',
+    name: 'Calendar',
+    description:
+      'Your posting hub: every scheduled, draft and published post in calendar or list view. This is also where you add channels and create posts.',
+  },
+  {
+    id: 'agent',
+    name: 'Agent',
+    description:
+      'An AI assistant that knows your channels — chat with it to brainstorm, draft and schedule posts.',
+  },
+  {
+    id: 'analytics',
+    name: 'Analytics',
+    description: 'Follower growth and post performance per channel.',
+  },
+  {
+    id: 'studio',
+    name: 'Studio',
+    description:
+      'Design graphics and short videos for your posts — templates, your Brand Kit and AI image generation.',
+  },
+  {
+    id: 'autopost',
+    name: 'Auto Post',
+    description:
+      'Connect an RSS feed (e.g. your blog) and new articles are turned into social posts automatically.',
+  },
+  {
+    id: 'media',
+    name: 'Media',
+    description:
+      "Every image and video you've uploaded, ready to reuse in any post.",
+  },
+  {
+    id: 'plugs',
+    name: 'Plugs',
+    description:
+      'Small per-channel automations that run in the background to boost reach — available for selected channels such as X, LinkedIn and Threads.',
+  },
+  {
+    id: 'billing',
+    name: 'Billing',
+    description: 'Your subscription: plan, payment method and invoices.',
+  },
+  {
+    id: 'settings',
+    name: 'Settings',
+    description:
+      'Workspace configuration — see "Settings explained" below for each section.',
+  },
 ];
 
 export const SETTINGS_SECTIONS: SettingsSectionGuide[] = [
-  { name: 'Global Settings', availability: 'All plans', description: '' },
-  { name: 'Teams', availability: 'Plans with team seats', description: '' },
-  { name: 'Webhooks', availability: 'Plans with webhooks', description: '' },
-  { name: 'Auto Post', availability: 'Plans with Auto Post', description: '' },
-  { name: 'Sets', availability: 'Paid plans', description: '' },
-  { name: 'Signatures', availability: 'Paid plans', description: '' },
-  { name: 'Approved Apps', availability: 'All plans', description: '' },
+  {
+    name: 'Global Settings',
+    availability: 'All plans',
+    description:
+      'Interface language, email notifications, link shortening and account deletion.',
+  },
+  {
+    name: 'Teams',
+    availability: 'Plans with team seats',
+    description:
+      'Invite teammates to your workspace so you can manage channels and posts together.',
+  },
+  {
+    name: 'Webhooks',
+    availability: 'Plans with webhooks',
+    description:
+      'Get an HTTP call to your own endpoint whenever posts publish — for connecting Postra to your own tools.',
+  },
+  {
+    name: 'Auto Post',
+    availability: 'Plans with Auto Post',
+    description: 'Manage the RSS feeds used by the Auto Post tab.',
+  },
+  {
+    name: 'Sets',
+    availability: 'Paid plans',
+    description:
+      'Save a group of channels as a set and select all of them with one click when composing.',
+  },
+  {
+    name: 'Signatures',
+    availability: 'Paid plans',
+    description:
+      'Reusable text snippets (e.g. hashtags or a call to action) you can append to posts.',
+  },
+  {
+    name: 'Approved Apps',
+    availability: 'All plans',
+    description:
+      "Third-party apps you've granted access to your account — review and revoke them here.",
+  },
 ];
 
 export const FAQ_ITEMS: FaqItem[] = [
-  { question: "Why can't I add more channels?", answer: '' },
-  { question: 'A post failed to publish — what should I do?', answer: '' },
-  { question: 'How does the trial work?', answer: '' },
-  { question: 'Can I post to multiple channels at once?', answer: '' },
+  {
+    question: "Why can't I add more channels?",
+    answer:
+      'Each plan includes a fixed number of channels (3, 6 or 10, depending on the plan; trials are capped at 3). Upgrade in Billing to unlock more. Disconnected channels still occupy a slot until you delete them.',
+  },
+  {
+    question: 'A post failed to publish — what should I do?',
+    answer:
+      "Open the post from the Calendar to see the error returned by the platform. The usual causes: the channel needs reconnecting (red badge on its avatar), the media doesn't meet the platform's requirements, or the platform flagged a duplicate. Fix the cause and reschedule — still stuck? Email us.",
+  },
+  {
+    question: 'How does the trial work?',
+    answer:
+      "Paid plans start with a 7-day free trial, capped at 3 channels. Cancel any time in Billing before the trial ends and you won't be charged.",
+  },
+  {
+    question: 'Can I post to multiple channels at once?',
+    answer:
+      'Yes — pick several channels when composing. Use the per-channel tabs in the editor to tweak the content for each platform before scheduling.',
+  },
+  {
+    question: 'How do first comments and threads work?',
+    answer:
+      'Depending on the channel, the composer shows an extra button below your post. "Add comment" publishes a first comment right under the post on the platform — supported on Facebook (text and media), Instagram, LinkedIn and LinkedIn Page (text only) and Telegram. "Add post" chains additional posts into a thread — that\'s how X, Threads, Bluesky and Mastodon work. In both cases you can add several entries, reorder them, and give each one a Delay (1 min – 2 h presets or a custom number of minutes) so it publishes that long after the previous one. TikTok and YouTube support neither. Separately, the comments you see when opening a post on the Calendar are internal team notes — they are never published anywhere.',
+  },
 ];
