@@ -38,7 +38,6 @@ import {
   readDraft,
   writeDraft,
   clearDraft,
-  StudioDraft,
 } from './utils/draft-autosave';
 
 const MultiFormatModal = lazy(() =>
@@ -82,9 +81,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   // the once-only canvas effect and its interval never see stale values.
   const orgIdRef = useRef('default');
   orgIdRef.current = user?.orgId || 'default';
-  const [draftOffer, setDraftOffer] = useState<StudioDraft | null>(null);
-  const draftOfferRef = useRef<StudioDraft | null>(null);
-  draftOfferRef.current = draftOffer;
+  const [restoringDraft, setRestoringDraft] = useState(false);
 
   const { platform, setPlatform, pushHistory, setCanvasReady } =
     useEditorStore();
@@ -129,9 +126,6 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
     const saveState = () => {
       if (isRestoringRef.current) return;
-      // The first real edit implicitly declines a pending draft-restore offer
-      // (the autosave would otherwise clobber the draft the banner promises).
-      if (draftOfferRef.current) setDraftOffer(null);
       pushHistory(JSON.stringify(c.toJSON()));
     };
     saveStateRef.current = saveState;
@@ -139,16 +133,14 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
     HISTORY_EVENTS.forEach((evt) => c.on(evt, saveState));
 
-    // Offer to restore an unsaved draft — unless an existing media item is
-    // being loaded for editing, which takes precedence over the draft.
-    if (!loadMediaId) {
-      const draft = readDraft(orgIdRef.current);
-      if (draft) setDraftOffer(draft);
-    }
-
     const snapshotDraft = () => {
-      if (isRestoringRef.current || draftOfferRef.current) return;
-      if (!c.getObjects().length) return;
+      if (isRestoringRef.current) return;
+      if (!c.getObjects().length) {
+        // The user emptied the canvas on purpose — since drafts now restore
+        // automatically, a stale one would resurrect the deleted design.
+        clearDraft(orgIdRef.current);
+        return;
+      }
       writeDraft(orgIdRef.current, {
         canvasJson: JSON.stringify(c.toJSON()),
         platformKey: useEditorStore.getState().platform.key,
@@ -303,11 +295,18 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     });
   }, [restoreState]);
 
-  const restoreDraft = useCallback(() => {
-    const draft = draftOfferRef.current;
+  // Auto-restore the last unsaved draft as soon as the canvas exists — coming
+  // back to Studio (from /media, the Video tab, a refresh…) should show the
+  // design where you left it, not an empty canvas behind a "Restore?" banner.
+  const canvasReady = useEditorStore((s) => s.canvasReady);
+  useEffect(() => {
     const c = fabricRef.current;
-    if (!draft || !c) return;
-    setDraftOffer(null);
+    if (!canvasReady || loadMediaId || !c) return;
+    const draft = readDraft(orgIdRef.current);
+    // Never clobber content that is already on the canvas (e.g. a media item
+    // loaded by another path before this effect ran).
+    if (!draft || c.getObjects().length > 0) return;
+
     const target = PLATFORM_SIZES.find((p) => p.key === draft.platformKey);
     if (target && target.key !== prevPlatformRef.current.key) {
       // Resize the canvas by hand and pre-sync prevPlatformRef so the
@@ -322,15 +321,14 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       });
       c.setZoom(scale);
     }
+    setRestoringDraft(true);
     // Push the restored state into history, otherwise the first undo after a
     // restore would jump back to the initial empty canvas with no way forward.
-    restoreState(draft.canvasJson).then(() => saveStateRef.current?.());
-  }, [getScale, restoreState, setPlatform]);
-
-  const discardDraft = useCallback(() => {
-    clearDraft(orgIdRef.current);
-    setDraftOffer(null);
-  }, []);
+    restoreState(draft.canvasJson)
+      .then(() => saveStateRef.current?.())
+      .finally(() => setRestoringDraft(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasReady]);
 
   const handleUndo = useCallback(() => {
     restoreState(useEditorStore.getState().undo());
@@ -602,26 +600,15 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
             viewport (it scrolls inside overflow-auto instead) — without it the
             right side of the action bar ("Use in post") lands off-screen. */}
         <div className="flex-1 min-w-0 flex flex-col">
-          {draftOffer && (
-            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 bg-forth/10 border-b border-forth/30 text-xs text-textColor">
+          {restoringDraft && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-forth/10 border-b border-forth/30 text-xs text-textColor">
               <span>
-                💾{' '}
+                ⏳{' '}
                 {t(
-                  'studio_draft_found',
-                  'You have an unsaved design from your last session.'
+                  'studio_draft_restoring',
+                  'Restoring your last design…'
                 )}
               </span>
-              <div className="flex gap-2 shrink-0">
-                <Button onClick={restoreDraft} className="!h-[26px] !text-xs">
-                  {t('studio_draft_restore', 'Restore draft')}
-                </Button>
-                <button
-                  onClick={discardDraft}
-                  className="px-3 py-1 text-xs rounded bg-newColColor text-textColor hover:bg-forth transition-colors"
-                >
-                  {t('studio_draft_discard', 'Discard')}
-                </button>
-              </div>
             </div>
           )}
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 border-b border-newBorder">
