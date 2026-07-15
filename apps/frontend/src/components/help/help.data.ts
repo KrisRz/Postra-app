@@ -10,6 +10,8 @@ export interface ChannelGuide {
   connectType: ChannelConnectType;
   steps: string[];
   gotchas: string[];
+  /** What the channel offers in the post composer (settings tab, limits, threads/first comment). */
+  composer?: string[];
 }
 
 export interface AppTabGuide {
@@ -51,6 +53,10 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'Posts are published by the bot, so keep it in the channel — removing it stops publishing.',
       'Telegram posts allow up to 4,096 characters with formatting and images — often more room than other platforms.',
     ],
+    composer: [
+      'No extra settings tab — Telegram needs no per-post options.',
+      'Supports a first comment: click "Add comment" to attach a message published right under the post.',
+    ],
   },
   {
     identifier: 'bluesky',
@@ -58,13 +64,19 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     connectType: 'credentials',
     steps: [
       'In Bluesky, open Settings → Privacy and Security → App Passwords and create a new app password.',
-      'In Postra, click "Add Channel" and pick Bluesky.',
-      'Leave the service URL as https://bsky.social unless you self-host.',
-      'Enter your full handle (e.g. yourname.bsky.social) and the app password.',
+      'In Postra, click "Add Channel" and pick Bluesky — a form appears with three fields: Service, Identifier and Password.',
+      'Service: leave https://bsky.social as it is (change it only if you run your own Bluesky server).',
+      'Identifier: your full Bluesky handle, e.g. yourname.bsky.social (or your custom domain if you use one).',
+      'Password: paste the app password you created in step 1 (format xxxx-xxxx-xxxx-xxxx) and click Connect.',
     ],
     gotchas: [
-      'Use an app password, not your main Bluesky password.',
+      'Use an app password, not your main Bluesky password — app passwords can be revoked any time without changing your login.',
       'Enter the full handle, including .bsky.social (or your custom domain).',
+    ],
+    composer: [
+      'Character limit: 300. For longer content click "Add post" to build a thread.',
+      'Settings tab: optional "thread finisher" — a closing post appended at the end of a thread.',
+      'Media: up to 4 images or 1 video per post.',
     ],
   },
   {
@@ -78,6 +90,10 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     gotchas: [
       'Posts are limited to 500 characters (the standard Mastodon limit).',
       "Account on a different instance and can't connect? Email us and we'll help.",
+    ],
+    composer: [
+      'No extra settings tab.',
+      'Character limit: 500. For longer content click "Add post" to build a thread.',
     ],
   },
   {
@@ -93,6 +109,12 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'Publishing works with Facebook Pages, not personal profiles.',
       "Don't untick any permissions during login — missing permissions break publishing later.",
     ],
+    composer: [
+      'Post Type: Post or Story (a Story needs at least one image or video).',
+      'Embedded URL: attach a link preview to a text-only post.',
+      'Supports a first comment (text and media) published right after the post.',
+      "Character limit: 63,206 — effectively you won't hit it.",
+    ],
   },
   {
     identifier: 'instagram',
@@ -107,6 +129,13 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'Personal Instagram accounts won\'t appear — switch to Business/Creator in the Instagram app (Settings → Account type) and link a Facebook Page first.',
       "Feed images are automatically cropped to Instagram's allowed aspect ratios.",
     ],
+    composer: [
+      'Post Type: Post, Reel or Story.',
+      "Collaborators: invite up to 3 public accounts to co-author (not available for Stories).",
+      'Trial Reel: show a Reel to non-followers first, with manual or performance-based graduation to everyone.',
+      'Supports a first comment (text only).',
+      'Media is required; carousels take up to 10 items. Caption limit: 2,200 characters.',
+    ],
   },
   {
     identifier: 'threads',
@@ -119,6 +148,10 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     gotchas: [
       'Threads connects separately from Instagram — connect both if you post to both.',
     ],
+    composer: [
+      'Character limit: 500. Click "Add post" to build a thread.',
+      'Settings tab: optional "thread finisher" — a closing post appended at the end of a thread.',
+    ],
   },
   {
     identifier: 'x',
@@ -129,6 +162,13 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
     gotchas: [
       'X rejects two identical posts in a row — vary the text when reposting.',
+    ],
+    composer: [
+      'Who can reply: Everyone, accounts you follow, mentioned accounts, subscribers or verified accounts.',
+      'Post to a community: paste the community URL.',
+      '"Made with AI" and "Paid partnership" flags.',
+      'Click "Add post" to build a thread; optional thread finisher.',
+      'Character limit: 280 (4,000 if your X account has Premium).',
     ],
   },
   {
@@ -142,6 +182,11 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     gotchas: [
       'This connects your personal profile — for a company page use "LinkedIn Page" instead.',
     ],
+    composer: [
+      '"Post as images carousel": turns 2+ attached images into a carousel document (you name the slide deck).',
+      'Supports a first comment (text only).',
+      'Character limit: 3,000.',
+    ],
   },
   {
     identifier: 'linkedin-page',
@@ -153,6 +198,9 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
     gotchas: [
       'You need to be an administrator of the company page.',
+    ],
+    composer: [
+      'Same options as LinkedIn: images carousel, first comment (text only), 3,000-character limit.',
     ],
   },
   {
@@ -166,6 +214,10 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'The Google account needs an existing YouTube channel.',
       'YouTube accepts video posts only.',
     ],
+    composer: [
+      'Title (required), visibility (Public / Private / Unlisted), "Made for kids" flag and tags.',
+      'Exactly one video per post; the post text becomes the video description (limit 5,000 characters).',
+    ],
   },
   {
     identifier: 'tiktok',
@@ -176,6 +228,14 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
     gotchas: [
       "TikTok is video-first — publishing can take a moment to process on TikTok's side.",
+    ],
+    composer: [
+      'Privacy level: who can see the video (the options come from your TikTok account).',
+      'Content posting method: publish directly, or upload to your TikTok drafts ("Upload without posting").',
+      'Allow comments / Duet / Stitch toggles (greyed out if your TikTok settings disallow them).',
+      '"Video made with AI" flag and branded-content disclosure (your brand / paid partnership).',
+      'Photo posts additionally get a title and optional auto-added music.',
+      'Caption limit: 2,000 characters.',
     ],
   },
 ];

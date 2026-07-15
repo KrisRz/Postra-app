@@ -132,6 +132,18 @@ export const HelpComponent = () => {
                     ))}
                   </ul>
                 )}
+                {!!channel.composer?.length && (
+                  <div className="flex flex-col gap-[6px]">
+                    <div className="text-[13px] font-[600] text-newTextColor/80">
+                      {t('help_in_the_composer', 'In the composer')}
+                    </div>
+                    <ul className="flex flex-col gap-[6px] text-[13px] text-newTextColor/70 list-disc ps-[20px]">
+                      {channel.composer.map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ))}
           </div>
