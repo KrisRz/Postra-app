@@ -130,16 +130,29 @@ export async function composeVideo(opts: ComposeOptions): Promise<ComposeResult>
     if (!audioSource || !audioTrack) return;
     const sink = new EncodedPacketSink(audioTrack);
     let first = true;
+    // AAC priming / edit lists stamp the first packet(s) with a small negative
+    // timestamp (e.g. -0.023s) and the muxer rejects negatives — shift the
+    // whole track forward by the initial offset; relative timing is preserved.
+    let shift = 0;
     for await (const packet of sink.packets()) {
       if (signal?.aborted) break;
+      if (first && packet.timestamp < 0) shift = -packet.timestamp;
+      const adjusted =
+        shift > 0 || packet.timestamp < 0
+          ? packet.clone({ timestamp: Math.max(0, packet.timestamp + shift) })
+          : packet;
       await audioSource.add(
-        packet,
+        adjusted,
         first ? { decoderConfig: audioDecoderConfig! } : undefined
       );
       first = false;
     }
     audioSource.close();
   })();
+  // Failures here re-throw at `await audioPump` below; without this parked
+  // catch, a rejection during the (long) video loop has no handler attached
+  // yet and surfaces as an unhandled rejection (Sentry POSTRA-9).
+  audioPump.catch(() => undefined);
 
   // Decode → composite overlays → encode, frame by frame.
   const videoSink = new CanvasSink(videoTrack);
