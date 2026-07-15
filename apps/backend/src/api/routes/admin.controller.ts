@@ -20,6 +20,7 @@ import { fetch } from 'undici';
 // Static import — a dynamic import('@gitroom/...') keeps the alias verbatim in
 // the compiled dist and crashes at runtime (Cannot find module).
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+import { bustAuthContextCache } from '@gitroom/nestjs-libraries/redis/auth-context.cache';
 
 @ApiTags('Admin')
 @Controller('/admin')
@@ -223,6 +224,53 @@ export class AdminController {
     }
 
     return report;
+  }
+
+  // God-mode toggle, deliberately separate from grant-lifetime: lifetime is
+  // an ULTIMATE subscription (full product, no admin panel), whereas this flips
+  // the global isSuperAdmin flag that gates /admin. isSuperAdmin is re-read from
+  // the DB on every request (sessions v2, not carried in the JWT), so busting
+  // the authctx cache makes the change take effect on the target's next request
+  // without a forced re-login.
+  @Post('/grant-admin')
+  async setAdmin(
+    @GetUserFromRequest() user: User,
+    @Body('userId') userId: string,
+    @Body('value') value: boolean
+  ) {
+    this.assertSuperAdmin(user);
+    if (!userId?.trim()) {
+      throw new HttpException('Missing userId', 400);
+    }
+    const next = value === true;
+    // Never let an admin strip their own access — that is the only way to lock
+    // the last person out of the panel. Revoking others is fine.
+    if (userId === user.id && !next) {
+      throw new HttpException('You cannot revoke your own admin access', 400);
+    }
+
+    const target = await this._prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, isSuperAdmin: true },
+    });
+    if (!target) {
+      throw new HttpException('User not found', 400);
+    }
+
+    if (target.isSuperAdmin !== next) {
+      await this._prisma.user.update({
+        where: { id: userId },
+        data: { isSuperAdmin: next },
+      });
+      await bustAuthContextCache(userId);
+      this._auditService.record({
+        action: next ? 'admin.grant-admin' : 'admin.revoke-admin',
+        userId: user.id,
+        metadata: { targetUserId: userId, email: target.email },
+      });
+    }
+
+    return { id: userId, isSuperAdmin: next };
   }
 
   @Get('/metrics')

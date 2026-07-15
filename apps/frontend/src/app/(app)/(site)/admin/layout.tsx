@@ -30,7 +30,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const t = useT();
 
-  if (!user?.isSuperAdmin) {
+  // Impersonation forces isSuperAdmin=true on the session so the admin can
+  // un-impersonate, but the panel itself must reflect the real user's view —
+  // block it while impersonating (the global "Stop" banner stays available).
+  if (!user?.isSuperAdmin || user?.impersonate) {
     return (
       <div className="flex-1 flex items-center justify-center text-newTextColor/60">
         {t('no_access', 'You do not have access to this page.')}
