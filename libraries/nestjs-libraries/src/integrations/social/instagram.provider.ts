@@ -1,6 +1,7 @@
 import {
   AnalyticsData,
   AuthTokenDetails,
+  MediaContent,
   PostDetails,
   PostResponse,
   SocialProvider,
@@ -18,6 +19,8 @@ import { Integration } from '@prisma/client';
 import { Rules } from '@gitroom/nestjs-libraries/chat/rules.description.decorator';
 import { hasExtension } from '@gitroom/helpers/utils/has.extension';
 import { percentageChangeFromSeries } from '@gitroom/nestjs-libraries/integrations/social/analytics.utils';
+import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
+import { toInstagramSafeAspect } from '@gitroom/nestjs-libraries/integrations/social/instagram.aspect';
 
 @Rules(
   "Instagram should have at least one attachment, if it's a story, it can have only one picture"
@@ -42,6 +45,7 @@ export class InstagramProvider
   override maxConcurrentJob = 400;
   editor = 'normal' as const;
   dto = InstagramDto;
+  private storage = UploadFactory.createStorage();
   maxLength() {
     return 2200;
   }
@@ -581,6 +585,40 @@ export class InstagramProvider
     };
   }
 
+  // Instagram feed photos must sit within 4:5 (0.8) .. 1.91:1 or Meta rejects the
+  // whole post with "Aspect ratio not supported" (2207009) — historically our
+  // single biggest source of failed IG publishes. Center-crop any out-of-band feed
+  // image just enough to clear validation and re-host it so Meta can fetch the URL.
+  // Stories are full-screen (any ratio) and videos/Reels have their own bounds, so
+  // both pass through untouched. Never blocks a post: on any failure the original
+  // media is used and Meta's own error handling still applies.
+  private async toInstagramSafeMedia(
+    media: MediaContent[] | undefined,
+    isStory: boolean
+  ): Promise<MediaContent[]> {
+    if (isStory || !media?.length) {
+      return media || [];
+    }
+    return Promise.all(
+      media.map(async (m) => {
+        if (hasExtension(m.path, 'mp4')) {
+          return m;
+        }
+        try {
+          const normalized = await toInstagramSafeAspect(m.path);
+          if (!normalized.startsWith('data:')) {
+            return m; // already in-band, or could not be processed
+          }
+          return { ...m, path: await this.storage.uploadSimple(normalized) };
+        } catch {
+          // A re-host hiccup must never block a post — fall back to the original
+          // media and let Meta's own validation/error handling take over.
+          return m;
+        }
+      })
+    );
+  }
+
   async post(
     id: string,
     token: string,
@@ -593,8 +631,12 @@ export class InstagramProvider
     console.log('in progress', id);
     const isStory = firstPost.settings.post_type === 'story';
     const isTrialReel = !!firstPost.settings.is_trial_reel;
+    const safeMedia = await this.toInstagramSafeMedia(
+      firstPost?.media,
+      isStory
+    );
     const medias = await Promise.all(
-      firstPost?.media?.map(async (m) => {
+      safeMedia.map(async (m) => {
         const caption =
           firstPost.media?.length === 1
             ? `&caption=${encodeURIComponent(firstPost.message)}`

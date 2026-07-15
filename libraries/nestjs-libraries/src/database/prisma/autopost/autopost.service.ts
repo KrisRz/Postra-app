@@ -22,9 +22,8 @@ import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/n
 import { OpenaiService } from '@gitroom/nestjs-libraries/openai/openai.service';
 import { SubscriptionService } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/subscription.service';
 import { UploadFactory } from '@gitroom/nestjs-libraries/upload/upload.factory';
-import { parseDataUrl } from '@gitroom/nestjs-libraries/upload/data.url';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
-import sharp from 'sharp';
+import { toInstagramSafeAspect } from '@gitroom/nestjs-libraries/integrations/social/instagram.aspect';
 import { TemporalService } from 'nestjs-temporal-core';
 import { TypedSearchAttributes } from '@temporalio/common';
 import {
@@ -518,81 +517,10 @@ export class AutopostService {
       return '';
     }
     try {
-      const normalized = await this.toInstagramSafeAspect(urlOrData);
+      const normalized = await toInstagramSafeAspect(urlOrData);
       return await storage.uploadSimple(normalized);
     } catch {
       return '';
-    }
-  }
-
-  // Instagram rejects feed images outside 4:5 (0.8) .. 1.91:1 with
-  // "Aspect ratio not supported". OG images are usually 1.91:1 but feeds also
-  // ship 16:9 (1.78 — fine) and tall/banner crops that fail. We center-crop the
-  // smallest amount to land inside the band so the post clears IG validation
-  // while staying byte-identical for FB/X/LinkedIn (they accept the cropped one
-  // too). On any failure we return the input untouched — never block the post.
-  private async toInstagramSafeAspect(urlOrData: string): Promise<string> {
-    const MIN = 0.8; // 4:5 portrait bound
-    const MAX = 1.91; // 1.91:1 landscape bound
-    // Crop targets sit just inside the bounds so rounding never pushes us back
-    // over Meta's strict limit.
-    const MIN_TARGET = 0.81;
-    const MAX_TARGET = 1.9;
-
-    try {
-      let buf: Buffer;
-      if (urlOrData.startsWith('data:')) {
-        const parsed = parseDataUrl(urlOrData);
-        if (!parsed) return urlOrData;
-        buf = parsed.buffer;
-      } else {
-        if (!(await isSafePublicHttpsUrl(urlOrData))) return urlOrData;
-        const res = await fetch(urlOrData, {
-          dispatcher: ssrfSafeDispatcher,
-          headers: { 'User-Agent': 'PostraBot/1.0' },
-          signal: AbortSignal.timeout(15000),
-        });
-        if (!res.ok) return urlOrData;
-        buf = Buffer.from(await res.arrayBuffer());
-      }
-
-      const img = sharp(buf, {
-        failOn: 'none',
-        // RSS OG images are remote/untrusted — same decompression-bomb cap
-        // as every other sharp call site (Faza A).
-        limitInputPixels: 100_000_000,
-      });
-      const meta = await img.metadata();
-      const w = meta.width || 0;
-      const h = meta.height || 0;
-      if (!w || !h) return urlOrData;
-
-      const ratio = w / h;
-      if (ratio >= MIN && ratio <= MAX) return urlOrData;
-
-      let targetW = w;
-      let targetH = h;
-      if (ratio > MAX) {
-        targetW = Math.round(h * MAX_TARGET); // too wide -> trim sides
-      } else {
-        targetH = Math.round(w / MIN_TARGET); // too tall -> trim top/bottom
-      }
-
-      const left = Math.max(0, Math.round((w - targetW) / 2));
-      const top = Math.max(0, Math.round((h - targetH) / 2));
-      const out = await img
-        .extract({
-          left,
-          top,
-          width: Math.min(targetW, w - left),
-          height: Math.min(targetH, h - top),
-        })
-        .jpeg({ quality: 85 })
-        .toBuffer();
-
-      return `data:image/jpeg;base64,${out.toString('base64')}`;
-    } catch {
-      return urlOrData;
     }
   }
 
