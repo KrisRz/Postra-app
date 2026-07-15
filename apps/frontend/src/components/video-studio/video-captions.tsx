@@ -218,12 +218,12 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
       <div className="text-[10px] text-textColor/40 leading-snug">
         {source
           ? t(
-              'video_captions_cost_browser',
-              'Transcription: ~$0.006/min (OpenAI credits). Captions are burned in the browser, in your Brand Kit colour/font.'
+              'video_captions_hint_browser',
+              'Captions are burned in right in your browser, styled with your Brand Kit colour and font — the original audio stays untouched.'
             )
           : t(
-              'video_captions_cost',
-              'Cost: ~$0.006/min of video (paid from OpenAI credits). Burning in returns a new MP4 file.'
+              'video_captions_hint',
+              'Burning in returns a new MP4 with the captions styled to your Brand Kit — the original audio stays untouched.'
             )}
       </div>
     </div>
