@@ -9,6 +9,7 @@ import {
   FAQ_ITEMS,
   SETTINGS_SECTIONS,
   STUDIO_GRAPHICS_TOOLS,
+  STUDIO_VIDEO_TOOLS,
 } from '@gitroom/frontend/components/help/help.data';
 
 const CONNECT_LABELS: Record<ChannelConnectType, string> = {
@@ -42,6 +43,7 @@ export const HelpComponent = () => {
     { id: 'channels', label: t('help_connecting_channels', 'Connecting channels') },
     { id: 'tabs', label: t('help_app_tabs', 'App tabs') },
     { id: 'studio', label: t('help_studio_graphics', 'Studio — Graphics') },
+    { id: 'studio-video', label: t('help_studio_video', 'Studio — Video') },
     { id: 'settings', label: t('help_settings_explained', 'Settings explained') },
     { id: 'faq', label: t('help_faq', 'FAQ') },
     { id: 'contact', label: t('help_contact', 'Contact') },
@@ -184,6 +186,31 @@ export const HelpComponent = () => {
           </div>
           <div className="flex flex-col gap-[12px]">
             {STUDIO_GRAPHICS_TOOLS.map((tool) => (
+              <div
+                key={tool.name}
+                className="flex flex-col gap-[8px] rounded-[12px] border border-white/10 bg-white/[0.02] p-[16px]"
+              >
+                <div className="text-[16px] font-[600]">{tool.name}</div>
+                <div className="text-[14px] text-newTextColor/70">
+                  {tool.description}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section
+          id="studio-video"
+          title={t('help_studio_video', 'Studio — Video')}
+        >
+          <div className="text-[13px] text-newTextColor/70">
+            {t(
+              'help_studio_video_intro',
+              'Short-form video editing that runs entirely in your browser — trim, reframe, caption and assemble clips without leaving Postra. Tool by tool:'
+            )}
+          </div>
+          <div className="flex flex-col gap-[12px]">
+            {STUDIO_VIDEO_TOOLS.map((tool) => (
               <div
                 key={tool.name}
                 className="flex flex-col gap-[8px] rounded-[12px] border border-white/10 bg-white/[0.02] p-[16px]"

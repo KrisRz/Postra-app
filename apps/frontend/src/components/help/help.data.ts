@@ -384,6 +384,51 @@ export const STUDIO_GRAPHICS_TOOLS: StudioToolGuide[] = [
   },
 ];
 
+// Studio → Video, in goal-screen / tab order. Facts come from the
+// video-studio code — keep in sync when tools change.
+export const STUDIO_VIDEO_TOOLS: StudioToolGuide[] = [
+  {
+    name: 'Start screen & loading a clip',
+    description:
+      'Pick what you came to do — the cards map to the editor tabs and Studio remembers your last choice. Load footage from disk or from your media library; editing happens in your browser, so clips are capped at 200 MB (use a shorter cut for anything bigger).',
+  },
+  {
+    name: 'Trim',
+    description:
+      'Drag the start and end handles, preview, and export just the part you want. The waveform helps you cut on the beat — a silent clip simply shows a flat line.',
+  },
+  {
+    name: 'Formats',
+    description:
+      'One clip, re-framed for every placement: 9:16 (Reels / TikTok / Stories), 1:1 (feed) and 16:9 (YouTube / X) with an automatic centre crop. Each variant can go to your library or straight into a post.',
+  },
+  {
+    name: 'AI Captions',
+    description:
+      'AI transcribes the clip (the language defaults to your app language), you edit the lines, then burn them in — styled to your Brand Kit, with the original audio untouched.',
+  },
+  {
+    name: 'Text on video',
+    description:
+      'Overlay a headline on the clip — position, size and colour (Brand Kit swatches included) — then render. Audio is preserved.',
+  },
+  {
+    name: 'Photos → video',
+    description:
+      'Turn up to 10 photos into a vertical slideshow: set the order and seconds per photo, add a headline, and a gentle Ken Burns motion makes it feel like video.',
+  },
+  {
+    name: 'Stock B-roll',
+    description:
+      'Search free Pixabay stock videos, preview them and import into your media library to cut into your edits.',
+  },
+  {
+    name: 'Exporting & requirements',
+    description:
+      'Every tool can send its result to a post ("Use in post"), keep it in your library ("Save to library") or download it. Rendering runs entirely in your browser — Chrome, Edge or Safari 16.4+ is required (WebCodecs); on an unsupported browser Studio tells you instead of failing silently.',
+  },
+];
+
 export const SETTINGS_SECTIONS: SettingsSectionGuide[] = [
   {
     name: 'Global Settings',
