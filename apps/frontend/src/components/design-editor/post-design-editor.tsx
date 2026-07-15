@@ -351,7 +351,10 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       try {
         await c.loadFromJSON(canvasJson);
         c.renderAll();
-        const dataUrl = c.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
+        // JPEG, not PNG: photo backgrounds make PNGs several MB and the upload
+        // dominates export time. The canvas is always opaque, platforms
+        // recompress anyway — only "Download PNG" keeps the lossless format.
+        const dataUrl = c.toDataURL({ format: 'jpeg', quality: 0.92, multiplier: 1 });
         return await (await window.fetch(dataUrl)).blob();
       } finally {
         c.dispose();
@@ -401,7 +404,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
           if (!slide.canvasJson) continue;
           const blob = await renderSlideToBlob(slide.canvasJson, platform.width, platform.height);
           const formData = new FormData();
-          formData.append('file', blob, `slide-${i + 1}.png`);
+          formData.append('file', blob, `slide-${i + 1}.jpg`);
           const data = await (
             await fetch('/media/upload-simple', {
               method: 'POST',
@@ -421,15 +424,16 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
       }
 
       const scale = 1 / fabricRef.current.getZoom();
+      // JPEG for the same reason as renderSlideToBlob — upload size dominates.
       const dataUrl = fabricRef.current.toDataURL({
-        format: 'png',
-        quality: 1,
+        format: 'jpeg',
+        quality: 0.92,
         multiplier: scale,
       });
 
       const blob = await (await window.fetch(dataUrl)).blob();
       const formData = new FormData();
-      formData.append('file', blob, 'design.png');
+      formData.append('file', blob, 'design.jpg');
 
       const data = await (
         await fetch('/media/upload-simple', {
@@ -478,14 +482,15 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     async (asTemplate: boolean) => {
       if (!fabricRef.current) return;
       const scale = 1 / fabricRef.current.getZoom();
+      // JPEG for the same reason as renderSlideToBlob — upload size dominates.
       const dataUrl = fabricRef.current.toDataURL({
-        format: 'png',
-        quality: 1,
+        format: 'jpeg',
+        quality: 0.92,
         multiplier: scale,
       });
       const blob = await (await window.fetch(dataUrl)).blob();
       const formData = new FormData();
-      formData.append('file', blob, asTemplate ? 'template.png' : 'design.png');
+      formData.append('file', blob, asTemplate ? 'template.jpg' : 'design.jpg');
       const data = await (
         await fetch('/media/upload-simple', { method: 'POST', body: formData })
       ).json();
