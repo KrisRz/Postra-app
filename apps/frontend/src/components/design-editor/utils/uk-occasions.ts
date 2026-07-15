@@ -52,6 +52,46 @@ const OCCASIONS: OccasionDef[] = [
     // 3rd Sunday of June.
     date: (y) => toIso(nthWeekday(y, 6, 0, 3)),
   },
+  // Summer/early-autumn occasions — no UK bank holiday falls between late May
+  // and late August, and with nothing curated between Father's Day and
+  // Halloween the occasions panel was a July→October desert.
+  {
+    localName: 'International Friendship Day',
+    name: 'International Friendship Day',
+    date: fixed(7, 30),
+  },
+  {
+    localName: 'International Beer Day',
+    name: 'International Beer Day',
+    // First Friday of August.
+    date: (y) => toIso(nthWeekday(y, 8, 5, 1)),
+  },
+  {
+    localName: 'International Dog Day',
+    name: 'International Dog Day',
+    date: fixed(8, 26),
+  },
+  {
+    localName: 'National Burger Day',
+    name: 'National Burger Day (UK)',
+    date: fixed(8, 27),
+  },
+  {
+    localName: 'Back to School',
+    name: 'Back to School',
+    // Season marker — most English schools return in the first week of September.
+    date: fixed(9, 1),
+  },
+  {
+    localName: 'International Coffee Day',
+    name: 'International Coffee Day',
+    date: fixed(10, 1),
+  },
+  {
+    localName: 'World Mental Health Day',
+    name: 'World Mental Health Day',
+    date: fixed(10, 10),
+  },
   { localName: 'Halloween', name: 'Halloween', date: fixed(10, 31) },
   { localName: 'Bonfire Night', name: 'Bonfire Night', date: fixed(11, 5) },
   {
