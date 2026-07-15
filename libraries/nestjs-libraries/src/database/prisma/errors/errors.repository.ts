@@ -9,6 +9,7 @@ interface ListErrorsParams {
   platform?: string;
   email?: string;
   unknownFirst?: boolean;
+  days?: number;
 }
 
 @Injectable()
@@ -29,6 +30,11 @@ export class ErrorsRepository {
             },
           },
         },
+      };
+    }
+    if (params.days && params.days > 0) {
+      where.createdAt = {
+        gte: new Date(Date.now() - params.days * 24 * 60 * 60 * 1000),
       };
     }
     return where;

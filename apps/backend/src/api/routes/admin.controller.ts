@@ -47,15 +47,19 @@ export class AdminController {
     @Query('limit') limit?: string,
     @Query('platform') platform?: string,
     @Query('email') email?: string,
-    @Query('unknownFirst') unknownFirst?: string
+    @Query('unknownFirst') unknownFirst?: string,
+    @Query('days') days?: string
   ) {
     this.assertSuperAdmin(user);
+    const parsedDays = days ? parseInt(days, 10) : 0;
     return this._errorsService.listErrors({
       page: page ? parseInt(page, 10) : 0,
       limit: limit ? parseInt(limit, 10) : 20,
       platform: platform || undefined,
       email: email || undefined,
       unknownFirst: unknownFirst === 'true' || unknownFirst === '1',
+      // 0 / missing / NaN = all time
+      days: Number.isFinite(parsedDays) && parsedDays > 0 ? parsedDays : undefined,
     });
   }
 
