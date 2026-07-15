@@ -9,6 +9,7 @@ import { useHolidays, getUpcomingHolidays } from '../utils/holidays';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import { useTranslation } from 'react-i18next';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { Button } from '@gitroom/frontend/components/ui/button';
 import { useBrandKit } from '@gitroom/frontend/components/video-studio/use-brand-kit';
@@ -30,6 +31,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
   const fetch = useFetch();
   const toaster = useToaster();
   const t = useT();
+  const { i18n } = useTranslation();
   const user = useUser();
   const allowed = !!user?.tier?.image_generator;
   const holidays = useHolidays();
@@ -67,6 +69,14 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
     setGenerating(true);
     try {
       const isCarousel = slidesCount > 1;
+      // On-image text follows the app language — without an explicit target a
+      // Polish brand-kit tone can tip the model into Polish even for an
+      // English prompt (see MediaService.createBrandedDraft).
+      const language = (i18n.resolvedLanguage ?? i18n.language ?? 'en')
+        .toLowerCase()
+        .startsWith('pl')
+        ? 'Polish'
+        : 'English';
       const res = isCarousel
         ? await fetch('/media/generate-carousel-design', {
             method: 'POST',
@@ -74,12 +84,13 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
               prompt,
               platform: platform.key,
               slidesCount,
+              language,
             }),
             signal: ctrl.signal,
           })
         : await fetch('/media/generate-post-design', {
             method: 'POST',
-            body: JSON.stringify({ prompt, platform: platform.key }),
+            body: JSON.stringify({ prompt, platform: platform.key, language }),
             signal: ctrl.signal,
           });
 
@@ -159,7 +170,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       if (abortRef.current === ctrl) abortRef.current = null;
       setGenerating(false);
     }
-  }, [canvas, aiPrompt, platform, isGenerating, fetch, toaster, t, setGenerating, pushHistory, slidesCount]);
+  }, [canvas, aiPrompt, platform, isGenerating, fetch, toaster, t, setGenerating, pushHistory, slidesCount, i18n]);
 
   if (!allowed) {
     return (
