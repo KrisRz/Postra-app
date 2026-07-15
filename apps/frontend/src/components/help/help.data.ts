@@ -220,6 +220,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     composer: [
       'Title (required), visibility (Public / Private / Unlisted), "Made for kids" flag and tags.',
       'Exactly one video per post; the post text becomes the video description (limit 5,000 characters).',
+      'First comments and threads are not available on YouTube.',
     ],
   },
   {
@@ -239,6 +240,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       '"Video made with AI" flag and branded-content disclosure (your brand / paid partnership).',
       'Photo posts additionally get a title and optional auto-added music.',
       'Caption limit: 2,000 characters.',
+      'First comments and threads are not available on TikTok.',
     ],
   },
 ];
@@ -362,5 +364,10 @@ export const FAQ_ITEMS: FaqItem[] = [
     question: 'Can I post to multiple channels at once?',
     answer:
       'Yes — pick several channels when composing. Use the per-channel tabs in the editor to tweak the content for each platform before scheduling.',
+  },
+  {
+    question: 'How do first comments and threads work?',
+    answer:
+      'Depending on the channel, the composer shows an extra button below your post. "Add comment" publishes a first comment right under the post on the platform — supported on Facebook (text and media), Instagram, LinkedIn and LinkedIn Page (text only) and Telegram. "Add post" chains additional posts into a thread — that\'s how X, Threads, Bluesky and Mastodon work. TikTok and YouTube support neither. Separately, the comments you see when opening a post on the Calendar are internal team notes — they are never published anywhere.',
   },
 ];
