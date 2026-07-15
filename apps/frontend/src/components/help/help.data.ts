@@ -324,6 +324,66 @@ export const APP_TABS: AppTabGuide[] = [
   },
 ];
 
+export interface StudioToolGuide {
+  name: string;
+  description: string;
+}
+
+// Studio → Graphics, tool by tool (left-toolbar order, then saving/export).
+// Facts come from the design-editor code — keep in sync when tools change.
+export const STUDIO_GRAPHICS_TOOLS: StudioToolGuide[] = [
+  {
+    name: 'AI Generate',
+    description:
+      'Describe your idea — or click an upcoming occasion chip (✎ copies it into the prompt for editing) — and AI builds the whole design in one step: a background image plus an editable headline, subtext and call-to-action in your Brand Kit colours. Takes about 5–10 seconds and uses one AI credit. Set SLIDES to 2–5 to get a multi-slide carousel instead of a single graphic.',
+  },
+  {
+    name: 'AI Refine',
+    description:
+      'Chat about the design already on the canvas: "shorter headline", "warmer colours", "move the logo to the corner". It edits the relevant elements instead of starting over, and every step lands in history (undo with Ctrl+Z). It restyles the design — it cannot retouch the photo itself; for that, add a stock image or regenerate with a changed prompt.',
+  },
+  {
+    name: 'Templates',
+    description:
+      'Ready-made layouts in eight categories (promo, quote, announcement, stats, tip, event, community, reel covers), previewed in your Brand Kit colours and current format. Applying one replaces the canvas — Ctrl+Z brings the previous design back. Your own designs saved with "Save as template" appear at the top under "Your templates".',
+  },
+  {
+    name: 'Brand Kit',
+    description:
+      'Your colours (primary, background, text), font, tone of voice and logo. It drives the whole Studio: AI Generate designs, template previews and video text styling all follow it — set it once and everything comes out in your brand.',
+  },
+  {
+    name: 'Select',
+    description:
+      'Click any element to open the "Selected object" panel: font size, bold/italic, alignment, outline colour and width, opacity and precise rotation. The colour swatches restyle whatever is selected.',
+  },
+  {
+    name: 'Text',
+    description:
+      'Add headlines and body copy, then change the font and colour with one click — or fine-tune in the "Selected object" panel.',
+  },
+  {
+    name: 'Shapes',
+    description:
+      'Fifteen ready-made shapes for badges, dividers and accents. Swatches colour the selected shape; with nothing selected they change the canvas background instead.',
+  },
+  {
+    name: 'Icons',
+    description:
+      'A built-in icon library with categories and search — click an icon to drop it onto the design.',
+  },
+  {
+    name: 'Images',
+    description:
+      'Upload your own photos or search free Pixabay stock (imported straight into your media library). With a photo on the canvas you also get filters (brightness, contrast, saturation, blur and black-and-white presets), background removal and a smart crop to the current format.',
+  },
+  {
+    name: 'Saving & export',
+    description:
+      '"Save to library" stores the finished graphic in Media, ready for any post; "Save as template" adds it to your templates; "Download PNG" saves a lossless file; "All formats" renders a variant for every platform size at once; "Use in Post" attaches the design to a post. The format bar at the bottom switches between platform sizes and repositions your layout, and Carousel mode edits multi-slide posts. Studio also keeps a draft automatically — leave and come back, and your design is restored.',
+  },
+];
+
 export const SETTINGS_SECTIONS: SettingsSectionGuide[] = [
   {
     name: 'Global Settings',
