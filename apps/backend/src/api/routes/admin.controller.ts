@@ -20,6 +20,7 @@ import { fetch } from 'undici';
 // Static import — a dynamic import('@gitroom/...') keeps the alias verbatim in
 // the compiled dist and crashes at runtime (Cannot find module).
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+import { bustAuthContextCache } from '@gitroom/nestjs-libraries/redis/auth-context.cache';
 
 @ApiTags('Admin')
 @Controller('/admin')
@@ -46,15 +47,19 @@ export class AdminController {
     @Query('limit') limit?: string,
     @Query('platform') platform?: string,
     @Query('email') email?: string,
-    @Query('unknownFirst') unknownFirst?: string
+    @Query('unknownFirst') unknownFirst?: string,
+    @Query('days') days?: string
   ) {
     this.assertSuperAdmin(user);
+    const parsedDays = days ? parseInt(days, 10) : 0;
     return this._errorsService.listErrors({
       page: page ? parseInt(page, 10) : 0,
       limit: limit ? parseInt(limit, 10) : 20,
       platform: platform || undefined,
       email: email || undefined,
       unknownFirst: unknownFirst === 'true' || unknownFirst === '1',
+      // 0 / missing / NaN = all time
+      days: Number.isFinite(parsedDays) && parsedDays > 0 ? parsedDays : undefined,
     });
   }
 
@@ -223,6 +228,53 @@ export class AdminController {
     }
 
     return report;
+  }
+
+  // God-mode toggle, deliberately separate from grant-lifetime: lifetime is
+  // an ULTIMATE subscription (full product, no admin panel), whereas this flips
+  // the global isSuperAdmin flag that gates /admin. isSuperAdmin is re-read from
+  // the DB on every request (sessions v2, not carried in the JWT), so busting
+  // the authctx cache makes the change take effect on the target's next request
+  // without a forced re-login.
+  @Post('/grant-admin')
+  async setAdmin(
+    @GetUserFromRequest() user: User,
+    @Body('userId') userId: string,
+    @Body('value') value: boolean
+  ) {
+    this.assertSuperAdmin(user);
+    if (!userId?.trim()) {
+      throw new HttpException('Missing userId', 400);
+    }
+    const next = value === true;
+    // Never let an admin strip their own access — that is the only way to lock
+    // the last person out of the panel. Revoking others is fine.
+    if (userId === user.id && !next) {
+      throw new HttpException('You cannot revoke your own admin access', 400);
+    }
+
+    const target = await this._prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, isSuperAdmin: true },
+    });
+    if (!target) {
+      throw new HttpException('User not found', 400);
+    }
+
+    if (target.isSuperAdmin !== next) {
+      await this._prisma.user.update({
+        where: { id: userId },
+        data: { isSuperAdmin: next },
+      });
+      await bustAuthContextCache(userId);
+      this._auditService.record({
+        action: next ? 'admin.grant-admin' : 'admin.revoke-admin',
+        userId: user.id,
+        metadata: { targetUserId: userId, email: target.email },
+      });
+    }
+
+    return { id: userId, isSuperAdmin: next };
   }
 
   @Get('/metrics')
@@ -431,7 +483,7 @@ export class AdminController {
     // NOTE: AI usage is reported from `credits` (real, billable usage). Mastra's
     // own span tables (mastra_ai_spans) are @@ignore'd in the Prisma schema (no @id),
     // so they are NOT in the generated client and cannot be queried via this._prisma.
-    const [creditsByType, creditsByOrg, creditsByDay] = await Promise.all([
+    const [creditsByType, creditsByOrg, creditsByHour] = await Promise.all([
       this._prisma.credits.groupBy({
         by: ['type'],
         where: { createdAt: { gte: fromDate, lte: toDate } },
@@ -445,12 +497,15 @@ export class AdminController {
         orderBy: { _sum: { credits: 'desc' } },
         take: 10,
       }),
-      this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
-        SELECT DATE("createdAt") as day, SUM("credits")::bigint as count
+      // Hourly buckets (UTC timestamps). The frontend folds these into local
+      // days and an hour-of-day breakdown, so a daily spike can be attributed
+      // to a morning/evening instead of just a date.
+      this._prisma.$queryRaw<Array<{ hour: Date; count: bigint }>>`
+        SELECT date_trunc('hour', "createdAt") as hour, SUM("credits")::bigint as count
         FROM "Credits"
         WHERE "createdAt" >= ${fromDate} AND "createdAt" <= ${toDate}
-        GROUP BY DATE("createdAt")
-        ORDER BY day
+        GROUP BY 1
+        ORDER BY 1
       `,
     ]);
 
@@ -489,8 +544,8 @@ export class AdminController {
         orgName: orgMap.get(c.organizationId) || 'Unknown',
         totalCredits: c._sum.credits || 0,
       })),
-      byDay: creditsByDay.map((r) => ({
-        day: String(r.day).slice(0, 10),
+      byHour: creditsByHour.map((r) => ({
+        hour: new Date(r.hour).toISOString(),
         count: Number(r.count),
       })),
       text: {

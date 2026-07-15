@@ -8,6 +8,8 @@ export type AuditAction =
   | 'auth.password.reset'
   | 'admin.impersonate'
   | 'admin.grant-lifetime'
+  | 'admin.grant-admin'
+  | 'admin.revoke-admin'
   | 'integration.connect'
   | 'integration.disconnect'
   | 'subscription.change'

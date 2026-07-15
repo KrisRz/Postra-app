@@ -7,7 +7,12 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
-import { AdminButton as Button, adminInput, adminSelect } from './admin-ui';
+import {
+  AdminButton as Button,
+  adminInput,
+  adminSegment,
+  adminSelect,
+} from './admin-ui';
 import { LoadingComponent } from '@gitroom/frontend/components/layout/loading';
 
 interface ErrorRow {
@@ -150,6 +155,7 @@ const useErrorsList = (params: {
   platform: string;
   email: string;
   unknownFirst: boolean;
+  days: number;
 }) => {
   const fetch = useFetch();
   const query = new URLSearchParams({
@@ -158,6 +164,7 @@ const useErrorsList = (params: {
     ...(params.platform ? { platform: params.platform } : {}),
     ...(params.email ? { email: params.email } : {}),
     unknownFirst: params.unknownFirst ? 'true' : 'false',
+    ...(params.days > 0 ? { days: String(params.days) } : {}),
   });
   const key = `/admin/errors?${query.toString()}`;
   return useSWR<ErrorsResponse>(key, async (url: string) => {
@@ -179,7 +186,12 @@ export const AdminErrorsComponent: FC = () => {
   const [platform, setPlatform] = useState('');
   const [email, setEmail] = useState('');
   const [emailInput, setEmailInput] = useState('');
-  const [unknownFirst, setUnknownFirst] = useState(true);
+  // Newest-first by default — unknown-first floats weeks-old rows to the top
+  // and makes the list read as stale, so it is opt-in.
+  const [unknownFirst, setUnknownFirst] = useState(false);
+  // Default to the last 7 days; the all-time table keeps every failed publish
+  // attempt ever (no retention), which is a museum, not a status view.
+  const [rangeDays, setRangeDays] = useState(7);
 
   const { data: platforms } = usePlatformsList();
   const { data, isLoading, error } = useErrorsList({
@@ -188,6 +200,7 @@ export const AdminErrorsComponent: FC = () => {
     platform,
     email,
     unknownFirst,
+    days: rangeDays,
   });
 
   const onApplyEmail = useCallback(() => {
@@ -200,6 +213,7 @@ export const AdminErrorsComponent: FC = () => {
     setEmail('');
     setEmailInput('');
     setPlatform('');
+    setRangeDays(7);
   }, []);
 
   const openDetails = useCallback(
@@ -242,10 +256,29 @@ export const AdminErrorsComponent: FC = () => {
 
   return (
     <div className="flex flex-col gap-[16px] text-textColor">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-[8px]">
         <div className="text-[20px] font-[600]">Errors</div>
-        <div className="text-[13px] opacity-70">
-          {data ? `${data.total} total` : ''}
+        <div className="flex items-center gap-[12px]">
+          <div className="text-[13px] opacity-70">
+            {data
+              ? `${data.total} ${rangeDays > 0 ? `in last ${rangeDays}d` : 'all time'}`
+              : ''}
+          </div>
+          <div className="flex gap-[6px]">
+            {[7, 30, 90, 0].map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => {
+                  setPage(0);
+                  setRangeDays(d);
+                }}
+                className={adminSegment(rangeDays === d)}
+              >
+                {d > 0 ? `${d}d` : 'All'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

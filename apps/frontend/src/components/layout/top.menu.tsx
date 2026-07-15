@@ -325,7 +325,11 @@ export const TopMenu: FC = () => {
                 if (f.hide) {
                   return false;
                 }
-                if (f.superAdminOnly && !user?.isSuperAdmin) {
+                // While impersonating, the backend keeps isSuperAdmin=true on
+                // the session (so the admin can un-impersonate), but the whole
+                // point is to see the app as the real user does — so hide the
+                // admin-only entries here.
+                if (f.superAdminOnly && (!user?.isSuperAdmin || user?.impersonate)) {
                   return false;
                 }
                 if (f.requireBilling && !billingEnabled) {
@@ -359,7 +363,8 @@ export const TopMenu: FC = () => {
             if (f.hide) {
               return false;
             }
-            if (f.superAdminOnly && !user?.isSuperAdmin) {
+            // Impersonation hides admin-only entries — see the firstMenu note.
+            if (f.superAdminOnly && (!user?.isSuperAdmin || user?.impersonate)) {
               return false;
             }
             if (f.requireBilling && !billingEnabled) {

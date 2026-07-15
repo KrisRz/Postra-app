@@ -205,6 +205,54 @@ export const AdminUsersComponent = () => {
     [t, mutate]
   );
 
+  // Super-admin toggle — deliberately separate from Grant lifetime. Lifetime is
+  // a full-product subscription with NO admin panel; this flips isSuperAdmin,
+  // which is the only thing that unlocks /admin and god-mode.
+  const setAdmin = useCallback(
+    (u: UserItem) => async () => {
+      const grant = !u.isSuperAdmin;
+      if (
+        !(await deleteDialog(
+          grant
+            ? t(
+                'grant_admin_confirm',
+                `Grant super-admin to ${u.email}? This unlocks the Admin panel and god-mode across every org — it takes effect on their next page load.`
+              )
+            : t(
+                'revoke_admin_confirm',
+                `Revoke super-admin from ${u.email}? They lose the Admin panel on their next request.`
+              ),
+          grant
+            ? t('grant_admin', 'Grant admin')
+            : t('revoke_admin', 'Revoke admin')
+        ))
+      ) {
+        return;
+      }
+      const res = await fetch('/admin/grant-admin', {
+        method: 'POST',
+        body: JSON.stringify({ userId: u.id, value: grant }),
+      });
+      if (!res.ok) {
+        toaster.show(
+          grant
+            ? t('grant_admin_failed', 'Failed to grant admin')
+            : t('revoke_admin_failed', 'Failed to revoke admin'),
+          'warning'
+        );
+        return;
+      }
+      toaster.show(
+        grant
+          ? t('grant_admin_done', 'Admin granted')
+          : t('revoke_admin_done', 'Admin revoked'),
+        'success'
+      );
+      await mutate();
+    },
+    [t, mutate]
+  );
+
   return (
     <div className="flex flex-col gap-[20px]">
       <h2 className="text-[20px] font-[600]">
@@ -370,6 +418,21 @@ export const AdminUsersComponent = () => {
                         className="px-[12px] h-[30px] rounded-[8px] text-[12px] border border-[rgba(167,139,250,0.4)] text-[#a78bfa] hover:bg-[rgba(167,139,250,0.1)] cursor-pointer transition-colors"
                       >
                         {t('grant_lifetime', 'Grant lifetime')}
+                      </button>
+                    )}
+                    {u.id !== user?.id && (
+                      <button
+                        type="button"
+                        onClick={setAdmin(u)}
+                        className={`px-[12px] h-[30px] rounded-[8px] text-[12px] border cursor-pointer transition-colors ${
+                          u.isSuperAdmin
+                            ? 'border-[rgba(248,113,113,0.4)] text-[#f87171] hover:bg-[rgba(248,113,113,0.1)]'
+                            : 'border-[rgba(56,189,248,0.4)] text-[#38bdf8] hover:bg-[rgba(56,189,248,0.1)]'
+                        }`}
+                      >
+                        {u.isSuperAdmin
+                          ? t('revoke_admin', 'Revoke admin')
+                          : t('grant_admin', 'Grant admin')}
                       </button>
                     )}
                   </div>

@@ -11,6 +11,7 @@ export class ErrorsService {
     platform?: string;
     email?: string;
     unknownFirst?: boolean;
+    days?: number;
   }) {
     return this._errorsRepository.listErrors(params);
   }
