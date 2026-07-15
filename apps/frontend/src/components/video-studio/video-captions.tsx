@@ -6,7 +6,8 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Button } from '@gitroom/frontend/components/ui/button';
-import { composeVideo, ClipTooLongError } from './compositor-pipeline';
+import * as Sentry from '@sentry/nextjs';
+import { composeVideo, ClipTooLongError, UnsupportedCodecError } from './compositor-pipeline';
 import { parseSrt, captionAt } from './srt';
 import {
   fontFamilyForLabel,
@@ -142,10 +143,16 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('[Postra:captions] burn failed:', err);
+      Sentry.captureException(err);
       toaster.show(
         err instanceof ClipTooLongError
           ? t('clip_too_long', 'Clip is too long to edit in the browser (5 min limit). Use a shorter one.')
-          : t('video_burn_failed', 'Burning captions failed.'),
+          : err instanceof UnsupportedCodecError
+          ? t(
+              'clip_codec_unsupported',
+              "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again."
+            )
+          : t('video_burn_failed', 'Burning captions failed. Try a different clip — our team has been notified.'),
         'warning'
       );
     } finally {

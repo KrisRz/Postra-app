@@ -54,6 +54,13 @@ export interface ComposeResult {
 /** Thrown when a clip is too long to render in the browser. */
 export class ClipTooLongError extends Error {}
 
+/** Thrown when the browser can't decode the clip's video codec (e.g. HEVC). */
+export class UnsupportedCodecError extends Error {
+  constructor(public readonly codec: string | null) {
+    super(`Browser cannot decode video codec: ${codec ?? 'unknown'}`);
+  }
+}
+
 /**
  * Browser encoding holds the pipeline in memory and runs on the local GPU/CPU,
  * so cap clip length. Longer clips belong on the server-side ffmpeg path.
@@ -66,6 +73,12 @@ export async function composeVideo(opts: ComposeOptions): Promise<ComposeResult>
   const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
   const videoTrack = await input.getPrimaryVideoTrack();
   if (!videoTrack) throw new Error('No video track in file');
+
+  // Fail with a nameable reason instead of a cryptic decoder error mid-loop —
+  // iPhone HEVC clips are the classic case Chrome can't always decode.
+  if (!(await videoTrack.canDecode())) {
+    throw new UnsupportedCodecError(videoTrack.codec);
+  }
 
   const width = videoTrack.displayWidth;
   const height = videoTrack.displayHeight;
