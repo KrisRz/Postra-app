@@ -55,7 +55,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
     composer: [
       'No extra settings tab — Telegram needs no per-post options.',
-      'Supports a first comment: click "Add comment" to attach a message published right under the post.',
+      'First comments: click "Add comment" to attach messages published right under the post. You can add several, and each has a Delay option (1 min – 2 h presets or a custom gap after the previous one).',
     ],
   },
   {
@@ -74,7 +74,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'Enter the full handle, including .bsky.social (or your custom domain).',
     ],
     composer: [
-      'Character limit: 300. For longer content click "Add post" to build a thread.',
+      'Character limit: 300. For longer content click "Add post" to build a thread — each follow-up post can have its own Delay (1 min – 2 h or a custom gap after the previous one).',
       'Settings tab: optional "thread finisher" — a closing post appended at the end of a thread.',
       'Media: up to 4 images or 1 video per post.',
     ],
@@ -93,7 +93,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
     composer: [
       'No extra settings tab.',
-      'Character limit: 500. For longer content click "Add post" to build a thread.',
+      'Character limit: 500. For longer content click "Add post" to build a thread — each follow-up post can have its own Delay (1 min – 2 h or a custom gap).',
     ],
   },
   {
@@ -112,7 +112,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     composer: [
       'Post Type: Post or Story (a Story needs at least one image or video).',
       'Embedded URL: attach a link preview to a text-only post.',
-      'Supports a first comment (text and media) published right after the post.',
+      'First comments: click "Add comment" — text and media. You can add several, and each has a Delay option (1 min – 2 h presets or a custom gap after the previous one).',
       "Character limit: 63,206 — effectively you won't hit it.",
     ],
   },
@@ -133,7 +133,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'Post Type: Post, Reel or Story.',
       "Collaborators: invite up to 3 public accounts to co-author (not available for Stories).",
       'Trial Reel: show a Reel to non-followers first, with manual or performance-based graduation to everyone.',
-      'Supports a first comment (text only).',
+      'First comments: click "Add comment" — text only on Instagram. You can add several, each with its own Delay (1 min – 2 h or a custom gap).',
       'Media is required; carousels take up to 10 items. Caption limit: 2,200 characters.',
     ],
   },
@@ -149,7 +149,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'Threads connects separately from Instagram — connect both if you post to both.',
     ],
     composer: [
-      'Character limit: 500. Click "Add post" to build a thread.',
+      'Character limit: 500. Click "Add post" to build a thread — each follow-up post can have its own Delay (1 min – 2 h or a custom gap).',
       'Settings tab: optional "thread finisher" — a closing post appended at the end of a thread.',
     ],
   },
@@ -167,7 +167,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'Who can reply: Everyone, accounts you follow, mentioned accounts, subscribers or verified accounts.',
       'Post to a community: paste the community URL.',
       '"Made with AI" and "Paid partnership" flags.',
-      'Click "Add post" to build a thread; optional thread finisher.',
+      'Click "Add post" to build a thread; each follow-up post can have its own Delay (1 min – 2 h or a custom gap). Optional thread finisher.',
       'Character limit: 280 (4,000 if your X account has Premium).',
     ],
   },
@@ -185,7 +185,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
     composer: [
       '"Post as images carousel": turns 2+ attached images into a carousel document (you name the slide deck).',
-      'Supports a first comment (text only).',
+      'First comments: click "Add comment" — text only on LinkedIn. You can add several, each with its own Delay (1 min – 2 h or a custom gap).',
       'Character limit: 3,000.',
     ],
   },
@@ -202,7 +202,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       "You need to be an administrator of the company page — if the list is empty, ask the page owner to make you an admin on LinkedIn.",
     ],
     composer: [
-      'Same options as LinkedIn: images carousel, first comment (text only), 3,000-character limit.',
+      'Same options as LinkedIn: images carousel, first comments (text only, several allowed, each with its own Delay), 3,000-character limit.',
     ],
   },
   {
@@ -368,6 +368,6 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: 'How do first comments and threads work?',
     answer:
-      'Depending on the channel, the composer shows an extra button below your post. "Add comment" publishes a first comment right under the post on the platform — supported on Facebook (text and media), Instagram, LinkedIn and LinkedIn Page (text only) and Telegram. "Add post" chains additional posts into a thread — that\'s how X, Threads, Bluesky and Mastodon work. TikTok and YouTube support neither. Separately, the comments you see when opening a post on the Calendar are internal team notes — they are never published anywhere.',
+      'Depending on the channel, the composer shows an extra button below your post. "Add comment" publishes a first comment right under the post on the platform — supported on Facebook (text and media), Instagram, LinkedIn and LinkedIn Page (text only) and Telegram. "Add post" chains additional posts into a thread — that\'s how X, Threads, Bluesky and Mastodon work. In both cases you can add several entries, reorder them, and give each one a Delay (1 min – 2 h presets or a custom number of minutes) so it publishes that long after the previous one. TikTok and YouTube support neither. Separately, the comments you see when opening a post on the Calendar are internal team notes — they are never published anywhere.',
   },
 ];
