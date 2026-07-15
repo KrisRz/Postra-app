@@ -479,7 +479,7 @@ export class AdminController {
     // NOTE: AI usage is reported from `credits` (real, billable usage). Mastra's
     // own span tables (mastra_ai_spans) are @@ignore'd in the Prisma schema (no @id),
     // so they are NOT in the generated client and cannot be queried via this._prisma.
-    const [creditsByType, creditsByOrg, creditsByDay] = await Promise.all([
+    const [creditsByType, creditsByOrg, creditsByHour] = await Promise.all([
       this._prisma.credits.groupBy({
         by: ['type'],
         where: { createdAt: { gte: fromDate, lte: toDate } },
@@ -493,12 +493,15 @@ export class AdminController {
         orderBy: { _sum: { credits: 'desc' } },
         take: 10,
       }),
-      this._prisma.$queryRaw<Array<{ day: string; count: bigint }>>`
-        SELECT DATE("createdAt") as day, SUM("credits")::bigint as count
+      // Hourly buckets (UTC timestamps). The frontend folds these into local
+      // days and an hour-of-day breakdown, so a daily spike can be attributed
+      // to a morning/evening instead of just a date.
+      this._prisma.$queryRaw<Array<{ hour: Date; count: bigint }>>`
+        SELECT date_trunc('hour', "createdAt") as hour, SUM("credits")::bigint as count
         FROM "Credits"
         WHERE "createdAt" >= ${fromDate} AND "createdAt" <= ${toDate}
-        GROUP BY DATE("createdAt")
-        ORDER BY day
+        GROUP BY 1
+        ORDER BY 1
       `,
     ]);
 
@@ -537,8 +540,8 @@ export class AdminController {
         orgName: orgMap.get(c.organizationId) || 'Unknown',
         totalCredits: c._sum.credits || 0,
       })),
-      byDay: creditsByDay.map((r) => ({
-        day: String(r.day).slice(0, 10),
+      byHour: creditsByHour.map((r) => ({
+        hour: new Date(r.hour).toISOString(),
         count: Number(r.count),
       })),
       text: {
