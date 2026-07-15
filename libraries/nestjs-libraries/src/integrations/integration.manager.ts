@@ -86,6 +86,7 @@ const enabledProviders = new Set([
   'telegram',
   'threads',
   'x',
+  'discord',
 ]);
 
 const hiddenProviders = new Set([

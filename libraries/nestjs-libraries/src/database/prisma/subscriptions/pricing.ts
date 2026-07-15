@@ -50,6 +50,7 @@ const BUSINESS_PROVIDERS = [
   'bluesky',
   'telegram',
   'x',
+  'discord',
 ];
 
 export const pricing: PricingInterface = {
