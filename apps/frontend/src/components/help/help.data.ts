@@ -113,10 +113,12 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'The bot needs permission to post in the target channel — if a post fails, check the bot\'s role can View Channel and Send Messages there.',
       'Always pick a channel in the Discord settings tab before publishing — without one there is nowhere to post.',
       'Keep the bot on the server — removing it stops publishing.',
+      'Media size limit is set by Discord and depends on the server\'s Boost level: 10 MB with no Boost, 50 MB at Boost Level 2, 100 MB at Level 3. A larger file (typically a video) fails with a size error — use a smaller file or boost the server.',
     ],
     composer: [
       'Settings tab: choose which channel of the connected server to publish to (required).',
       'Character limit: 1,980.',
+      'Media size limit: 10 MB per file on a server with no Boost (higher with server Boosts). Large videos may not fit.',
       'First comments: click "Add comment" to post follow-up messages in the same channel right after the post; each can have its own Delay (1 min – 2 h or a custom gap).',
     ],
   },
