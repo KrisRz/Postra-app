@@ -813,7 +813,7 @@
   "template_kept_photo": "Szablon nałożony na Twoje zdjęcie — cofnij Ctrl+Z, jeśli wolisz czysty projekt.",
   "template_apply_failed": "Nie udało się zastosować szablonu",
   "template_coming_soon": "Wkrótce więcej szablonów w tej kategorii",
-  "template_hint": "Szablon nadpisuje aktualny canvas. Możesz cofnąć przez Ctrl+Z.",
+  "template_hint": "Szablon nadpisuje aktualny canvas (cofniesz przez Ctrl+Z). Kolory pochodzą z Twojego Brand Kitu — a każdy element pozostaje edytowalny: zaznacz go, by zmienić kolor, tekst czy rozmiar.",
   "welcome_title": "Witaj w Studio",
   "welcome_subtitle": "Twórz grafiki na social media w sekundy. Od czego chcesz zacząć?",
   "welcome_cta_templates": "Zacznij od szablonu",

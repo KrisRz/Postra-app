@@ -813,7 +813,7 @@
   "template_kept_photo": "Template applied on your photo — undo with Ctrl+Z for a clean slate.",
   "template_apply_failed": "Could not apply template",
   "template_coming_soon": "More templates coming soon in this category",
-  "template_hint": "Template overwrites current canvas. Undo with Ctrl+Z.",
+  "template_hint": "A template overwrites the current canvas (undo with Ctrl+Z). Colours come from your Brand Kit — and every element stays editable: select it to change its colour, text or size.",
   "welcome_title": "Welcome to Studio",
   "welcome_subtitle": "Create social media graphics in seconds. Where do you want to start?",
   "welcome_cta_templates": "Start from template",
