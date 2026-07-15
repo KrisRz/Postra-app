@@ -180,6 +180,15 @@ export class DiscordProvider extends SocialAbstract implements SocialProvider {
       })
     ).json();
 
+    // this.fetch throws on a non-2xx status, but Discord can still answer 2xx
+    // without a message id (e.g. an unexpected body) — don't report a fake
+    // success with a .../undefined link; surface it as a real failure.
+    if (!data?.id) {
+      throw new Error(
+        `Discord returned no message id: ${JSON.stringify(data)}`
+      );
+    }
+
     return [
       {
         id: firstPost.id,
@@ -265,6 +274,12 @@ export class DiscordProvider extends SocialAbstract implements SocialProvider {
         }
       )
     ).json();
+
+    if (!data?.id) {
+      throw new Error(
+        `Discord returned no message id: ${JSON.stringify(data)}`
+      );
+    }
 
     return [
       {
