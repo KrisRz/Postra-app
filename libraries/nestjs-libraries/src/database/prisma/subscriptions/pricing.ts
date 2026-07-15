@@ -141,8 +141,8 @@ export const pricing: PricingInterface = {
     month_price: 79,
     year_price: 790,
     // Every provider in BUSINESS_PROVIDERS — keep in sync when enabling a
-    // new channel globally (X added 2026-07).
-    channel: 11,
+    // new channel globally (X added 2026-07, Discord added 2026-07).
+    channel: 12,
     allowedProviders: BUSINESS_PROVIDERS,
     posts_per_month: 1000000,
     image_generation_count: 600,

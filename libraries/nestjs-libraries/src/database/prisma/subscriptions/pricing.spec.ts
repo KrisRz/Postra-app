@@ -21,11 +21,11 @@ describe('pricing matrix', () => {
     }
   });
 
-  it('keeps channel slots at FREE=3, Starter=3, Pro=6, Business=11', () => {
+  it('keeps channel slots at FREE=3, Starter=3, Pro=6, Business=12', () => {
     expect(pricing.FREE.channel).toBe(3);
     expect(pricing.STANDARD.channel).toBe(3);
     expect(pricing.PRO.channel).toBe(6);
-    expect(pricing.ULTIMATE.channel).toBe(11);
+    expect(pricing.ULTIMATE.channel).toBe(12);
   });
 
   it('gives Business a slot for every provider in its allowlist', () => {
@@ -61,6 +61,7 @@ describe('pricing matrix', () => {
       'bluesky',
       'telegram',
       'x',
+      'discord',
     ]);
   });
 
