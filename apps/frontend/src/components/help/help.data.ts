@@ -51,7 +51,8 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       "The bot must have the \"Post Messages\" admin permission — without it the connect code isn't detected and publishing fails.",
       "Send the /connect message in the channel or group you're connecting, not in a private chat with the bot.",
       'Posts are published by the bot, so keep it in the channel — removing it stops publishing.',
-      'Telegram posts allow up to 4,096 characters with formatting and images — often more room than other platforms.',
+      'Media size limits (set by Telegram): images up to 10 MB, videos up to 50 MB. Larger files fail with a size error on the post.',
+      'Character limit: 4,096 for text-only posts. With media attached, the text becomes the media caption, which Telegram limits to 1,024 characters.',
     ],
     composer: [
       'No extra settings tab — Telegram needs no per-post options.',
