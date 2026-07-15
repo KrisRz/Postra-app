@@ -40,4 +40,12 @@ export class GeneratePostCarouselDto {
   @ValidateNested()
   @Type(() => BrandKitDto)
   brandKit?: BrandKitDto;
+
+  // Language for the on-slide text (headline/subtext/cta). When omitted the
+  // generator detects it from the prompt — a brand kit written in another
+  // language can tip that detection, so UI callers pass it explicitly.
+  @IsString()
+  @IsOptional()
+  @MaxLength(40)
+  language?: string;
 }

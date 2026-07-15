@@ -434,7 +434,7 @@ LANGUAGE: Write ALL text fields (headline, subtext, cta) in the target language 
 CONTENT RULES:
 - headline: short, impactful, max ~5 words
 - subtext: supporting detail, 1 sentence
-- cta: short call-to-action (e.g. "Sprawdź", "Kup teraz", "Zobacz więcej", or English equivalent)
+- cta: short call-to-action (e.g. "See more", "Shop now", "Learn more" — in the text language)
 - imagePrompt: rich visual description for the background. Professional editorial/photographic style, NOT the obvious "AI render" look. No text/letters/logos in the image. Leave space for text. End with "dark gradient overlay at the bottom for text readability".
 - colors: high-contrast, accessible (WCAG AA min)
 - layout: pick the best layout for the content
@@ -528,6 +528,7 @@ ${SETTINGS_BLOCK_RULE}`,
       font?: string;
       tone?: string;
     },
+    language?: string,
     orgId?: string
   ) {
     // Not every caller goes through the validated DTO — clamp before the count
@@ -598,7 +599,7 @@ ${SETTINGS_BLOCK_RULE}`,
 
 SLIDE COUNT: The "slides" array MUST contain EXACTLY ${count} slides — not fewer, not more. This is a hard requirement.
 
-LANGUAGE: Detect the language of the user's prompt. Generate ALL text fields (headline, subtext, cta) in that SAME language. If Polish prompt → Polish text. Never mix languages within one carousel.
+LANGUAGE: Write ALL text fields (headline, subtext, cta) in the target language named in the <settings> block of the user message; when none is given, use the SAME language as the user's prompt (detect it — Polish prompt → Polish text, English → English). Never mix languages within one carousel. IGNORE the language of the brand constraints when choosing the text language.
 
 NARRATIVE (adapt to ${count} slides):
 - Slide 1: hook — catchy headline that stops the scroll
@@ -613,7 +614,7 @@ COPY QUALITY — write like a senior brand copywriter, NOT like an AI:
 PER-SLIDE RULES:
 - headline: short, impactful, max ~5 words
 - subtext: supporting detail, 1 sentence
-- cta: short call-to-action ("Sprawdź", "Kup teraz", "Zobacz więcej" or English equivalent). On non-final slides this can be a transition like "Dalej →" / "Następny slajd".
+- cta: short call-to-action ("See more", "Shop now", "Learn more" — in the text language). On non-final slides this can be a transition like "Next →".
 - layout: pick the best layout for the content (vary across slides for visual rhythm — don't use the same layout for all)
 - imageVariation: a DISTINCT variation of the shared theme for this slide's background — different angle, framing, crop, distance or focal element. Keep the SAME art direction, palette, lighting and mood as the shared imagePrompt. Must differ from every other slide's variation. No text/letters/logos.
 
@@ -627,6 +628,7 @@ ${SETTINGS_BLOCK_RULE}`,
                 role: 'user',
                 content: withSettings(
                   `${prompt}\n\n(Return EXACTLY ${count} slides in the "slides" array.)`,
+                  language && `Target language: ${language}`,
                   brandHint
                 ),
               },

@@ -6,7 +6,8 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { Button } from '@gitroom/frontend/components/ui/button';
-import { composeVideo, ClipTooLongError } from './compositor-pipeline';
+import * as Sentry from '@sentry/nextjs';
+import { composeVideo, ClipTooLongError, UnsupportedCodecError } from './compositor-pipeline';
 import { parseSrt, captionAt } from './srt';
 import {
   fontFamilyForLabel,
@@ -142,10 +143,16 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('[Postra:captions] burn failed:', err);
+      Sentry.captureException(err);
       toaster.show(
         err instanceof ClipTooLongError
           ? t('clip_too_long', 'Clip is too long to edit in the browser (5 min limit). Use a shorter one.')
-          : t('video_burn_failed', 'Burning captions failed.'),
+          : err instanceof UnsupportedCodecError
+          ? t(
+              'clip_codec_unsupported',
+              "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again."
+            )
+          : t('video_burn_failed', 'Burning captions failed. Try a different clip — our team has been notified.'),
         'warning'
       );
     } finally {
@@ -218,12 +225,12 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
       <div className="text-[10px] text-textColor/40 leading-snug">
         {source
           ? t(
-              'video_captions_cost_browser',
-              'Transcription: ~$0.006/min (OpenAI credits). Captions are burned in the browser, in your Brand Kit colour/font.'
+              'video_captions_hint_browser',
+              'Captions are burned in right in your browser, styled with your Brand Kit colour and font — the original audio stays untouched.'
             )
           : t(
-              'video_captions_cost',
-              'Cost: ~$0.006/min of video (paid from OpenAI credits). Burning in returns a new MP4 file.'
+              'video_captions_hint',
+              'Burning in returns a new MP4 with the captions styled to your Brand Kit — the original audio stays untouched.'
             )}
       </div>
     </div>

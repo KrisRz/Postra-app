@@ -54,6 +54,13 @@ export interface ComposeResult {
 /** Thrown when a clip is too long to render in the browser. */
 export class ClipTooLongError extends Error {}
 
+/** Thrown when the browser can't decode the clip's video codec (e.g. HEVC). */
+export class UnsupportedCodecError extends Error {
+  constructor(public readonly codec: string | null) {
+    super(`Browser cannot decode video codec: ${codec ?? 'unknown'}`);
+  }
+}
+
 /**
  * Browser encoding holds the pipeline in memory and runs on the local GPU/CPU,
  * so cap clip length. Longer clips belong on the server-side ffmpeg path.
@@ -66,6 +73,12 @@ export async function composeVideo(opts: ComposeOptions): Promise<ComposeResult>
   const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
   const videoTrack = await input.getPrimaryVideoTrack();
   if (!videoTrack) throw new Error('No video track in file');
+
+  // Fail with a nameable reason instead of a cryptic decoder error mid-loop —
+  // iPhone HEVC clips are the classic case Chrome can't always decode.
+  if (!(await videoTrack.canDecode())) {
+    throw new UnsupportedCodecError(videoTrack.codec);
+  }
 
   const width = videoTrack.displayWidth;
   const height = videoTrack.displayHeight;
@@ -117,16 +130,29 @@ export async function composeVideo(opts: ComposeOptions): Promise<ComposeResult>
     if (!audioSource || !audioTrack) return;
     const sink = new EncodedPacketSink(audioTrack);
     let first = true;
+    // AAC priming / edit lists stamp the first packet(s) with a small negative
+    // timestamp (e.g. -0.023s) and the muxer rejects negatives — shift the
+    // whole track forward by the initial offset; relative timing is preserved.
+    let shift = 0;
     for await (const packet of sink.packets()) {
       if (signal?.aborted) break;
+      if (first && packet.timestamp < 0) shift = -packet.timestamp;
+      const adjusted =
+        shift > 0 || packet.timestamp < 0
+          ? packet.clone({ timestamp: Math.max(0, packet.timestamp + shift) })
+          : packet;
       await audioSource.add(
-        packet,
+        adjusted,
         first ? { decoderConfig: audioDecoderConfig! } : undefined
       );
       first = false;
     }
     audioSource.close();
   })();
+  // Failures here re-throw at `await audioPump` below; without this parked
+  // catch, a rejection during the (long) video loop has no handler attached
+  // yet and surfaces as an unhandled rejection (Sentry POSTRA-9).
+  audioPump.catch(() => undefined);
 
   // Decode → composite overlays → encode, frame by frame.
   const videoSink = new CanvasSink(videoTrack);

@@ -13,7 +13,8 @@ import {
   VideoTooLargeError,
   assertVideoSize,
 } from './load-library-media';
-import { composeVideo, ClipTooLongError } from './compositor-pipeline';
+import * as Sentry from '@sentry/nextjs';
+import { composeVideo, ClipTooLongError, UnsupportedCodecError } from './compositor-pipeline';
 import {
   TextPosition,
   fontFamilyForLabel,
@@ -122,10 +123,16 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('[Postra:text-overlay] failed:', err);
+      Sentry.captureException(err);
       toaster.show(
         err instanceof ClipTooLongError
           ? t('clip_too_long', 'Clip is too long to edit in the browser (5 min limit). Use a shorter one.')
-          : t('clip_text_failed', 'Failed to burn the text into the video — check the console.'),
+          : err instanceof UnsupportedCodecError
+          ? t(
+              'clip_codec_unsupported',
+              "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again."
+            )
+          : t('clip_text_failed', 'Failed to burn the text into the video. Try a different clip — our team has been notified.'),
         'warning'
       );
     } finally {

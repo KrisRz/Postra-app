@@ -324,6 +324,111 @@ export const APP_TABS: AppTabGuide[] = [
   },
 ];
 
+export interface StudioToolGuide {
+  name: string;
+  description: string;
+}
+
+// Studio → Graphics, tool by tool (left-toolbar order, then saving/export).
+// Facts come from the design-editor code — keep in sync when tools change.
+export const STUDIO_GRAPHICS_TOOLS: StudioToolGuide[] = [
+  {
+    name: 'AI Generate',
+    description:
+      'Describe your idea — or click an upcoming occasion chip (✎ copies it into the prompt for editing) — and AI builds the whole design in one step: a background image plus an editable headline, subtext and call-to-action in your Brand Kit colours. Takes about 5–10 seconds and uses one AI credit. Set SLIDES to 2–5 to get a multi-slide carousel instead of a single graphic.',
+  },
+  {
+    name: 'AI Refine',
+    description:
+      'Chat about the design already on the canvas: "shorter headline", "warmer colours", "move the logo to the corner". It edits the relevant elements instead of starting over, and every step lands in history (undo with Ctrl+Z). It restyles the design — it cannot retouch the photo itself; for that, add a stock image or regenerate with a changed prompt.',
+  },
+  {
+    name: 'Templates',
+    description:
+      'Ready-made layouts in eight categories (promo, quote, announcement, stats, tip, event, community, reel covers), previewed in your Brand Kit colours and current format. Applying one replaces the canvas — Ctrl+Z brings the previous design back. Your own designs saved with "Save as template" appear at the top under "Your templates".',
+  },
+  {
+    name: 'Brand Kit',
+    description:
+      'Your colours (primary, background, text), font, tone of voice and logo. It drives the whole Studio: AI Generate designs, template previews and video text styling all follow it — set it once and everything comes out in your brand.',
+  },
+  {
+    name: 'Select',
+    description:
+      'Click any element to open the "Selected object" panel: font size, bold/italic, alignment, outline colour and width, opacity and precise rotation. The colour swatches restyle whatever is selected.',
+  },
+  {
+    name: 'Text',
+    description:
+      'Add headlines and body copy, then change the font and colour with one click — or fine-tune in the "Selected object" panel.',
+  },
+  {
+    name: 'Shapes',
+    description:
+      'Fifteen ready-made shapes for badges, dividers and accents. Swatches colour the selected shape; with nothing selected they change the canvas background instead.',
+  },
+  {
+    name: 'Icons',
+    description:
+      'A built-in icon library with categories and search — click an icon to drop it onto the design.',
+  },
+  {
+    name: 'Images',
+    description:
+      'Upload your own photos or search free Pixabay stock (imported straight into your media library). With a photo on the canvas you also get filters (brightness, contrast, saturation, blur and black-and-white presets), background removal and a smart crop to the current format.',
+  },
+  {
+    name: 'Saving & export',
+    description:
+      '"Save to library" stores the finished graphic in Media, ready for any post; "Save as template" adds it to your templates; "Download PNG" saves a lossless file; "All formats" renders a variant for every platform size at once; "Use in Post" attaches the design to a post. The format bar at the bottom switches between platform sizes and repositions your layout, and Carousel mode edits multi-slide posts. Studio also keeps a draft automatically — leave and come back, and your design is restored.',
+  },
+];
+
+// Studio → Video, in goal-screen / tab order. Facts come from the
+// video-studio code — keep in sync when tools change.
+export const STUDIO_VIDEO_TOOLS: StudioToolGuide[] = [
+  {
+    name: 'Start screen & loading a clip',
+    description:
+      'Pick what you came to do — the cards map to the editor tabs and Studio remembers your last choice. Load footage from disk or from your media library; editing happens in your browser, so clips are capped at 200 MB (use a shorter cut for anything bigger).',
+  },
+  {
+    name: 'Trim',
+    description:
+      'Drag the start and end handles, preview, and export just the part you want. The waveform helps you cut on the beat — a silent clip simply shows a flat line.',
+  },
+  {
+    name: 'Formats',
+    description:
+      'One clip, re-framed for every placement: 9:16 (Reels / TikTok / Stories), 1:1 (feed) and 16:9 (YouTube / X) with an automatic centre crop. Each variant can go to your library or straight into a post.',
+  },
+  {
+    name: 'AI Captions',
+    description:
+      'AI transcribes the clip (the language defaults to your app language), you edit the lines, then burn them in — styled to your Brand Kit, with the original audio untouched.',
+  },
+  {
+    name: 'Text on video',
+    description:
+      'Overlay a headline on the clip — position, size and colour (Brand Kit swatches included) — then render. Audio is preserved.',
+  },
+  {
+    name: 'Photos → video',
+    description:
+      'Turn up to 10 photos into a vertical slideshow: set the order and seconds per photo, add a headline, and a gentle Ken Burns motion makes it feel like video.',
+  },
+  {
+    name: 'Stock B-roll',
+    description:
+      'Search free Pixabay stock videos, preview them and import into your media library to cut into your edits.',
+  },
+  {
+    name: 'Exporting & requirements',
+    description:
+      'Every tool can send its result to a post ("Use in post"), keep it in your library ("Save to library") or download it. Rendering runs entirely in your browser — Chrome, Edge or Safari 16.4+ is required (WebCodecs); on an unsupported browser Studio tells you instead of failing silently.',
+  },
+];
+
 export const SETTINGS_SECTIONS: SettingsSectionGuide[] = [
   {
     name: 'Global Settings',
@@ -388,6 +493,11 @@ export const FAQ_ITEMS: FaqItem[] = [
     question: 'Can I post to multiple channels at once?',
     answer:
       'Yes — pick several channels when composing. Use the per-channel tabs in the editor to tweak the content for each platform before scheduling.',
+  },
+  {
+    question: 'Can I change the colours of Studio templates?',
+    answer:
+      'Yes — nothing is fixed. Templates (and their previews) render in your Brand Kit colours: set them in Studio → Brand Kit (Primary drives accents like buttons and badges, Background the canvas, Text the copy) and every template redraws in your palette. After applying a template each element is still a normal layer — select a text or shape and the colour swatches restyle it, and the "Selected object" panel adjusts size, outline, opacity and rotation. With nothing selected the swatches change the canvas background instead. AI Generate uses the same Brand Kit, so generated designs come out in your colours too.',
   },
   {
     question: 'How do first comments and threads work?',

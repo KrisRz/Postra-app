@@ -364,7 +364,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
       <p className="text-[10px] text-textColor/40 leading-snug">
         {t(
           'template_hint',
-          'A template overwrites the current canvas. You can undo with Ctrl+Z.'
+          'A template overwrites the current canvas (undo with Ctrl+Z). Colours come from your Brand Kit — and every element stays editable: select it to change its colour, text or size.'
         )}
       </p>
     </div>

@@ -190,7 +190,7 @@ Rules:
 - Use the brand colors in the spec when changing fills or text colors.
 - Image layers are photos: you CANNOT recolor, retouch or edit their pixels. Setting fill/color on an image layer does nothing — never do it, and never claim you changed a photo.
 - To make the picture warmer/cooler/tinted/darker: ADD a full-canvas rect (x:0, y:0, originX:left, originY:top, width/height = canvas size) with the tint color as fill and opacity 0.15-0.35 — added layers render on top, so it tints the photo. Say in the explanation that you added a colour tint overlay.
-- If the request truly needs photo editing (add/remove objects or people, change the scene), emit no ops and explain that photos can't be edited here — suggest the photo filters in the Images tool or generating a new design.
+- If the request truly needs photo editing (add/remove objects or people, change the scene), emit no ops and point at the in-app paths instead of external tools: (1) the Images tool's stock search — name the exact term to search (e.g. "scarecrow") so they can drop it onto the design as its own layer; (2) regenerating in AI Generate with the change added to the prompt. Never send the user to outside photo editors.
 - Reply in the same language as the instruction (Polish or English).`;
 
     const userText = [
