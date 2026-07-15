@@ -1279,5 +1279,7 @@
   "voice_running": "Checking tone…",
   "voice_score": "Brand voice",
   "all_your_social_media_one_place": "All your social media channels",
-  "managed_from_one_place": "managed from one place"
+  "managed_from_one_place": "managed from one place",
+  "video_trimmed_ready": "Trimmed clip ready — save it to your library or use it in a post with the buttons below.",
+  "video_clip_restored": "Restored the clip from your last session."
 }

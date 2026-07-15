@@ -1279,5 +1279,7 @@
   "voice_running": "Sprawdzam ton…",
   "voice_score": "Ton marki",
   "all_your_social_media_one_place": "Wszystkie Twoje kanały social media",
-  "managed_from_one_place": "zarządzane z jednego miejsca"
+  "managed_from_one_place": "zarządzane z jednego miejsca",
+  "video_trimmed_ready": "Przycięty klip gotowy — zapisz go do biblioteki albo użyj w poście przyciskami poniżej.",
+  "video_clip_restored": "Przywrócono klip z poprzedniej sesji."
 }

@@ -7,6 +7,7 @@ import { useMediaDirectory } from '@gitroom/react/helpers/use.media.directory';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { Button } from '@gitroom/frontend/components/ui/button';
+import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import { VideoTrimmer } from './video-trimmer';
 import { VideoMultiFormat, VideoFormat } from './video-multi-format';
 import { VideoCaptions } from './video-captions';
@@ -63,8 +64,12 @@ export const VideoStudio: FC<VideoStudioProps> = ({
     [mode, router, setMedia, closeModal]
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const user = useUser();
+  const orgIdRef = useRef('default');
+  orgIdRef.current = user?.orgId || 'default';
 
   const [file, setFile] = useState<File | null>(null);
+  const fileRef = useRef<File | null>(null);
   const [trimmedBlob, setTrimmedBlob] = useState<Blob | null>(null);
   const [uploadedMedia, setUploadedMedia] = useState<{ id: string; path: string } | null>(null);
   const [tab, setTab] = useState<Tab>('trim');
@@ -99,6 +104,54 @@ export const VideoStudio: FC<VideoStudioProps> = ({
   useEffect(() => {
     if (showGoalsSignal > 0) setShowGoals(true);
   }, [showGoalsSignal]);
+
+  fileRef.current = file;
+
+  // Remember the last library-backed clip (per org) so leaving the page and
+  // coming back doesn't lose the session. A from-disk file that was never
+  // uploaded can't survive a page unload — it gets covered the moment any
+  // action uploads it (save to library, captions, use in post).
+  const videoDraftKey = () => `postra:video-draft:${orgIdRef.current}`;
+  useEffect(() => {
+    if (!uploadedMedia) return;
+    try {
+      window.localStorage.setItem(videoDraftKey(), JSON.stringify(uploadedMedia));
+    } catch {
+      // private mode / quota — persistence is best-effort
+    }
+  }, [uploadedMedia]);
+
+  // Coming back to Studio should show the clip you were editing, not an empty
+  // "choose a file" screen. Restore once per mount, and only if the user
+  // hasn't already loaded something themselves.
+  const restoreAttemptedRef = useRef(false);
+  useEffect(() => {
+    if (!user || restoreAttemptedRef.current) return;
+    restoreAttemptedRef.current = true;
+    let draft: { id?: string } | null = null;
+    try {
+      draft = JSON.parse(window.localStorage.getItem(videoDraftKey()) || 'null');
+    } catch {
+      return;
+    }
+    if (!draft?.id) return;
+    (async () => {
+      try {
+        const media = await (await fetch(`/media/${draft.id}`)).json();
+        if (!media?.path || fileRef.current) return;
+        await loadFromLibrary({ id: draft.id, path: media.path } as LibraryMedia);
+        toaster.show(t('video_clip_restored', 'Restored the clip from your last session.'), 'success');
+      } catch {
+        // The clip was deleted from the library — forget it.
+        try {
+          window.localStorage.removeItem(videoDraftKey());
+        } catch {
+          // private mode — nothing to clear
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -177,8 +230,17 @@ export const VideoStudio: FC<VideoStudioProps> = ({
     async (blob: Blob) => {
       setTrimmedBlob(blob);
       setUploadedMedia(null);
+      // The render finishing at 100% and then going quiet read as "nothing
+      // happened" — say out loud that the clip is ready and where to go next.
+      toaster.show(
+        t(
+          'video_trimmed_ready',
+          'Trimmed clip ready — save it to your library or use it in a post with the buttons below.'
+        ),
+        'success'
+      );
     },
-    []
+    [toaster, t]
   );
 
   // Upload whatever clip is loaded — the trimmed version if present, otherwise
