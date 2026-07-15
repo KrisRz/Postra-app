@@ -83,7 +83,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   orgIdRef.current = user?.orgId || 'default';
   const [restoringDraft, setRestoringDraft] = useState(false);
 
-  const { platform, setPlatform, pushHistory, setCanvasReady } =
+  const { platform, setPlatform, pushHistory, setCanvasReady, setTool } =
     useEditorStore();
   const canUndo = useEditorStore((s) => s.historyIndex > 0);
   const canRedo = useEditorStore((s) => s.historyIndex < s.history.length - 1);
@@ -539,6 +539,10 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     setSavingTemplate(true);
     try {
       await saveDesignToLibrary(true);
+      // Jump to the Templates panel so the fresh template is visible in
+      // "Your templates" right away — a toast alone left users hunting for
+      // where the design went.
+      setTool('templates');
       toaster.show(
         t(
           'template_saved',
@@ -554,7 +558,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     } finally {
       setSavingTemplate(false);
     }
-  }, [saveDesignToLibrary, toaster, t, savingTemplate]);
+  }, [saveDesignToLibrary, toaster, t, savingTemplate, setTool]);
 
   const handleDelete = useCallback(() => {
     if (!fabricRef.current) return;
