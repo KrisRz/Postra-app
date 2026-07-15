@@ -390,6 +390,11 @@ export const FAQ_ITEMS: FaqItem[] = [
       'Yes — pick several channels when composing. Use the per-channel tabs in the editor to tweak the content for each platform before scheduling.',
   },
   {
+    question: 'Can I change the colours of Studio templates?',
+    answer:
+      'Yes — nothing is fixed. Templates (and their previews) render in your Brand Kit colours: set them in Studio → Brand Kit (Primary drives accents like buttons and badges, Background the canvas, Text the copy) and every template redraws in your palette. After applying a template each element is still a normal layer — select a text or shape and the colour swatches restyle it, and the "Selected object" panel adjusts size, outline, opacity and rotation. With nothing selected the swatches change the canvas background instead. AI Generate uses the same Brand Kit, so generated designs come out in your colours too.',
+  },
+  {
     question: 'How do first comments and threads work?',
     answer:
       'Depending on the channel, the composer shows an extra button below your post. "Add comment" publishes a first comment right under the post on the platform — supported on Facebook (text and media), Instagram, LinkedIn and LinkedIn Page (text only) and Telegram. "Add post" chains additional posts into a thread — that\'s how X, Threads, Bluesky and Mastodon work. In both cases you can add several entries, reorder them, and give each one a Delay (1 min – 2 h presets or a custom number of minutes) so it publishes that long after the previous one. TikTok and YouTube support neither. Separately, the comments you see when opening a post on the Calendar are internal team notes — they are never published anywhere.',
