@@ -1282,5 +1282,8 @@
   "managed_from_one_place": "managed from one place",
   "video_trimmed_ready": "Trimmed clip ready — save it to your library or use it in a post with the buttons below.",
   "video_clip_restored": "Restored the clip from your last session.",
-  "clip_codec_unsupported": "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again."
+  "clip_codec_unsupported": "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again.",
+  "video_restoring_clip": "Restoring the clip from your last session…",
+  "video_importing_clip": "Loading the clip from your library…",
+  "video_uploading_clip": "Uploading the clip — keep this page open…"
 }

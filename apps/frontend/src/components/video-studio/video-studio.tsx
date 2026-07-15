@@ -122,9 +122,11 @@ export const VideoStudio: FC<VideoStudioProps> = ({
   }, [uploadedMedia]);
 
   // Coming back to Studio should show the clip you were editing, not an empty
-  // "choose a file" screen. Restore once per mount, and only if the user
-  // hasn't already loaded something themselves.
+  // "choose a file" screen. Restore once per mount, only if the user hasn't
+  // loaded anything themselves — the download takes seconds, so re-check
+  // after every await and keep a visible "restoring" state the whole time.
   const restoreAttemptedRef = useRef(false);
+  const [restoringClip, setRestoringClip] = useState(false);
   useEffect(() => {
     if (!user || restoreAttemptedRef.current) return;
     restoreAttemptedRef.current = true;
@@ -136,18 +138,28 @@ export const VideoStudio: FC<VideoStudioProps> = ({
     }
     if (!draft?.id) return;
     (async () => {
+      setRestoringClip(true);
       try {
         const media = await (await fetch(`/media/${draft.id}`)).json();
-        if (!media?.path || fileRef.current) return;
-        await loadFromLibrary({ id: draft.id, path: media.path } as LibraryMedia);
+        if (!media?.path) throw new Error('deleted');
+        if (fileRef.current) return;
+        const loaded = await fetchLibraryVideoAsFile(mediaDirectory.set(media.path));
+        if (fileRef.current) return; // user loaded their own clip meanwhile
+        setFile(loaded);
+        setTrimmedBlob(null);
+        setUploadedMedia({ id: draft.id!, path: media.path });
+        setTab('trim');
+        setShowGoals(false);
         toaster.show(t('video_clip_restored', 'Restored the clip from your last session.'), 'success');
       } catch {
-        // The clip was deleted from the library — forget it.
+        // The clip was deleted from the library (or is too big) — forget it.
         try {
           window.localStorage.removeItem(videoDraftKey());
         } catch {
           // private mode — nothing to clear
         }
+      } finally {
+        setRestoringClip(false);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -218,7 +230,9 @@ export const VideoStudio: FC<VideoStudioProps> = ({
             body: formData,
           })
         ).json();
-        return { id: data.id, path: data.path };
+        // An error body (413, validation) still parses as JSON — treat any
+        // response without id+path as a failed upload, not a media object.
+        return data?.id && data?.path ? { id: data.id, path: data.path } : null;
       } catch {
         return null;
       }
@@ -257,16 +271,22 @@ export const VideoStudio: FC<VideoStudioProps> = ({
   }, [uploadedMedia, trimmedBlob, file, uploadBlob]);
 
   const handleSwitchToCaptions = useCallback(async () => {
-    const m = await ensureUploaded();
-    if (!m) {
+    if (!uploadedMedia && !trimmedBlob && !file) {
       toaster.show(
         t('video_upload_first', 'Load a video first (From disk / From library).'),
         'warning'
       );
       return;
     }
+    const m = await ensureUploaded();
+    if (!m) {
+      // A clip IS loaded — the upload itself failed. Saying "load a video
+      // first" here sent users in circles.
+      toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
+      return;
+    }
     setTab('captions');
-  }, [ensureUploaded, toaster, t]);
+  }, [uploadedMedia, trimmedBlob, file, ensureUploaded, toaster, t]);
 
   // Finish a clip-dependent goal once the picked file lands in state.
   useEffect(() => {
@@ -459,6 +479,17 @@ export const VideoStudio: FC<VideoStudioProps> = ({
         </div>
       </div>
 
+      {(isUploading || restoringClip || isImportingLibrary) && (
+        <div className="px-4 py-1.5 bg-forth/10 border-b border-forth/30 text-xs text-textColor">
+          ⏳{' '}
+          {restoringClip
+            ? t('video_restoring_clip', 'Restoring the clip from your last session…')
+            : isImportingLibrary
+            ? t('video_importing_clip', 'Loading the clip from your library…')
+            : t('video_uploading_clip', 'Uploading the clip — keep this page open…')}
+        </div>
+      )}
+
       <div className="flex-1 overflow-auto relative">
         {showLibrary && (
           <div className="absolute inset-0 z-[20]">
@@ -539,7 +570,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({
               disabled={isUploading}
               className="text-xs px-3 h-[28px] rounded bg-newColColor text-textColor hover:bg-forth transition-colors disabled:opacity-50"
             >
-              💾 {t('save_to_library_btn', 'Save to library')}
+              💾 {isUploading ? t('saving', 'Saving…') : t('save_to_library_btn', 'Save to library')}
             </button>
             <Button
               loading={isUploading}

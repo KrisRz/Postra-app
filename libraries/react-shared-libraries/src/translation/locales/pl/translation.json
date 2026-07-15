@@ -1282,5 +1282,8 @@
   "managed_from_one_place": "zarządzane z jednego miejsca",
   "video_trimmed_ready": "Przycięty klip gotowy — zapisz go do biblioteki albo użyj w poście przyciskami poniżej.",
   "video_clip_restored": "Przywrócono klip z poprzedniej sesji.",
-  "clip_codec_unsupported": "Format wideo tego klipu nie może być zdekodowany przez Twoją przeglądarkę (często HEVC/H.265 z telefonu). Wyeksportuj go jako standardowy MP4 (H.264) i spróbuj ponownie."
+  "clip_codec_unsupported": "Format wideo tego klipu nie może być zdekodowany przez Twoją przeglądarkę (często HEVC/H.265 z telefonu). Wyeksportuj go jako standardowy MP4 (H.264) i spróbuj ponownie.",
+  "video_restoring_clip": "Przywracanie klipu z poprzedniej sesji…",
+  "video_importing_clip": "Wczytywanie klipu z biblioteki…",
+  "video_uploading_clip": "Wysyłanie klipu — nie zamykaj tej strony…"
 }
