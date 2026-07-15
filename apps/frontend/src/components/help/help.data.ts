@@ -176,11 +176,12 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     name: 'LinkedIn',
     connectType: 'oauth',
     steps: [
+      'This channel is your personal profile — posts are published under your own name. To post as a company, use "LinkedIn Page" instead.',
       'Click "Add Channel", pick LinkedIn and sign in.',
       'Approve the requested permissions.',
     ],
     gotchas: [
-      'This connects your personal profile — for a company page use "LinkedIn Page" instead.',
+      'Personal profile and company page are two separate channels in Postra — you can connect both and pick either (or both) in the composer.',
     ],
     composer: [
       '"Post as images carousel": turns 2+ attached images into a carousel document (you name the slide deck).',
@@ -193,11 +194,12 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     name: 'LinkedIn Page',
     connectType: 'oauth',
     steps: [
-      'Click "Add Channel", pick LinkedIn Page and sign in.',
-      'Choose the company page you want to publish to.',
+      'This channel is a company (business) page — posts are published as the company, not under your name.',
+      'Click "Add Channel", pick LinkedIn Page and sign in with the personal account that administers the page.',
+      'After approving, choose the company page you want to publish to from the list.',
     ],
     gotchas: [
-      'You need to be an administrator of the company page.',
+      "You need to be an administrator of the company page — if the list is empty, ask the page owner to make you an admin on LinkedIn.",
     ],
     composer: [
       'Same options as LinkedIn: images carousel, first comment (text only), 3,000-character limit.',
@@ -209,6 +211,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     connectType: 'oauth',
     steps: [
       'Click "Add Channel", pick YouTube, choose your Google account and approve access.',
+      'If your Google account has more than one YouTube channel, pick the one to connect from the list.',
     ],
     gotchas: [
       'The Google account needs an existing YouTube channel.',
