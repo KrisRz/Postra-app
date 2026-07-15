@@ -12,11 +12,30 @@ import mime from 'mime';
 import TelegramBot from 'node-telegram-bot-api';
 import { Integration } from '@prisma/client';
 import striptags from 'striptags';
+import { fetch } from 'undici';
+import { ssrfSafeDispatcher } from '@gitroom/nestjs-libraries/dtos/webhooks/ssrf.safe.dispatcher';
+import { isSafePublicHttpsUrl } from '@gitroom/nestjs-libraries/dtos/webhooks/webhook.url.validator';
 
 const telegramBot = new TelegramBot(process.env.TELEGRAM_TOKEN!);
 // Added to support local storage posting
 const frontendURL = process.env.FRONTEND_URL || 'http://localhost:5000';
 const mediaStorage = process.env.STORAGE_PROVIDER || 'local';
+
+// Telegram fetches URL-passed media itself, with hard limits of 5 MB for
+// photos and 20 MB for videos/documents — above that it fails with the
+// misleading "wrong type of the web page content". Uploading the bytes
+// ourselves raises the limits to 10 MB (photos) and 50 MB (videos/documents);
+// beyond those the Bot API cannot take the file at all.
+const URL_FETCH_LIMITS = {
+  photo: 5 * 1024 * 1024,
+  video: 20 * 1024 * 1024,
+  document: 20 * 1024 * 1024,
+} as const;
+const UPLOAD_LIMITS = {
+  photo: 10 * 1024 * 1024,
+  video: 50 * 1024 * 1024,
+  document: 50 * 1024 * 1024,
+} as const;
 
 export class TelegramProvider extends SocialAbstract implements SocialProvider {
   override maxConcurrentJob = 3; // Telegram has moderate bot API limits
@@ -159,13 +178,66 @@ export class TelegramProvider extends SocialAbstract implements SocialProvider {
 
       return {
         type: mediaType,
-        media: mediaUrl,
+        media: mediaUrl as string | Buffer,
         fileOptions: {
           filename: media.path.split('/').pop(),
           contentType: mimeType || 'application/octet-stream',
         },
       };
     });
+  }
+
+  // Telegram downloads URL-passed media itself and rejects files above the
+  // URL-fetch limits with "wrong type of the web page content". Small files
+  // keep going through as URLs; larger ones are downloaded and uploaded as
+  // bytes (higher limits); files Telegram cannot take at all fail with a
+  // clear error instead.
+  private async resolveMedia(media: {
+    type: 'photo' | 'video' | 'document';
+    media: string | Buffer;
+    fileOptions: { filename?: string; contentType: string };
+  }) {
+    if (
+      typeof media.media !== 'string' ||
+      !media.media.startsWith('http') ||
+      !(await isSafePublicHttpsUrl(media.media))
+    ) {
+      return media;
+    }
+
+    let size = 0;
+    try {
+      const head = await fetch(media.media, {
+        method: 'HEAD',
+        // @ts-ignore — undici option, not in lib.dom fetch types
+        dispatcher: ssrfSafeDispatcher,
+      });
+      size = Number(head.headers.get('content-length')) || 0;
+    } catch {
+      // Size unknown — keep the URL and let Telegram try it.
+      return media;
+    }
+
+    if (size <= URL_FETCH_LIMITS[media.type]) {
+      return media;
+    }
+
+    const uploadLimit = UPLOAD_LIMITS[media.type];
+    if (size > uploadLimit) {
+      throw new Error(
+        `Telegram accepts ${media.type}s up to ${Math.round(
+          uploadLimit / 1024 / 1024
+        )} MB — this file is ${Math.ceil(
+          size / 1024 / 1024
+        )} MB. Please use a smaller file.`
+      );
+    }
+
+    const res = await fetch(media.media, {
+      // @ts-ignore — undici option, not in lib.dom fetch types
+      dispatcher: ssrfSafeDispatcher,
+    });
+    return { ...media, media: Buffer.from(await res.arrayBuffer()) };
   }
 
   private async sendMessage(
@@ -181,7 +253,9 @@ export class TelegramProvider extends SocialAbstract implements SocialProvider {
       .replace(/<p>(.*?)<\/p>/g, '$1\n');
 
     console.log(text);
-    const processedMedia = this.processMedia(mediaFiles);
+    const processedMedia = await Promise.all(
+      this.processMedia(mediaFiles).map((m) => this.resolveMedia(m))
+    );
 
     // if there's no media, bot sends a text message only
     if (processedMedia.length === 0) {
@@ -307,7 +381,10 @@ export class TelegramProvider extends SocialAbstract implements SocialProvider {
     return [];
   }
   // chunkMedia is used to split media into groups of "size". 10 is used here because telegram api allows a maximum of 10 media per group
-  private chunkMedia(media: { type: string; media: string }[], size: number) {
+  private chunkMedia(
+    media: { type: string; media: string | Buffer }[],
+    size: number
+  ) {
     const result = [];
     for (let i = 0; i < media.length; i += size) {
       result.push(media.slice(i, i + size));
