@@ -98,6 +98,29 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
   },
   {
+    identifier: 'discord',
+    name: 'Discord',
+    connectType: 'oauth',
+    steps: [
+      'Postra publishes to a Discord server you manage, not to a personal account. If you don\'t have one, create a server in the Discord app first — you need to be its admin.',
+      'In Postra, click "Add Channel" and pick Discord.',
+      'You are redirected to Discord — choose the server to add the Postra bot to (you must have the "Manage Server" permission), keep the requested permissions ticked, and authorise.',
+      'Back in Postra the server appears in your channel list. Open the post composer, and in the Discord settings tab pick which channel of that server the post should go to.',
+      'From now on Discord is just another channel: tick it when creating a post and the bot publishes to the channel you selected. Nothing is posted unless you select it.',
+    ],
+    gotchas: [
+      'You must be an admin of the Discord server (Manage Server permission) to add the bot during authorisation.',
+      'The bot needs permission to post in the target channel — if a post fails, check the bot\'s role can View Channel and Send Messages there.',
+      'Always pick a channel in the Discord settings tab before publishing — without one there is nowhere to post.',
+      'Keep the bot on the server — removing it stops publishing.',
+    ],
+    composer: [
+      'Settings tab: choose which channel of the connected server to publish to (required).',
+      'Character limit: 1,980.',
+      'First comments: click "Add comment" to post follow-up messages in the same channel right after the post; each can have its own Delay (1 min – 2 h or a custom gap).',
+    ],
+  },
+  {
     identifier: 'facebook',
     name: 'Facebook',
     connectType: 'oauth',
