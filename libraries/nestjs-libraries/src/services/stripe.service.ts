@@ -392,6 +392,8 @@ export class StripeService {
         metadata: { service: 'gitroom', id },
       });
 
+      await this._subscriptionService.setCancelAt(organizationId, null);
+
       return {
         id,
         cancel_at: cancel_at ? new Date(cancel_at * 1000) : undefined,
@@ -422,9 +424,12 @@ export class StripeService {
       metadata: { service: 'gitroom', id },
     });
 
+    const cancelAt = cancel_at ? new Date(cancel_at * 1000) : null;
+    await this._subscriptionService.setCancelAt(organizationId, cancelAt);
+
     return {
       id,
-      cancel_at: cancel_at ? new Date(cancel_at * 1000) : undefined,
+      cancel_at: cancelAt ?? undefined,
     };
   }
 

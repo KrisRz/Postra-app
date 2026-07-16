@@ -109,6 +109,10 @@ export class SubscriptionService {
     );
   }
 
+  setCancelAt(organizationId: string, cancelAt: Date | null) {
+    return this._subscriptionRepository.setCancelAt(organizationId, cancelAt);
+  }
+
   async checkSubscription(organizationId: string, subscriptionId: string) {
     return await this._subscriptionRepository.checkSubscription(
       organizationId,
