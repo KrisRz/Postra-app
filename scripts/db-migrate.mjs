@@ -66,6 +66,9 @@ const migrations = readdirSync(migrationsDir, { withFileTypes: true })
   .map((e) => e.name)
   .sort();
 
+/** Squashed init only — additive migrations must run via `migrate deploy`. */
+const BASELINE_MIGRATION = '00000000000000_init';
+
 if (!migrations.length) {
   console.error('[db-migrate] no migrations found — refusing to boot');
   process.exit(1);
@@ -77,10 +80,17 @@ const hasMigrationsTable = probe('_prisma_migrations');
 const hasApplicationTables = hasMigrationsTable ? true : probe('User');
 
 if (!hasMigrationsTable && hasApplicationTables) {
+  const toBaseline = migrations.filter((name) => name === BASELINE_MIGRATION);
+  if (!toBaseline.length) {
+    console.error(
+      `[db-migrate] ${BASELINE_MIGRATION} missing — cannot baseline existing database`
+    );
+    process.exit(1);
+  }
   console.log(
-    `[db-migrate] existing database without migration history — baselining ${migrations.length} migration(s) as applied`
+    `[db-migrate] existing database without migration history — baselining ${toBaseline.length} squash migration(s); ${migrations.length - toBaseline.length} additive migration(s) will deploy next`
   );
-  for (const name of migrations) {
+  for (const name of toBaseline) {
     prisma(['migrate', 'resolve', '--schema', schema, '--applied', name]);
   }
 } else if (!hasMigrationsTable) {
