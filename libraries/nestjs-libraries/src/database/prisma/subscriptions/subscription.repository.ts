@@ -192,6 +192,13 @@ export class SubscriptionRepository {
     });
   }
 
+  setCancelAt(organizationId: string, cancelAt: Date | null) {
+    return this._subscription.model.subscription.updateMany({
+      where: { organizationId, deletedAt: null },
+      data: { cancelAt },
+    });
+  }
+
   async getSubscriptionByCustomerId(customerId: string) {
     return this._subscription.model.subscription.findFirst({
       where: {
