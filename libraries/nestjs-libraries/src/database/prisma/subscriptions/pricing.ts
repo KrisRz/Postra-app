@@ -45,7 +45,18 @@ export interface PricingInterface {
 }
 // Per-tier platform entitlements. Each tier includes the one below it plus a
 // few more. `linkedin-page` rides with `linkedin` (same LinkedIn entitlement).
-const STARTER_PROVIDERS = ['facebook', 'instagram', 'tiktok'];
+// Starter carries the zero-marginal-cost platforms (Telegram/Bluesky/Mastodon
+// are free APIs) — its 3 slots still cap usage. The upgrade levers stay put:
+// LinkedIn/YouTube/Threads pull to Pro; X (our X API volume is capped) and
+// Discord stay Business-only.
+const STARTER_PROVIDERS = [
+  'facebook',
+  'instagram',
+  'tiktok',
+  'telegram',
+  'bluesky',
+  'mastodon',
+];
 const PRO_PROVIDERS = [
   ...STARTER_PROVIDERS,
   'threads',
@@ -53,14 +64,7 @@ const PRO_PROVIDERS = [
   'linkedin',
   'linkedin-page',
 ];
-const BUSINESS_PROVIDERS = [
-  ...PRO_PROVIDERS,
-  'mastodon',
-  'bluesky',
-  'telegram',
-  'x',
-  'discord',
-];
+const BUSINESS_PROVIDERS = [...PRO_PROVIDERS, 'x', 'discord'];
 
 export const pricing: PricingInterface = {
   FREE: {
