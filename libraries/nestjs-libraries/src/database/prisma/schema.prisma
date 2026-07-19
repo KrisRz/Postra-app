@@ -45,6 +45,7 @@ model Organization {
   oauthApp            OAuthApp[]
   oauthAuthorizations OAuthAuthorization[]
   brandKit            BrandKit?
+  mobilePushTokens    MobilePushToken[]
 
   @@index([apiKey])
   @@index([streakSince])
@@ -123,6 +124,10 @@ model User {
   // rejects it when it no longer matches the DB. Stateless 30d tokens are
   // otherwise irrevocable.
   tokenVersion          Int                  @default(0)
+  // When the user actively accepted the ToS/Privacy Policy at registration
+  // (UK GDPR accountability). Null for accounts created before the checkbox
+  // existed and for team-invited users who never saw the registration form.
+  termsAcceptedAt       DateTime?
   comments              Comments[]
   items                 ItemUser[]
   groupBuyer            MessagesGroup[]      @relation("groupBuyer")
@@ -133,6 +138,7 @@ model User {
   agencies              SocialMediaAgency?
   picture               Media?               @relation(fields: [pictureId], references: [id], onDelete: SetNull)
   organizations         UserOrganization[]
+  mobilePushTokens      MobilePushToken[]
   sendSuccessEmails     Boolean              @default(true)
   sendFailureEmails     Boolean              @default(true)
   sendStreakEmails      Boolean              @default(true)
@@ -1031,15 +1037,18 @@ model AiUsage {
 }
 
 // Expo push tokens for the Postra Mobile app (companion).
-// Scalar userId/organizationId (no relations) to keep this additive and isolated.
+// Cascades on user/org delete so account erasure (RODO art. 17) doesn't leave
+// orphaned push tokens behind.
 model MobilePushToken {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   userId         String
   organizationId String
-  token          String   @unique
+  token          String       @unique
   platform       String
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([userId])

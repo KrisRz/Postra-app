@@ -5,6 +5,7 @@ import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import Link from 'next/link';
 import { Button } from '@gitroom/frontend/components/ui/button';
 import { Input } from '@gitroom/react/form/input';
+import { Checkbox } from '@gitroom/react/form/checkbox';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { CreateOrgUserDto } from '@gitroom/nestjs-libraries/dtos/auth/create.org.user.dto';
@@ -27,6 +28,7 @@ type Inputs = {
   company: string;
   providerToken: string;
   provider: string;
+  termsAccepted: boolean;
 };
 
 // Lightweight, dependency-free strength heuristic (length + character classes).
@@ -128,6 +130,7 @@ export function RegisterAfter({
     defaultValues: {
       providerToken: token,
       provider: provider,
+      termsAccepted: false,
     },
   });
   const fetchData = useFetch();
@@ -305,30 +308,41 @@ export function RegisterAfter({
                 />
               </div>
               <div className={clsx('rounded-[14px] border border-white/8 bg-white/[0.025] px-[14px] py-[12px] text-[12px] text-textColor/68')}>
-                {t(
-                  'by_registering_you_agree_to_our',
-                  'By registering you agree to our'
+                <div className="flex items-start gap-[10px]">
+                  <Checkbox name="termsAccepted" className="shrink-0" />
+                  <div>
+                    {t('i_accept_the', 'I accept the')}
+                    &nbsp;
+                    <a
+                      href={`https://postra.co.uk/terms`}
+                      className="underline underline-offset-4 hover:text-[#38bdf8]"
+                      target="_blank"
+                      rel="nofollow noopener noreferrer"
+                    >
+                      {t('terms_of_service', 'Terms of Service')}
+                    </a>
+                    &nbsp;
+                    {t('and', 'and')}&nbsp;
+                    <a
+                      href={`https://postra.co.uk/privacy`}
+                      target="_blank"
+                      rel="nofollow noopener noreferrer"
+                      className="underline underline-offset-4 hover:text-[#38bdf8]"
+                    >
+                      {t('privacy_policy', 'Privacy Policy')}
+                    </a>
+                    ,&nbsp;
+                    {t(
+                      'and_confirm_18_or_older',
+                      'and confirm that I am 18 or older'
+                    )}
+                  </div>
+                </div>
+                {!!form.formState.errors.termsAccepted && (
+                  <div className="mt-[8px] text-[#f87171]">
+                    {form.formState.errors.termsAccepted.message}
+                  </div>
                 )}
-                &nbsp;
-                <a
-                  href={`https://postra.co.uk/terms`}
-                  className="underline underline-offset-4 hover:text-[#38bdf8]"
-                  target="_blank"
-                  rel="nofollow noopener noreferrer"
-                >
-                  {t('terms_of_service', 'Terms of Service')}
-                </a>
-                &nbsp;
-                {t('and', 'and')}&nbsp;
-                <a
-                  href={`https://postra.co.uk/privacy`}
-                  target="_blank"
-                  rel="nofollow noopener noreferrer"
-                  className="underline underline-offset-4 hover:text-[#38bdf8]"
-                >
-                  {t('privacy_policy', 'Privacy Policy')}
-                </a>
-                &nbsp;
               </div>
               <div className="text-center mt-6">
                 <div className="w-full flex">

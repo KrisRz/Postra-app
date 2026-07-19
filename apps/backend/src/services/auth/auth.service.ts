@@ -10,7 +10,6 @@ import dayjs from 'dayjs';
 import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/notifications/notification.service';
 import { ForgotReturnPasswordDto } from '@gitroom/nestjs-libraries/dtos/auth/forgot-return.password.dto';
 import { EmailService } from '@gitroom/nestjs-libraries/services/email.service';
-import { NewsletterService } from '@gitroom/nestjs-libraries/newsletter/newsletter.service';
 import { normalizeEmail } from '@gitroom/helpers/utils/email.normalize';
 import disposableDomains from 'disposable-email-domains';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
@@ -212,6 +211,7 @@ export class AuthService {
         password: '',
         provider,
         providerId: providerUser.id,
+        termsAccepted: body.termsAccepted,
         datafast_visitor_id: body.datafast_visitor_id,
         region: body.region,
       },
@@ -222,8 +222,6 @@ export class AuthService {
     this._track('register', providerUser.email, body.datafast_visitor_id).catch(
       (err) => {}
     );
-
-    await NewsletterService.register(providerUser.email);
 
     try {
       if (providerInstance?.postRegistration) {
@@ -316,7 +314,8 @@ export class AuthService {
       }
       await this._userService.activateUser(user.id);
       this._track('register', user.email, tracking).catch((err) => {});
-      await NewsletterService.register(user.email);
+      // No newsletter auto-enroll: marketing email needs its own opt-in
+      // consent (UK GDPR/PECR) — registration alone is not that consent.
       // Sign the DB user, not the decoded activation token — the decoded
       // payload carries exp/iat and jsonwebtoken refuses to re-sign it
       // with expiresIn (every activation 500ed since signJWT got a TTL).
