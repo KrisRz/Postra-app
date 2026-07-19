@@ -35,12 +35,43 @@ import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { ExistingDataContextProvider } from '@gitroom/frontend/components/launches/helpers/use.existing.data';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { hasExtension } from '@gitroom/helpers/utils/has.extension';
+import useSWR from 'swr';
 
 export const AgentChat: FC = () => {
   const { backendUrl } = useVariables();
   const params = useParams<{ id: string }>();
   const { properties } = useContext(PropertiesContext);
   const t = useT();
+  const fetch = useFetch();
+
+  // Same budget the backend enforces with a 402 (pricing.agent_tokens) —
+  // checked up-front so the user gets a clear banner instead of a failed send.
+  const { data: agentCredits } = useSWR('/copilot/credits?type=ai_agent', async (url: string) =>
+    (await fetch(url)).json()
+  );
+  if (agentCredits && agentCredits.credits <= 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-[24px]">
+        <div className="max-w-[440px] text-center flex flex-col gap-[10px]">
+          <div className="text-[17px] font-[650] text-newTextColor">
+            {t('agent_limit_title', 'Monthly AI assistant limit reached')}
+          </div>
+          <div className="text-[13.5px] text-newTextColor/70">
+            {t(
+              'agent_limit_description',
+              'You have used this month\'s AI assistant allowance. It resets with your next billing month — or upgrade your plan for a higher limit.'
+            )}
+          </div>
+          <a
+            href="/billing"
+            className="text-[13.5px] underline underline-offset-4 text-[#38bdf8]"
+          >
+            {t('agent_limit_upgrade', 'See plans')}
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <CopilotKit

@@ -30,13 +30,33 @@ export interface PricingInnerInterface {
   // polls hourly and burns AI tokens per new article, so it is capped per plan
   // independently of the `autoPost` on/off flag.
   autoPostLimit: number;
+  // Monthly budget for the gpt-5.5 agent chat, in WEIGHTED tokens:
+  // input + 6×output (output costs 6× input — $30 vs $5 per 1M). This is the
+  // only text-AI surface without a natural cap (posts_per_month caps the
+  // creator, autoPostLimit caps RSS), so a heavy chatter could otherwise burn
+  // more than the plan price. Budgets keep worst-case agent COGS at ~25-30%
+  // of the plan price (~95/250/600 typical chats). Enforced in
+  // copilot.controller via SubscriptionService.checkCredits('ai_agent'),
+  // measured from AiUsage (engine='agent').
+  agent_tokens: number;
 }
 export interface PricingInterface {
   [key: string]: PricingInnerInterface;
 }
 // Per-tier platform entitlements. Each tier includes the one below it plus a
 // few more. `linkedin-page` rides with `linkedin` (same LinkedIn entitlement).
-const STARTER_PROVIDERS = ['facebook', 'instagram', 'tiktok'];
+// Starter carries the zero-marginal-cost platforms (Telegram/Bluesky/Mastodon
+// are free APIs) — its 3 slots still cap usage. The upgrade levers stay put:
+// LinkedIn/YouTube/Threads pull to Pro; X (our X API volume is capped) and
+// Discord stay Business-only.
+const STARTER_PROVIDERS = [
+  'facebook',
+  'instagram',
+  'tiktok',
+  'telegram',
+  'bluesky',
+  'mastodon',
+];
 const PRO_PROVIDERS = [
   ...STARTER_PROVIDERS,
   'threads',
@@ -44,14 +64,7 @@ const PRO_PROVIDERS = [
   'linkedin',
   'linkedin-page',
 ];
-const BUSINESS_PROVIDERS = [
-  ...PRO_PROVIDERS,
-  'mastodon',
-  'bluesky',
-  'telegram',
-  'x',
-  'discord',
-];
+const BUSINESS_PROVIDERS = [...PRO_PROVIDERS, 'x', 'discord'];
 
 export const pricing: PricingInterface = {
   FREE: {
@@ -73,6 +86,7 @@ export const pricing: PricingInterface = {
     autoPost: false,
     autoPostLimit: 0,
     generate_videos: 0,
+    agent_tokens: 0,
   },
   STANDARD: {
     current: 'STANDARD',
@@ -93,6 +107,7 @@ export const pricing: PricingInterface = {
     autoPost: false,
     autoPostLimit: 0,
     generate_videos: 0,
+    agent_tokens: 1_500_000,
   },
   // Legacy, not purchasable (removed from BillingSubscribeDto). Kept so any
   // existing/grandfathered TEAM subscription still resolves.
@@ -115,6 +130,7 @@ export const pricing: PricingInterface = {
     autoPost: true,
     autoPostLimit: 5,
     generate_videos: 10,
+    agent_tokens: 4_000_000,
   },
   PRO: {
     current: 'PRO',
@@ -135,6 +151,7 @@ export const pricing: PricingInterface = {
     autoPost: true,
     autoPostLimit: 3,
     generate_videos: 30,
+    agent_tokens: 4_000_000,
   },
   ULTIMATE: {
     current: 'ULTIMATE',
@@ -157,6 +174,7 @@ export const pricing: PricingInterface = {
     autoPost: true,
     autoPostLimit: 10,
     generate_videos: 60,
+    agent_tokens: 10_000_000,
   },
 };
 

@@ -7,6 +7,7 @@ import { Organization } from '@prisma/client';
 import dayjs from 'dayjs';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
+import { AiUsageService } from '@gitroom/nestjs-libraries/database/prisma/ai-usage/ai-usage.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -14,7 +15,8 @@ export class SubscriptionService {
     private readonly _subscriptionRepository: SubscriptionRepository,
     private readonly _integrationService: IntegrationService,
     private readonly _organizationService: OrganizationService,
-    private readonly _auditService: AuditService
+    private readonly _auditService: AuditService,
+    private readonly _aiUsageService: AiUsageService
   ) {}
 
   getSubscriptionByOrganizationId(organizationId: string) {
@@ -448,19 +450,29 @@ export class SubscriptionService {
     }
 
     const checkFromMonth = date.subtract(1, 'month');
-    const imageGenerationCount =
+    const allowance =
       checkType === 'ai_images'
         ? pricing[type].image_generation_count
+        : checkType === 'ai_agent'
+        ? pricing[type].agent_tokens
         : pricing[type].generate_videos;
 
-    const totalUse = await this._subscriptionRepository.getCreditsFrom(
-      organization.id,
-      checkFromMonth,
-      checkType
-    );
+    // Agent chat is measured from AiUsage (weighted tokens written by the
+    // metering wrapper), not the Credits ledger the image/video paths use.
+    const totalUse =
+      checkType === 'ai_agent'
+        ? await this._aiUsageService.weightedAgentUsageSince(
+            organization.id,
+            checkFromMonth.toDate()
+          )
+        : await this._subscriptionRepository.getCreditsFrom(
+            organization.id,
+            checkFromMonth,
+            checkType
+          );
 
     return {
-      credits: imageGenerationCount - totalUse,
+      credits: allowance - totalUse,
     };
   }
 

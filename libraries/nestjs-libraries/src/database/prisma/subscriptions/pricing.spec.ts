@@ -39,11 +39,17 @@ describe('pricing matrix', () => {
       'facebook',
       'instagram',
       'tiktok',
+      'telegram',
+      'bluesky',
+      'mastodon',
     ]);
     expect(pricing.PRO.allowedProviders).toEqual([
       'facebook',
       'instagram',
       'tiktok',
+      'telegram',
+      'bluesky',
+      'mastodon',
       'threads',
       'youtube',
       'linkedin',
@@ -53,13 +59,13 @@ describe('pricing matrix', () => {
       'facebook',
       'instagram',
       'tiktok',
+      'telegram',
+      'bluesky',
+      'mastodon',
       'threads',
       'youtube',
       'linkedin',
       'linkedin-page',
-      'mastodon',
-      'bluesky',
-      'telegram',
       'x',
       'discord',
     ]);
@@ -111,6 +117,13 @@ describe('pricing matrix', () => {
     expect(pricing.STANDARD.team_members).toBe(1);
     expect(pricing.PRO.team_members).toBe(2);
     expect(pricing.ULTIMATE.team_members).toBe(5);
+  });
+
+  it('keeps agent-chat budgets: FREE=0, Starter=1.5M, Pro=4M, Business=10M weighted tokens', () => {
+    expect(pricing.FREE.agent_tokens).toBe(0);
+    expect(pricing.STANDARD.agent_tokens).toBe(1_500_000);
+    expect(pricing.PRO.agent_tokens).toBe(4_000_000);
+    expect(pricing.ULTIMATE.agent_tokens).toBe(10_000_000);
   });
 
   it('gives Starter AI images (not videos); videos start at Pro', () => {
