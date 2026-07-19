@@ -79,6 +79,26 @@ export class CopilotController {
       Logger.warn('OpenAI API key not set, chat functionality will not work');
       return;
     }
+
+    // Monthly agent budget (pricing.agent_tokens, weighted tokens from
+    // AiUsage). Like the image/video paths, only enforced with billing on —
+    // without a publishable key the ledger is advisory. The chat UI checks the
+    // same budget via GET /copilot/credits?type=ai_agent and shows a banner,
+    // so this 402 is the backstop, not the primary UX.
+    if (process.env.STRIPE_PUBLISHABLE_KEY) {
+      const { credits } = await this._subscriptionService.checkCredits(
+        organization,
+        'ai_agent'
+      );
+      if (credits <= 0) {
+        res.status(402).json({
+          error:
+            'You have reached your monthly AI assistant limit. It resets with your next billing month — or upgrade your plan for a higher limit.',
+        });
+        return;
+      }
+    }
+
     const mastra = await this._mastraService.mastra();
     const requestContext = new RequestContext<ChannelsContext>();
     requestContext.set(
@@ -123,7 +143,7 @@ export class CopilotController {
   @Get('/credits')
   calculateCredits(
     @GetOrgFromRequest() organization: Organization,
-    @Query('type') type: 'ai_images' | 'ai_videos'
+    @Query('type') type: 'ai_images' | 'ai_videos' | 'ai_agent'
   ) {
     return this._subscriptionService.checkCredits(
       organization,
