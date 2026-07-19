@@ -299,6 +299,9 @@ export class OrganizationRepository {
                 timezone: 0,
                 ip,
                 agent: userAgent,
+                // /auth/register validated the ToS checkbox (CreateOrgUserDto
+                // @Equals(true)) before this runs — both LOCAL and OAuth paths.
+                termsAcceptedAt: new Date(),
               },
             },
           },

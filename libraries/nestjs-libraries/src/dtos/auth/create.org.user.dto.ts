@@ -1,4 +1,5 @@
 import {
+  Equals,
   IsDefined,
   IsEmail,
   IsIn,
@@ -37,6 +38,13 @@ export class CreateOrgUserDto {
   @MinLength(3)
   @MaxLength(128)
   company: string;
+
+  // Explicit ToS/Privacy acceptance (UK GDPR) — must be actively ticked; a
+  // passive "by registering you agree" line is not a recordable consent.
+  @Equals(true, {
+    message: 'You must accept the Terms of Service and Privacy Policy',
+  })
+  termsAccepted: boolean;
 
   @IsOptional()
   @IsString()
