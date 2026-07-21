@@ -39,6 +39,7 @@ describe('pricing matrix', () => {
       'facebook',
       'instagram',
       'tiktok',
+      'linkedin',
       'telegram',
       'bluesky',
       'mastodon',
@@ -47,24 +48,24 @@ describe('pricing matrix', () => {
       'facebook',
       'instagram',
       'tiktok',
+      'linkedin',
       'telegram',
       'bluesky',
       'mastodon',
       'threads',
       'youtube',
-      'linkedin',
       'linkedin-page',
     ]);
     expect(pricing.ULTIMATE.allowedProviders).toEqual([
       'facebook',
       'instagram',
       'tiktok',
+      'linkedin',
       'telegram',
       'bluesky',
       'mastodon',
       'threads',
       'youtube',
-      'linkedin',
       'linkedin-page',
       'x',
       'discord',
@@ -101,11 +102,20 @@ describe('pricing matrix', () => {
     }
   });
 
-  it('grants linkedin-page if and only if linkedin is granted', () => {
+  it('never grants linkedin-page without the personal linkedin profile', () => {
+    // One-way on purpose: Starter gets the personal profile while company
+    // Pages stay a Pro upgrade lever.
     for (const tier of Object.keys(pricing)) {
       const list = pricing[tier].allowedProviders;
-      expect(list.includes('linkedin-page')).toBe(list.includes('linkedin'));
+      if (list.includes('linkedin-page')) {
+        expect(list).toContain('linkedin');
+      }
     }
+  });
+
+  it('keeps company LinkedIn Pages out of Starter (Pro upgrade lever)', () => {
+    expect(pricing.STANDARD.allowedProviders).not.toContain('linkedin-page');
+    expect(pricing.PRO.allowedProviders).toContain('linkedin-page');
   });
 
   it('keeps FREE inert — trials run on paid tiers, not on FREE', () => {
