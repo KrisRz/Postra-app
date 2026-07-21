@@ -479,7 +479,7 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "Why can't I add more channels?",
     answer:
-      'Each plan includes a fixed number of channels (3, 6 or 10, depending on the plan; trials are capped at 3). Upgrade in Billing to unlock more. Disconnected channels still occupy a slot until you delete them.',
+      'Each plan includes a fixed number of channels (3, 6 or 12, depending on the plan; trials are capped at 3). Upgrade in Billing to unlock more. Disconnected channels still occupy a slot until you delete them.',
   },
   {
     question: 'A post failed to publish — what should I do?',
