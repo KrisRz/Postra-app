@@ -7,6 +7,19 @@ export default {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   testEnvironment: 'node',
   clearMocks: true,
+  // Mirror the @gitroom/* path aliases from tsconfig.base.json so specs can
+  // import source files that use them.
+  moduleNameMapper: {
+    '^@gitroom/backend/(.*)$': '<rootDir>/apps/backend/src/$1',
+    '^@gitroom/frontend/(.*)$': '<rootDir>/apps/frontend/src/$1',
+    '^@gitroom/helpers/(.*)$': '<rootDir>/libraries/helpers/src/$1',
+    '^@gitroom/nestjs-libraries/(.*)$':
+      '<rootDir>/libraries/nestjs-libraries/src/$1',
+    '^@gitroom/react/(.*)$': '<rootDir>/libraries/react-shared-libraries/src/$1',
+    '^@gitroom/plugins/(.*)$': '<rootDir>/libraries/plugins/src/$1',
+    '^@gitroom/orchestrator/(.*)$': '<rootDir>/apps/orchestrator/src/$1',
+    '^@gitroom/extension/(.*)$': '<rootDir>/apps/extension/src/$1',
+  },
   // Transpile-only (isolatedModules): compile TS/TSX for tests without full
   // type-checking, so a strict-tsc error in unrelated app code can't break the
   // test run. jsx is set for component tests that opt into the jsdom env.

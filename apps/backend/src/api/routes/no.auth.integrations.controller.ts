@@ -70,13 +70,21 @@ export class NoAuthIntegrationsController {
     const getCodeVerifier = integrationProvider.customFields
       ? 'none'
       : await ioRedis.get(`login:${body.state}`);
+    // The state key is single-use (deleted below before authenticate), so a
+    // refresh/re-POST of the callback lands here — a clean 400, not a 500.
     if (!getCodeVerifier) {
-      throw new Error('Invalid state');
+      throw new HttpException(
+        'This connection attempt has expired. Please start adding the channel again.',
+        400
+      );
     }
 
     const organization = await ioRedis.get(`organization:${body.state}`);
     if (!organization) {
-      throw new Error('Organization not found');
+      throw new HttpException(
+        'This connection attempt has expired. Please start adding the channel again.',
+        400
+      );
     }
 
     // SECURITY: this route is unauthenticated by design (the OAuth provider

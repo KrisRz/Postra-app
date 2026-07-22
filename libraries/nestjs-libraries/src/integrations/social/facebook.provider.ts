@@ -27,14 +27,19 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
   identifier = 'facebook';
   name = 'Facebook Page';
   isBetweenSteps = true;
+  // Meta grants non-role users ONLY scopes with Advanced Access; checkScopes
+  // requires every entry here, so listing anything below Advanced breaks
+  // connect for every external user. pages_manage_engagement (first comment)
+  // is still on Standard — re-add it and drop commentsDisabled once its
+  // mini App Review is approved.
   scopes = [
     'pages_show_list',
     'business_management',
     'pages_manage_posts',
-    'pages_manage_engagement',
     'pages_read_engagement',
     'read_insights',
   ];
+  commentsDisabled = true;
   override maxConcurrentJob = 500; // Facebook has reasonable rate limits
   editor = 'normal' as const;
   maxLength() {

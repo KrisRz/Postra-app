@@ -84,7 +84,10 @@ const enabledProviders = new Set([
   'bluesky',
   'mastodon',
   'telegram',
-  'threads',
+  // 'threads' — the "Postra Threads" Meta app is still In development /
+  // Unpublished with App Review not submitted, so only app-role users can
+  // authorize; every real user hits Meta's error dialog. Re-enable once the
+  // Threads app review is approved and the app is published.
   'x',
   'discord',
 ]);
