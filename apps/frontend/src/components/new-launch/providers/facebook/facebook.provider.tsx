@@ -60,4 +60,8 @@ export default withProvider<FacebookDto>({
   CustomPreviewComponent: FacebookPreview,
   dto: FacebookDto,
   maximumCharacters: 63206,
+  // First comment needs pages_manage_engagement, which Meta only grants to
+  // app-role users until its mini App Review passes — hide the option so
+  // published posts match what the composer promises.
+  comments: false,
 });

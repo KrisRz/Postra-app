@@ -33,15 +33,21 @@ export class InstagramProvider
   name = 'Instagram\n(Facebook Business)';
   isBetweenSteps = true;
   toolTip = 'Instagram must be business and connected to a Facebook page';
+  // Meta grants non-role users ONLY scopes with Advanced Access; checkScopes
+  // requires every entry here, so listing anything below Advanced breaks
+  // connect for every external user. instagram_manage_comments no longer
+  // exists on the app's permission list at all (Meta retired it after the
+  // 07-15 review) — comments stay disabled until Meta offers a replacement
+  // we can get through review.
   scopes = [
     'instagram_basic',
     'pages_show_list',
     'pages_read_engagement',
     'business_management',
     'instagram_content_publish',
-    'instagram_manage_comments',
     'instagram_manage_insights',
   ];
+  commentsDisabled = true;
   override maxConcurrentJob = 400;
   editor = 'normal' as const;
   dto = InstagramDto;

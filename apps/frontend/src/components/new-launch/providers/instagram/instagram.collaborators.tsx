@@ -100,5 +100,8 @@ export default withProvider<InstagramDto>({
   CustomPreviewComponent: InstagramPreview,
   dto: InstagramDto,
   maximumCharacters: 2200,
-  comments: 'no-media'
+  // First comment needs instagram_manage_comments, which Meta retired from
+  // the app's permission list — hide the option so published posts match
+  // what the composer promises.
+  comments: false,
 });

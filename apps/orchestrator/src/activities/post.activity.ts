@@ -217,7 +217,7 @@ export class PostActivity {
       integration.providerIdentifier
     );
 
-    return !!getIntegration.comment;
+    return !!getIntegration.comment && !getIntegration.commentsDisabled;
   }
 
   @ActivityMethod()

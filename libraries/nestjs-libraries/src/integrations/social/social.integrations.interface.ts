@@ -168,6 +168,10 @@ export interface SocialProvider
   oneTimeToken?: boolean;
   isBetweenSteps: boolean;
   scopes: string[];
+  // Set when the provider implements comment() but the connected tokens lack
+  // the platform permission to use it (scope not granted/approved yet), so
+  // publish workflows must not try to post comments.
+  commentsDisabled?: boolean;
   externalUrl?: (
     url: string
   ) => Promise<{ client_id: string; client_secret: string }>;
