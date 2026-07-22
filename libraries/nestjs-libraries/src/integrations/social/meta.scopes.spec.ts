@@ -1,5 +1,6 @@
 import { FacebookProvider } from './facebook.provider';
 import { InstagramProvider } from './instagram.provider';
+import { ThreadsProvider } from './threads.provider';
 
 // Pins the Meta OAuth scopes to the set with Advanced Access on the Postra
 // app (App Review approved 2026-07-15). Meta grants non-role users ONLY
@@ -32,6 +33,21 @@ describe('Meta provider scopes', () => {
         'instagram_manage_insights',
         'pages_read_engagement',
         'pages_show_list',
+      ].sort()
+    );
+  });
+
+  it('threads requests exactly the scopes staged for its app review', () => {
+    // The separate "Postra Threads" Meta app is being submitted for review
+    // with these four permissions. ThreadsProvider skips checkScopes, so a
+    // mismatch surfaces as Meta rejecting the OAuth dialog (invalid scope) —
+    // keep this list in lockstep with what the review approves.
+    expect(new ThreadsProvider().scopes.sort()).toEqual(
+      [
+        'threads_basic',
+        'threads_content_publish',
+        'threads_manage_insights',
+        'threads_manage_replies',
       ].sort()
     );
   });
