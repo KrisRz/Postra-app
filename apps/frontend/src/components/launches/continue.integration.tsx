@@ -259,6 +259,31 @@ export const ContinueIntegration: FC<{
     [twoStepState, fetch, modifiedParams, provider, navigateOrShow]
   );
 
+  // The OAuth step already created the channel row; when the picker comes back
+  // empty nothing can ever complete it, and it sits in the sidebar with an
+  // error badge under the user's own profile name (we store `/me` until the
+  // Page or account is chosen). Offer the cleanup here instead of sending them
+  // off to find it.
+  const onDiscard = useCallback(async () => {
+    if (!twoStepState) {
+      return;
+    }
+    try {
+      await fetch('/integrations', {
+        method: 'DELETE',
+        body: JSON.stringify({ id: twoStepState.integrationId }),
+      });
+    } catch (e) {
+      // A courtesy cleanup: if it fails the channel is still removable from the
+      // sidebar, so don't strand the user in this dialog.
+    }
+    navigateOrShow(
+      '/launches',
+      twoStepState.returnURL,
+      t('unfinished_channel_removed', 'The unfinished channel was removed.')
+    );
+  }, [twoStepState, fetch, navigateOrShow, t]);
+
   const Provider = useMemo(() => {
     return (
       continueProviderList[provider as keyof typeof continueProviderList] ||
@@ -367,6 +392,9 @@ export const ContinueIntegration: FC<{
                 existingId={[]}
                 initialData={twoStepState.pages}
                 isSaving={isSaving}
+                // Deleting needs the session; the public connect page (mobile /
+                // extension flows) has none, so there it just explains.
+                onDiscard={logged ? onDiscard : undefined}
               />
             </IntegrationContext.Provider>
           </div>

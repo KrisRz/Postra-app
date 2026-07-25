@@ -156,6 +156,8 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
     gotchas: [
       'Personal Instagram accounts won\'t appear — switch to Business/Creator in the Instagram app (Settings → Account type) and link a Facebook Page first.',
+      'Linking is done inside Instagram and Facebook, never by Postra: no app can connect your accounts, move them between logins or remove them. If something changed there, it was a dialog Meta showed you — Instagram → Settings → Accounts Center shows what is linked and lets you undo it.',
+      'If the account list comes up empty, the connect attempt leaves an unfinished channel marked with a red badge. Remove it from the dialog (or from the channel menu) and connect again once the account is Business/Creator and linked to the Page.',
       "Feed images are automatically cropped to Instagram's allowed aspect ratios.",
     ],
     composer: [
