@@ -44,6 +44,20 @@ describe('customFetch', () => {
     });
   });
 
+  // The 502 case: while the backend restarts, the proxy answers with an HTML
+  // error page. `fetch` RESOLVES — it is not a network failure — so without
+  // this the response reaches callers that `.json()` it and blow up parsing
+  // HTML (in Safari: an opaque DOMException reported to Sentry as a crash).
+  it('rejects a 502 with FetchHandledError rather than handing back an HTML body', async () => {
+    global.fetch = jest.fn().mockResolvedValue(response(502));
+    const fn = customFetch({ baseUrl, afterRequest: async () => false });
+    await expect(fn('/integrations')).rejects.toMatchObject({
+      name: 'FetchHandledError',
+      status: 502,
+      handled: true,
+    });
+  });
+
   it('propagates the 402 status on the FetchHandledError', async () => {
     global.fetch = jest.fn().mockResolvedValue(response(402));
     const fn = customFetch({ baseUrl, afterRequest: async () => false });

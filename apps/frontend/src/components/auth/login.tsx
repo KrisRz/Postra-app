@@ -2,6 +2,7 @@
 
 import { useForm, SubmitHandler, FormProvider } from 'react-hook-form';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { isFetchHandledError } from '@gitroom/helpers/utils/fetch.errors';
 import Link from 'next/link';
 import { Button } from '@gitroom/frontend/components/ui/button';
 import { Input } from '@gitroom/react/form/input';
@@ -60,13 +61,6 @@ export function Login() {
             message: errorMessage,
           });
         }
-      } else if (login.status === 429) {
-        form.setError('email', {
-          message: t(
-            'too_many_login_attempts',
-            'Too many attempts — please wait a few minutes and try again.'
-          ),
-        });
       } else {
         console.error('[Postra:auth] login failed', login.status);
         form.setError('email', {
@@ -78,6 +72,23 @@ export function Login() {
       }
       setLoading(false);
     } catch (e) {
+      // A status handled globally never reaches the branches above — customFetch
+      // rejects instead of resolving. The rate limit is worth restating on the
+      // form itself (it is the login endpoint's own `@Throttle`, 5 per 15 min);
+      // a 5xx already produced its own toast, and blaming the user's internet
+      // for a backend restart would be a lie.
+      if (isFetchHandledError(e)) {
+        if (e.status === 429) {
+          form.setError('email', {
+            message: t(
+              'too_many_login_attempts',
+              'Too many attempts — please wait a few minutes and try again.'
+            ),
+          });
+        }
+        setLoading(false);
+        return;
+      }
       console.error('[Postra:auth] login request failed', e);
       form.setError('email', {
         message: t(

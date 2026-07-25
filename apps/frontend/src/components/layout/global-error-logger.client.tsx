@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { isFetchHandledError } from '@gitroom/helpers/utils/fetch.errors';
 
 // Mounted once, app-wide. Captures the RAW error the instant it is thrown —
 // before React's error boundary swallows it and before the stack frames are
@@ -30,10 +31,11 @@ export const GlobalErrorLogger = (): null => {
 
     const onRejection = (event: PromiseRejectionEvent): void => {
       const reason: any = event.reason;
-      // A 402/406 is handled globally by the trial/payment dialog; customFetch
-      // rejects with this marker so callers can unwind. It is not a crash —
-      // swallow it instead of reporting a scary unhandled rejection.
-      if (reason?.name === 'FetchHandledError') {
+      // 401/402/406/429/5xx are handled globally (trial/payment dialog or a
+      // toast); customFetch rejects with this marker so callers can unwind. It
+      // is not a crash — swallow it instead of reporting a scary unhandled
+      // rejection.
+      if (isFetchHandledError(reason)) {
         event.preventDefault();
         return;
       }
