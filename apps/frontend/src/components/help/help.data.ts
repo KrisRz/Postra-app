@@ -127,12 +127,15 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     name: 'Facebook',
     connectType: 'oauth',
     steps: [
+      'Postra publishes to a Facebook Page, not to a personal profile — Meta removed API publishing to personal timelines in 2018, so no tool can do it. If you don\'t have a Page yet, create one first (free, about two minutes); Facebook can also convert an existing profile into a Page and bring your followers across.',
       'Click "Add Channel" and pick Facebook.',
-      'Log in with the Facebook account that manages your Page and approve all requested permissions.',
+      'Log in with the Facebook account that manages your Page and approve all requested permissions. When Facebook asks which Pages to use, tick every Page you may want to publish to.',
       'Choose the Page you want to publish to.',
     ],
     gotchas: [
-      'Publishing works with Facebook Pages, not personal profiles.',
+      'The list shows Pages only — your personal profile is never there, and a single entry means everything worked. Facebook shows the profile and the Page side by side in its own account switcher, which is why people expect two.',
+      'You need Facebook access with full control of the Page. With partial access the channel still connects, but publishing fails later.',
+      'A Page you skipped in the Facebook permission dialog usually will not appear. Reconnect and tick all of them.',
       "Don't untick any permissions during login — missing permissions break publishing later.",
     ],
     composer: [

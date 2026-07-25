@@ -16,6 +16,8 @@
   "connection_error": "Nie można połączyć się z serwerem — sprawdź połączenie i spróbuj ponownie.",
   "connection_offline": "Jesteś offline — połączymy ponownie automatycznie.",
   "connection_restored": "Połączenie przywrócone.",
+  "facebook_pages_only_note": "Widoczne są tylko strony na Facebooku — Meta nie pozwala aplikacjom publikować na profilach prywatnych, więc jedna pozycja na liście to normalny wynik.",
+  "instagram_business_only_note": "Widoczne są tylko konta Business lub Creator połączone ze stroną na Facebooku — Meta nie pozwala aplikacjom publikować na prywatnych kontach na Instagramie.",
   "calendar": "Kalendarz",
   "webhooks": "Webhooki",
   "webhooks_are_a_way_to_get_notified_when_something_happens_in_postra_via_an_http_request": "Webhooki umożliwiają otrzymywanie powiadomień, gdy coś dzieje się w Postrze, za pośrednictwem\n żądania HTTP.",

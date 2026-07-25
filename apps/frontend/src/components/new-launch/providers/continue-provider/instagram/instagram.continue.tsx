@@ -27,6 +27,10 @@ export const InstagramContinue = withContinueProvider<
   swrKey: 'load-instagram-pages',
   titleKey: 'select_instagram_account',
   titleDefault: 'Select Instagram Account:',
+  note: {
+    key: 'instagram_business_only_note',
+    text: 'Only Business or Creator accounts linked to a Facebook Page appear here — Meta does not allow apps to publish to personal Instagram accounts.',
+  },
   emptyStateMessages: [
     {
       key: 'we_couldn_t_find_any_business_connected_to_the_selected_pages',

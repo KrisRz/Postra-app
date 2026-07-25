@@ -18,6 +18,10 @@ export const FacebookContinue = withContinueProvider<FacebookItem, string>({
   swrKey: 'load-facebook-pages',
   titleKey: 'select_page',
   titleDefault: 'Select Page:',
+  note: {
+    key: 'facebook_pages_only_note',
+    text: 'Only Facebook Pages appear here — Meta does not allow apps to publish to personal profiles, so seeing just your Page is normal.',
+  },
   emptyStateMessages: [
     {
       key: 'we_couldn_t_find_any_business_connected_to_the_selected_pages',

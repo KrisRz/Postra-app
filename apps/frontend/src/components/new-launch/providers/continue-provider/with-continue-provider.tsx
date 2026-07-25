@@ -34,6 +34,14 @@ export interface ContinueProviderConfig<TItem, TSelection> {
   swrKey: string;
   titleKey: string;
   titleDefault: string;
+  /**
+   * One line under the title, for providers where the list is narrower than the
+   * user expects — Meta hands us Pages and Business/Creator accounts only, so
+   * someone connecting a one-person business sees a single entry and assumes it
+   * failed. The help tab explains it, but nobody opens the help tab in the
+   * middle of an OAuth flow.
+   */
+  note?: EmptyStateMessage;
   emptyStateMessages: EmptyStateMessage[];
   getSelectionValue: (item: TItem) => TSelection;
   transformSaveData: (selection: TSelection) => any;
@@ -50,6 +58,7 @@ export function withContinueProvider<TItem, TSelection>(
     swrKey,
     titleKey,
     titleDefault,
+    note,
     emptyStateMessages,
     getSelectionValue,
     transformSaveData,
@@ -125,7 +134,14 @@ export function withContinueProvider<TItem, TSelection>(
 
     return (
       <div className="flex flex-col gap-[20px]">
-        <div>{t(titleKey, titleDefault)}</div>
+        <div className="flex flex-col gap-[6px]">
+          <div>{t(titleKey, titleDefault)}</div>
+          {!!note && (
+            <div className="text-[12px] leading-[18px] text-customColor18">
+              {t(note.key, note.text)}
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-3 justify-items-center select-none cursor-pointer gap-[10px]">
           {filteredData.map((item) => (
             <div
