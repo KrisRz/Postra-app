@@ -159,6 +159,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     gotchas: [
       'Personal Instagram accounts won\'t appear — switch to Business/Creator in the Instagram app (Settings → Account type) and link a Facebook Page first.',
       'No Facebook Page at all? Create one before you start — Instagram publishing always runs through a Page, there is no route around it.',
+      'Linking your Page to Instagram (what publishing needs) is not the same thing as joining your personal Facebook profile and Instagram in Accounts Center (shared login, cross-posting — a convenience Meta offers you). If Meta prompted you into the second one during connect and you would rather keep them apart, undo it in Instagram → Settings → Accounts Center → Accounts → Remove. Publishing keeps working as long as the Page link from step 2 stays.',
       'An empty account list almost always means step 1 or step 2 above is missing, not that the connect failed. Finish them in the Instagram app, then connect again.',
       'Linking is done inside Instagram and Facebook, never by Postra: no app can connect your accounts, move them between logins or remove them. If something changed there, it was a dialog Meta showed you — Instagram → Settings → Accounts Center shows what is linked and lets you undo it.',
       'If the account list comes up empty, the connect attempt leaves an unfinished channel marked with a red badge. Remove it from the dialog (or from the channel menu) and connect again once the account is Business/Creator and linked to the Page.',
