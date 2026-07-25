@@ -142,8 +142,11 @@ export class BillingController {
     @GetUserFromRequest() user: User,
     @Body() body: { feedback: string }
   ) {
+    // Operator notification (cancellation feedback). Must go to a monitored
+    // inbox — EMAIL_FROM_ADDRESS (no-reply@) has no mailbox and sits on the
+    // SES suppression list, so mail to it silently bounces.
     await this._notificationService.sendEmail(
-      process.env.EMAIL_FROM_ADDRESS,
+      process.env.EMAIL_ADMIN_ADDRESS || process.env.EMAIL_FROM_ADDRESS,
       'Subscription Cancelled',
       `Organization ${org.name} has cancelled their subscription because: ${body.feedback}`,
       user.email
