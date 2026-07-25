@@ -24,26 +24,67 @@ export const metadata: Metadata = {
   title: `${isGeneralServerSide() ? 'Postra' : 'Gitroom'} Preview`,
   description: '',
 };
-export default async function Auth(
-  props: {
-    params: Promise<{
-      id: string;
-    }>;
-    searchParams?: Promise<{
-      share?: string;
-    }>;
+
+// The backend is unreachable for a minute or two on every deploy (single EC2,
+// no blue-green — a deliberate pre-revenue trade-off), and `internalFetch` has
+// no `afterRequest` hook, so the ALB's 502 HTML page reached `.json()` here and
+// took down the whole Server Components render: a public preview link answered
+// with the generic "Something went wrong" boundary. Degrade to the same message
+// the browser-side 5xx handler shows (layout.context.tsx) instead.
+// Returns null when the backend could not answer, otherwise the (possibly
+// empty) list of posts.
+const loadPreview = async (id: string): Promise<any[] | null> => {
+  try {
+    const response = await internalFetch(`/public/posts/${id}`);
+    if (response.status >= 500) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[Postra:preview] /public/posts/${id} -> ${response.status}`
+      );
+      return null;
+    }
+    // A non-5xx answer that isn't a JSON list means "nothing to show" rather
+    // than "come back later" — a missing post is an empty array with a 200.
+    const body = await response.json().catch(() => null);
+    return Array.isArray(body) ? body : [];
+  } catch (e) {
+    // Connection refused or timed out while the container restarts.
+    // eslint-disable-next-line no-console
+    console.error(`[Postra:preview] /public/posts/${id} failed`, e);
+    return null;
   }
-) {
+};
+export default async function Auth(props: {
+  params: Promise<{
+    id: string;
+  }>;
+  searchParams?: Promise<{
+    share?: string;
+  }>;
+}) {
   const searchParams = await props.searchParams;
   const params = await props.params;
 
-  const {
-    id
-  } = params;
+  const { id } = params;
 
-  const post = await (await internalFetch(`/public/posts/${id}`)).json();
+  const post = await loadPreview(id);
   const t = await getT();
-  if (!Array.isArray(post) || !post.length) {
+  if (!post) {
+    return (
+      <div className="text-white fixed start-0 top-0 w-full h-full flex flex-col gap-[10px] justify-center items-center text-center px-[24px]">
+        <div className="text-[20px]">
+          {t('preview_unavailable', 'Preview unavailable')}
+        </div>
+        <div className="text-[14px] text-white/60">
+          {t(
+            'server_unavailable_try_again',
+            'The server is temporarily unavailable — please try again in a moment.'
+          )}
+        </div>
+      </div>
+    );
+  }
+  if (!post.length) {
     return (
       <div className="text-white fixed start-0 top-0 w-full h-full flex justify-center items-center text-[20px]">
         {t('post_not_found', 'Post not found')}
