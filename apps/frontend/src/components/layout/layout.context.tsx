@@ -30,6 +30,8 @@ function LayoutContextInner(params: { children: ReactNode }) {
   const t = useT();
   // parallel requests can all hit 429 at once — show the toast at most once per 5s
   const last429 = useRef(0);
+  // ...and during a backend restart every request on the page 502s together
+  const last5xx = useRef(0);
   const afterRequest = useCallback(
     async (url: string, options: RequestInit, response: Response) => {
       if (
@@ -97,6 +99,9 @@ function LayoutContextInner(params: { children: ReactNode }) {
           setCookie('impersonate', '', -10);
         }
         window.location.href = '/';
+        // false -> FetchHandledError: we are navigating away, so the caller
+        // must unwind rather than .json() the 401 body mid-redirect.
+        return false;
       }
       if (response.status === 406) {
         if (
@@ -141,6 +146,28 @@ function LayoutContextInner(params: { children: ReactNode }) {
         }
         // false -> FetchHandledError: callers must not .json() a 429 body and
         // render garbage / throw into the error boundary.
+        return false;
+      }
+
+      // Same reasoning as 429, for the case that actually bit us: while the
+      // backend restarts (every deploy) the ALB answers 5xx with an HTML error
+      // page. `fetch` resolves — it is not a network failure — so the ~40
+      // callers written as `await (await fetch(x)).json()` parse HTML as JSON.
+      // In Safari that rejects with an opaque DOMException ("The string did not
+      // match the expected pattern."), which Sentry reports as a crash while
+      // the user sees nothing at all: clicking "Add channel" during a deploy
+      // simply did nothing. Tell them why, and unwind.
+      if (response.status >= 500) {
+        if (Date.now() - last5xx.current > 5000) {
+          last5xx.current = Date.now();
+          toaster.show(
+            t(
+              'server_unavailable_try_again',
+              'The server is temporarily unavailable — please try again in a moment.'
+            ),
+            'warning'
+          );
+        }
         return false;
       }
       return true;

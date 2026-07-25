@@ -7,6 +7,7 @@ import { useCarouselStore, CarouselSlide } from '../carousel.store';
 import { renderDesignSpec, PostDesignSpec } from '../utils/canvas-renderer';
 import { useHolidays, getUpcomingHolidays } from '../utils/holidays';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { isFetchHandledError } from '@gitroom/helpers/utils/fetch.errors';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useTranslation } from 'react-i18next';
@@ -162,6 +163,10 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       }
     } catch (err) {
       if ((err as { name?: string })?.name === 'AbortError') return;
+      // A globally-handled status (5xx/429/401) already showed its own message.
+      // Telling the user to "try a different prompt" during a backend restart
+      // sends them off rewriting perfectly good input.
+      if (isFetchHandledError(err)) return;
       toaster.show(
         t('ai_generate_failed', 'AI generation failed. Try a different prompt or check your connection.'),
         'warning'

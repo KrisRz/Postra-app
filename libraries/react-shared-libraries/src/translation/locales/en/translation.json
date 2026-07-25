@@ -1243,6 +1243,8 @@
   "login_failed_try_again": "Something went wrong, please try again.",
   "connection_error_try_again": "Connection error — check your internet and try again.",
   "too_many_requests": "Too many requests — please wait a moment and try again.",
+  "server_unavailable_try_again": "The server is temporarily unavailable — please try again in a moment.",
+  "could_not_load_channels": "Could not load the channel list — please try again.",
   "discount_failed": "Could not apply the discount, please try again.",
   "billing_portal_failed": "Could not open the billing portal, please try again.",
   "billing_action_failed": "Something went wrong, please try again.",

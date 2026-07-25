@@ -3,6 +3,7 @@
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import React, { FC, useCallback, useMemo } from 'react';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { isFetchHandledError } from '@gitroom/helpers/utils/fetch.errors';
 import { Input } from '@gitroom/react/form/input';
 import { FieldValues, FormProvider, useForm } from 'react-hook-form';
 import { Button } from '@gitroom/frontend/components/ui/button';
@@ -29,18 +30,36 @@ const resolver = classValidatorResolver(ApiKeyDto);
 export const useAddProvider = (update?: () => void, invite?: boolean) => {
   const modal = useModals();
   const fetch = useFetch();
+  const toaster = useToaster();
+  const t = useT();
   return useCallback(async () => {
-    const data = await (await fetch('/integrations')).json();
-    modal.openModal({
-      title: 'Add channel',
-      withCloseButton: true,
-      classNames: {
-        modal: 'launches-modal-surface text-textColor',
-      },
-      children: (
-        <AddProviderComponent invite={!!invite} update={update} {...data} />
-      ),
-    });
+    // Nothing awaits this handler, so an unhandled rejection here is invisible:
+    // the button just stops working. Every failure has to end in a message.
+    try {
+      const data = await (await fetch('/integrations')).json();
+      modal.openModal({
+        title: 'Add channel',
+        withCloseButton: true,
+        classNames: {
+          modal: 'launches-modal-surface text-textColor',
+        },
+        children: (
+          <AddProviderComponent invite={!!invite} update={update} {...data} />
+        ),
+      });
+    } catch (e) {
+      // 5xx/429/401 already raised their own message globally.
+      if (isFetchHandledError(e)) {
+        return;
+      }
+      toaster.show(
+        t(
+          'could_not_load_channels',
+          'Could not load the channel list — please try again.'
+        ),
+        'warning'
+      );
+    }
   }, []);
 };
 export const AddProviderButton: FC<{

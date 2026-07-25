@@ -4,6 +4,7 @@ import { FC, MutableRefObject, useCallback, useEffect, useRef, useState } from '
 import * as fabric from 'fabric';
 import { useEditorStore } from '../editor.store';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
+import { isFetchHandledError } from '@gitroom/helpers/utils/fetch.errors';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
@@ -113,6 +114,9 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
         setHistory((prev) => [...prev, { role: 'assistant', text: data.explanation }]);
       } catch (err) {
         if ((err as { name?: string })?.name === 'AbortError') return;
+        // Handled globally (5xx/429/401) — its own message is already up, and
+        // "try a different instruction" would blame the wrong thing.
+        if (isFetchHandledError(err)) return;
         toaster.show(
           t('refine_failed', 'AI could not refine the design — try a different instruction.'),
           'warning'
