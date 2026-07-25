@@ -35,6 +35,7 @@ import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mob
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 import { bustAuthContextCache } from '@gitroom/backend/services/auth/auth.middleware';
 import { StripeService } from '@gitroom/nestjs-libraries/services/stripe.service';
+import { NotificationService } from '@gitroom/nestjs-libraries/database/prisma/notifications/notification.service';
 
 @ApiTags('User')
 @Controller('/user')
@@ -47,7 +48,8 @@ export class UsersController {
     private _trackService: TrackService,
     private _mobilePush: MobilePushService,
     private _auditService: AuditService,
-    private _stripeService: StripeService
+    private _stripeService: StripeService,
+    private _notificationService: NotificationService
   ) {}
 
   // Register/refresh an Expo push token for the Postra Mobile app.
@@ -359,6 +361,18 @@ export class UsersController {
     }
 
     await this._userService.deleteAccount(user.id);
+
+    // GDPR art. 12: confirm the erasure to the data subject, in writing.
+    // Best-effort — the deletion already happened and must not fail on email.
+    try {
+      await this._notificationService.sendEmail(
+        user.email,
+        'Your Postra account has been deleted',
+        'Your Postra account and its data — connected channels, scheduled posts and media — have been permanently deleted, and any active subscription was cancelled. Billing records required by law are retained in line with our privacy policy. Thanks for trying Postra.'
+      );
+    } catch (e) {
+      /* the account is gone either way */
+    }
 
     response.header('logout', 'true');
     for (const name of ['auth', 'showorg', 'impersonate']) {

@@ -3,7 +3,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { HttpStatusCode } from 'axios';
 import { useRouter } from 'next/navigation';
-import { Redirect } from '@gitroom/frontend/components/layout/redirect';
+import { Button } from '@gitroom/frontend/components/ui/button';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import dayjs from 'dayjs';
@@ -408,7 +408,16 @@ export const ContinueIntegration: FC<{
                 'An error occurred. Please try again.'
               )}
           </div>
-          {logged && <Redirect url="/launches" delay={3000} />}
+          {/* No auto-redirect: the message explains why the connect failed
+              (e.g. channel already used by another account) and must stay
+              readable until the user leaves on their own. */}
+          {logged && (
+            <div className="mt-[24px] flex justify-center">
+              <Button onClick={() => push('/launches')}>
+                {t('back_to_app', 'Back to the app')}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );

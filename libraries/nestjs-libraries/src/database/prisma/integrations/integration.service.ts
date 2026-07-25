@@ -119,7 +119,7 @@ export class IntegrationService {
     );
     if (existingChannel && existingChannel.organizationId !== org) {
       throw new HttpException(
-        'This channel is already connected to another organization',
+        'This channel is already connected to another Postra account. Disconnect it there first, then try again.',
         HttpStatus.CONFLICT
       );
     }

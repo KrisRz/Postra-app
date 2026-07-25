@@ -8,6 +8,7 @@ import dayjs from 'dayjs';
 import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 import { AiUsageService } from '@gitroom/nestjs-libraries/database/prisma/ai-usage/ai-usage.service';
+import { bustAuthContextCacheForUsers } from '@gitroom/nestjs-libraries/redis/auth-context.cache';
 
 @Injectable()
 export class SubscriptionService {
@@ -99,9 +100,38 @@ export class SubscriptionService {
       action: 'subscription.delete',
       metadata: { customerId },
     });
-    return this._subscriptionRepository.deleteSubscriptionByCustomerId(
-      customerId
-    );
+    const deleted =
+      await this._subscriptionRepository.deleteSubscriptionByCustomerId(
+        customerId
+      );
+    await this.bustMembersAuthCache(undefined, customerId);
+    return deleted;
+  }
+
+  // A subscription written by a Stripe webhook must be visible to the very
+  // next /user/self call: the frontend re-fetches the user exactly once, the
+  // moment /billing/check turns positive. auth.middleware caches user+orgs in
+  // Redis for 30s, and seat reconciliation only busts members whose disabled
+  // flag flipped — a solo owner buying a plan flips nobody, so their cached
+  // FREE context survived and the paywall stayed up after a successful payment.
+  private async bustMembersAuthCache(orgId?: string, customerId?: string) {
+    try {
+      const id =
+        orgId ||
+        (customerId
+          ? (await this._organizationService.getOrgByCustomerId(customerId))?.id
+          : undefined);
+      if (!id) {
+        return;
+      }
+      const team = await this._organizationService.getTeam(id);
+      await bustAuthContextCacheForUsers(
+        (team?.users || []).map((u) => u.user.id)
+      );
+    } catch (e) {
+      // Cache busting must never fail the subscription write; worst case the
+      // stale context expires on its own within 30s.
+    }
   }
 
   updateCustomerId(organizationId: string, customerId: string) {
@@ -267,17 +297,20 @@ export class SubscriptionService {
       organizationId: org,
       metadata: { customerId, billing, period, totalChannels, isTrailing },
     });
-    return this._subscriptionRepository.createOrUpdateSubscription(
-      isTrailing,
-      identifier,
-      customerId,
-      totalChannels,
-      billing,
-      period,
-      cancelAt,
-      code,
-      org ? { id: org } : undefined
-    );
+    const result =
+      await this._subscriptionRepository.createOrUpdateSubscription(
+        isTrailing,
+        identifier,
+        customerId,
+        totalChannels,
+        billing,
+        period,
+        cancelAt,
+        code,
+        org ? { id: org } : undefined
+      );
+    await this.bustMembersAuthCache(org, customerId);
+    return result;
   }
 
   /**
