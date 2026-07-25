@@ -2,7 +2,10 @@
 
 import { ReactNode, useCallback, useRef } from 'react';
 import { SWRConfig } from 'swr';
-import { isFetchHandledError } from '@gitroom/helpers/utils/fetch.errors';
+import {
+  isFetchHandledError,
+  isNetworkError,
+} from '@gitroom/helpers/utils/fetch.errors';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 
@@ -29,14 +32,32 @@ export const SwrProvider = ({ children }: { children: ReactNode }) => {
       if (isFetchHandledError(error)) {
         return;
       }
+
+      // The ConnectionStatus banner already says "you're offline" and stays up
+      // until the connection returns; a toast repeating it is noise. Log at
+      // info, not error: consoleLoggingIntegration ships warn/error to Sentry,
+      // and one lift ride with a dozen mounted hooks would flood it.
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        console.info('[Postra:swr] offline, skipped', key);
+        return;
+      }
+
       console.error('[Postra:swr]', key, error);
       if (Date.now() - lastToast.current > 5000) {
         lastToast.current = Date.now();
         toaster.show(
-          t(
-            'data_load_error',
-            'Something went wrong loading data — please refresh the page.'
-          ),
+          // The browser thinks it is online but the request never landed
+          // (captive portal, dead uplink, ALB down). "Refresh the page" would
+          // be the wrong instruction, so say what actually failed.
+          isNetworkError(error)
+            ? t(
+                'connection_error',
+                "Can't reach the server — check your connection and try again."
+              )
+            : t(
+                'data_load_error',
+                'Something went wrong loading data — please refresh the page.'
+              ),
           'warning'
         );
       }

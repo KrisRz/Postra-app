@@ -1,7 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import { isFetchHandledError } from '@gitroom/helpers/utils/fetch.errors';
+import {
+  isFetchHandledError,
+  isNetworkError,
+} from '@gitroom/helpers/utils/fetch.errors';
 
 // Mounted once, app-wide. Captures the RAW error the instant it is thrown —
 // before React's error boundary swallows it and before the stack frames are
@@ -36,6 +39,19 @@ export const GlobalErrorLogger = (): null => {
       // is not a crash — swallow it instead of reporting a scary unhandled
       // rejection.
       if (isFetchHandledError(reason)) {
+        event.preventDefault();
+        return;
+      }
+      // A request that never reached the server is the connection failing, not
+      // the app crashing — ConnectionStatus tells the user, and Sentry drops
+      // these by message anyway. Keep the devtools breadcrumb, but at info so
+      // it is not shipped as a console log too.
+      if (isNetworkError(reason)) {
+        console.info(
+          '[Postra:network]',
+          reason?.message ?? String(reason),
+          window.location.href
+        );
         event.preventDefault();
         return;
       }
