@@ -1014,6 +1014,29 @@ export class StripeService {
     return { cancelled: true };
   }
 
+  // Account-deletion path. Unlike cancelSubscription() it is a no-op when the
+  // organization has no Stripe customer or no live subscription, and it cancels
+  // immediately (no cancel_at_period_end) — the account is about to be erased,
+  // so nothing may keep charging the card. DB Subscription rows are not touched
+  // here; they cascade away with the organization.
+  async cancelAllSubscriptionsForDeletedAccount(organizationId: string) {
+    const org = await this._organizationService.getOrgById(organizationId);
+    if (!org?.paymentId) {
+      return;
+    }
+
+    const subscriptions = (
+      await stripe.subscriptions.list({
+        customer: org.paymentId,
+        status: 'all',
+      })
+    ).data.filter((f) => f.status !== 'canceled');
+
+    for (const subscription of subscriptions) {
+      await stripe.subscriptions.cancel(subscription.id);
+    }
+  }
+
   async lifetimeDeal(organizationId: string, code: string) {
     const getCurrentSubscription =
       await this._subscriptionService.getSubscriptionByOrganizationId(

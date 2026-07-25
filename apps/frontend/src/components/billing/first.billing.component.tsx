@@ -27,6 +27,7 @@ import SafeImage from '@gitroom/react/helpers/safe.image';
 import { useModals } from '@gitroom/frontend/components/layout/new-modal';
 import useCookie from 'react-use-cookie';
 import { LogoutComponent } from '@gitroom/frontend/components/layout/logout.component';
+import DeleteAccountComponent from '@gitroom/frontend/components/settings/delete-account.component';
 
 const ModeComponent = dynamic(
   () => import('@gitroom/frontend/components/layout/mode.component'),
@@ -77,6 +78,15 @@ export const FirstBillingComponent = () => {
       })
     ).json();
   }, [tier, period]);
+
+  // GDPR: users without an active plan only ever see this page, so account
+  // deletion must be reachable from here too — not just from app settings.
+  const openDeleteAccount = useCallback(() => {
+    modals.openModal({
+      title: t('delete_account', 'Delete account'),
+      children: <DeleteAccountComponent />,
+    });
+  }, [modals, t]);
 
   const showYouTube = () => {
     modals.openModal({
@@ -217,6 +227,23 @@ export const FirstBillingComponent = () => {
           ) : (
             <LoadingComponent />
           )}
+          <div className="mt-[16px] flex flex-col gap-[6px] text-[12px] text-newTextColor/50">
+            <div>
+              {t(
+                'billing_stripe_link_note',
+                'Payments are processed by Stripe. Cards saved with Stripe Link are stored in your Link account (link.com), not in Postra — manage or remove them there.'
+              )}
+            </div>
+            <div>
+              {t('billing_leaving_instead', 'Leaving instead?')}{' '}
+              <span
+                className="underline cursor-pointer hover:text-newTextColor"
+                onClick={openDeleteAccount}
+              >
+                {t('billing_delete_your_account', 'Delete your account')}
+              </span>
+            </div>
+          </div>
         </div>
         <div className="flex flex-col ps-[40px] tablet:!ps-[0] border-l border-newColColor py-[40px] mobile:!pt-[24px] tablet:border-none tablet:pb-0">
           <div className="top-[20px] sticky">
