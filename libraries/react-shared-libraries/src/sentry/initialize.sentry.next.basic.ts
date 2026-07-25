@@ -1,18 +1,14 @@
 import * as Sentry from '@sentry/nextjs';
+import { NETWORK_FAILURE_PATTERNS } from '@gitroom/helpers/utils/fetch.errors';
 
 export const initializeSentryBasic = (environment: string, dsn: string, extension: any) => {
   if (!dsn) {
     return;
   }
 
-  const ignorePatterns = [
-    /^Failed to fetch$/,
-    /^Failed to fetch .*/i,
-    /^Load failed$/i,
-    /^Load failed .*/i,
-    /^NetworkError when attempting to fetch resource\.$/i,
-    /^NetworkError when attempting to fetch resource\. .*/i,
-  ];
+  // One list, shared with the client code that decides whether to blame the
+  // connection instead of the app — the two must not drift apart.
+  const ignorePatterns = NETWORK_FAILURE_PATTERNS;
 
   // Sample rate: full traces in dev, 10% in prod (100% + session replays burns the
   // Sentry quota). Override via NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE (build-time).

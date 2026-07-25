@@ -22,6 +22,12 @@ export interface ContinueProviderProps {
   existingId: string[];
   initialData?: any[];
   isSaving?: boolean;
+  /**
+   * Removes the half-finished channel the OAuth step already created. Passed
+   * only where we own that row and the user is logged in; without it the empty
+   * state just explains the problem.
+   */
+  onDiscard?: () => Promise<void>;
 }
 
 export interface EmptyStateMessage {
@@ -34,6 +40,14 @@ export interface ContinueProviderConfig<TItem, TSelection> {
   swrKey: string;
   titleKey: string;
   titleDefault: string;
+  /**
+   * One line under the title, for providers where the list is narrower than the
+   * user expects — Meta hands us Pages and Business/Creator accounts only, so
+   * someone connecting a one-person business sees a single entry and assumes it
+   * failed. The help tab explains it, but nobody opens the help tab in the
+   * middle of an OAuth flow.
+   */
+  note?: EmptyStateMessage;
   emptyStateMessages: EmptyStateMessage[];
   getSelectionValue: (item: TItem) => TSelection;
   transformSaveData: (selection: TSelection) => any;
@@ -50,6 +64,7 @@ export function withContinueProvider<TItem, TSelection>(
     swrKey,
     titleKey,
     titleDefault,
+    note,
     emptyStateMessages,
     getSelectionValue,
     transformSaveData,
@@ -59,10 +74,11 @@ export function withContinueProvider<TItem, TSelection>(
   } = config;
 
   return function ContinueProviderComponent(props: ContinueProviderProps) {
-    const { onSave, existingId, initialData, isSaving } = props;
+    const { onSave, existingId, initialData, isSaving, onDiscard } = props;
     const call = useCustomProviderFunction();
     const t = useT();
     const [selection, setSelection] = useState<TSelection | null>(null);
+    const [isDiscarding, setIsDiscarding] = useState(false);
 
     const loadData = useCallback(async () => {
       // Skip fetch if initial data was provided
@@ -107,25 +123,46 @@ export function withContinueProvider<TItem, TSelection>(
 
     if (!isLoading && !resolvedData?.length) {
       return (
-        <div className="text-center flex flex-col justify-center items-center text-[18px] leading-[26px] h-[300px]">
-          {emptyStateMessages.map((msg, index) => (
-            <span key={msg.key}>
-              {t(msg.key, msg.text)}
-              {index < emptyStateMessages.length - 1 && (
-                <>
-                  <br />
-                  <br />
-                </>
-              )}
-            </span>
+        <div className="flex flex-col justify-center items-center gap-[16px] text-center text-[15px] leading-[24px] min-h-[300px] py-[20px]">
+          {emptyStateMessages.map((msg) => (
+            <span key={msg.key}>{t(msg.key, msg.text)}</span>
           ))}
+          {/* The OAuth step already created a channel row. Nothing here can
+              complete it, so offer the cleanup instead of telling the user to
+              go and find the half-connected channel themselves — that entry
+              shows up in their sidebar with an error badge and their own
+              profile name on it. */}
+          {!!onDiscard && (
+            <Button
+              className="mt-[4px]"
+              loading={isDiscarding}
+              disabled={isDiscarding}
+              onClick={async () => {
+                setIsDiscarding(true);
+                try {
+                  await onDiscard();
+                } finally {
+                  setIsDiscarding(false);
+                }
+              }}
+            >
+              {t('remove_unfinished_channel', 'Remove the unfinished channel')}
+            </Button>
+          )}
         </div>
       );
     }
 
     return (
       <div className="flex flex-col gap-[20px]">
-        <div>{t(titleKey, titleDefault)}</div>
+        <div className="flex flex-col gap-[6px]">
+          <div>{t(titleKey, titleDefault)}</div>
+          {!!note && (
+            <div className="text-[12px] leading-[18px] text-customColor18">
+              {t(note.key, note.text)}
+            </div>
+          )}
+        </div>
         <div className="grid grid-cols-3 justify-items-center select-none cursor-pointer gap-[10px]">
           {filteredData.map((item) => (
             <div

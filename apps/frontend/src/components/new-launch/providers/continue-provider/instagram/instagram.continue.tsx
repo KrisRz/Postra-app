@@ -27,18 +27,22 @@ export const InstagramContinue = withContinueProvider<
   swrKey: 'load-instagram-pages',
   titleKey: 'select_instagram_account',
   titleDefault: 'Select Instagram Account:',
+  note: {
+    key: 'instagram_business_only_note',
+    text: 'Only Business or Creator accounts linked to a Facebook Page appear here — Meta does not allow apps to publish to personal Instagram accounts.',
+  },
   emptyStateMessages: [
     {
-      key: 'we_couldn_t_find_any_business_connected_to_the_selected_pages',
-      text: "We couldn't find any business connected to the selected pages.",
+      key: 'instagram_empty_no_business_account',
+      text: 'We could not find an Instagram account we are allowed to publish to.',
     },
     {
-      key: 'we_recommend_you_to_connect_all_the_pages_and_all_the_businesses',
-      text: 'We recommend you to connect all the pages and all the businesses.',
+      key: 'instagram_empty_how_to_fix',
+      text: 'Meta only allows publishing from an Instagram Business or Creator account that is linked to a Facebook Page. In the Instagram app open Settings → Account type and switch to Business or Creator, then link it to your Page (Edit profile → Page).',
     },
     {
-      key: 'please_close_this_dialog_delete_your_integration_and_add_a_new_channel_again',
-      text: 'Please close this dialog, delete your integration and add a new channel again.',
+      key: 'instagram_empty_tick_all_pages',
+      text: 'Then connect Instagram again and tick every Page in the Facebook dialog — a Page you skip there stays invisible to us.',
     },
   ],
   getItemId: (item) => item.id,

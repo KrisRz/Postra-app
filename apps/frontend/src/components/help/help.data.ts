@@ -127,12 +127,15 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     name: 'Facebook',
     connectType: 'oauth',
     steps: [
+      'Postra publishes to a Facebook Page, not to a personal profile — Meta removed API publishing to personal timelines in 2018, so no tool can do it. If you don\'t have a Page yet, create one first (free, about two minutes); Facebook can also convert an existing profile into a Page and bring your followers across.',
       'Click "Add Channel" and pick Facebook.',
-      'Log in with the Facebook account that manages your Page and approve all requested permissions.',
+      'Log in with the Facebook account that manages your Page and approve all requested permissions. When Facebook asks which Pages to use, tick every Page you may want to publish to.',
       'Choose the Page you want to publish to.',
     ],
     gotchas: [
-      'Publishing works with Facebook Pages, not personal profiles.',
+      'The list shows Pages only — your personal profile is never there, and a single entry means everything worked. Facebook shows the profile and the Page side by side in its own account switcher, which is why people expect two.',
+      'You need Facebook access with full control of the Page. With partial access the channel still connects, but publishing fails later.',
+      'A Page you skipped in the Facebook permission dialog usually will not appear. Reconnect and tick all of them.',
       "Don't untick any permissions during login — missing permissions break publishing later.",
     ],
     composer: [
@@ -153,6 +156,8 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     ],
     gotchas: [
       'Personal Instagram accounts won\'t appear — switch to Business/Creator in the Instagram app (Settings → Account type) and link a Facebook Page first.',
+      'Linking is done inside Instagram and Facebook, never by Postra: no app can connect your accounts, move them between logins or remove them. If something changed there, it was a dialog Meta showed you — Instagram → Settings → Accounts Center shows what is linked and lets you undo it.',
+      'If the account list comes up empty, the connect attempt leaves an unfinished channel marked with a red badge. Remove it from the dialog (or from the channel menu) and connect again once the account is Business/Creator and linked to the Page.',
       "Feed images are automatically cropped to Instagram's allowed aspect ratios.",
     ],
     composer: [

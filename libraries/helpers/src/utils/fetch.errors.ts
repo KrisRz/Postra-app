@@ -37,3 +37,45 @@ export class FetchTimeoutError extends Error {
     this.name = 'FetchTimeoutError';
   }
 }
+
+/**
+ * How each engine words "the request never reached the server" — dropped wifi,
+ * airplane mode, DNS failure, a laptop lid closing mid-request. `fetch` rejects
+ * with a bare TypeError carrying no code, so the message is the only portable
+ * signal there is.
+ *
+ * Shared with Sentry's beforeSend, which drops these events: someone walking
+ * into a lift is not a crash, and one commute would otherwise fill the quota.
+ */
+export const NETWORK_FAILURE_PATTERNS: readonly RegExp[] = [
+  /^Failed to fetch/i, // Chrome, Edge
+  /^Load failed/i, // Safari
+  /^NetworkError when attempting to fetch resource\./i, // Firefox
+  /^The Internet connection appears to be offline/i, // WebKit / iOS
+  /^The network connection was lost/i, // WebKit / iOS
+];
+
+/**
+ * True when a rejection means "we could not reach the server", as opposed to
+ * "the server answered something we did not like". Callers use it to blame the
+ * connection instead of the app — telling a user with no signal to "refresh the
+ * page" is the one instruction guaranteed not to work.
+ *
+ * A timed-out request counts: customFetch only aborts after 120s, which no live
+ * request reaches, so in practice it is a connection that died mid-flight.
+ */
+export const isNetworkError = (e: unknown): boolean => {
+  if (!e) {
+    return false;
+  }
+  // Name rather than instanceof — the marker classes cross separately-bundled
+  // client chunks, same as isFetchHandledError above.
+  if ((e as Error).name === 'FetchTimeoutError') {
+    return true;
+  }
+  const message = (e as Error).message;
+  return (
+    typeof message === 'string' &&
+    NETWORK_FAILURE_PATTERNS.some((pattern) => pattern.test(message))
+  );
+};
