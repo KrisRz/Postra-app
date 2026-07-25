@@ -34,6 +34,7 @@ import { AuthorizationActions, Sections } from '@gitroom/backend/services/auth/p
 import { MobilePushService } from '@gitroom/nestjs-libraries/database/prisma/mobile-push/mobile.push.service';
 import { AuditService } from '@gitroom/nestjs-libraries/database/prisma/audit/audit.service';
 import { bustAuthContextCache } from '@gitroom/backend/services/auth/auth.middleware';
+import { StripeService } from '@gitroom/nestjs-libraries/services/stripe.service';
 
 @ApiTags('User')
 @Controller('/user')
@@ -45,7 +46,8 @@ export class UsersController {
     private _userService: UsersService,
     private _trackService: TrackService,
     private _mobilePush: MobilePushService,
-    private _auditService: AuditService
+    private _auditService: AuditService,
+    private _stripeService: StripeService
   ) {}
 
   // Register/refresh an Expo push token for the Postra Mobile app.
@@ -344,6 +346,18 @@ export class UsersController {
     @GetUserFromRequest() user: User,
     @Res({ passthrough: true }) response: Response
   ) {
+    // Cancel Stripe billing before the DB rows (and with them the customer
+    // lookup) are gone. Orchestrated here because StripeService itself injects
+    // UsersService — the reverse dependency would be circular.
+    const soleOrgIds = await this._userService.getSoleOwnedOrganizations(
+      user.id
+    );
+    for (const organizationId of soleOrgIds) {
+      await this._stripeService.cancelAllSubscriptionsForDeletedAccount(
+        organizationId
+      );
+    }
+
     await this._userService.deleteAccount(user.id);
 
     response.header('logout', 'true');

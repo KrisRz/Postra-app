@@ -58,16 +58,11 @@ export class UsersService {
     return this._usersRepository.updateEmailNotifications(userId, body);
   }
 
-  // GDPR / RODO right to erasure + Meta data-deletion requirement.
-  // Hard-deletes the user and every organization the user solely owns. DB-level
-  // ON DELETE CASCADE removes all org children (integrations + OAuth tokens,
-  // posts, media, comments, ...). Organizations shared with other members are
-  // kept; the user is simply detached (their UserOrganization row cascades away
-  // when the user is deleted). See Plan/app_review.md §1B (B2).
-  // NOTE: MobilePushToken (mobile companion) has no FK relation, so it is not
-  // cascaded. When the mobile push feature ships, give it an onDelete: Cascade
-  // relation to User, or delete it here.
-  async deleteAccount(userId: string) {
+  // Organizations that would be deleted together with this user (the user is
+  // their only member). The delete endpoint cancels their Stripe subscriptions
+  // before deleteAccount runs — the Subscription rows cascade away with the
+  // org, so this is the last moment the customer can be looked up.
+  async getSoleOwnedOrganizations(userId: string) {
     const memberships = await this._prisma.userOrganization.findMany({
       where: { userId },
       select: { organizationId: true },
@@ -82,6 +77,21 @@ export class UsersService {
         soleOrgIds.push(organizationId);
       }
     }
+
+    return soleOrgIds;
+  }
+
+  // GDPR / RODO right to erasure + Meta data-deletion requirement.
+  // Hard-deletes the user and every organization the user solely owns. DB-level
+  // ON DELETE CASCADE removes all org children (integrations + OAuth tokens,
+  // posts, media, comments, ...). Organizations shared with other members are
+  // kept; the user is simply detached (their UserOrganization row cascades away
+  // when the user is deleted). See Plan/app_review.md §1B (B2).
+  // NOTE: MobilePushToken (mobile companion) has no FK relation, so it is not
+  // cascaded. When the mobile push feature ships, give it an onDelete: Cascade
+  // relation to User, or delete it here.
+  async deleteAccount(userId: string) {
+    const soleOrgIds = await this.getSoleOwnedOrganizations(userId);
 
     await this._prisma.$transaction(async (tx) => {
       for (const id of soleOrgIds) {
