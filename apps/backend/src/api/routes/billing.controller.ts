@@ -14,6 +14,7 @@ import {
   AuthorizationActions,
   Sections,
 } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
+import { bustAuthContextCache } from '@gitroom/backend/services/auth/auth.middleware';
 
 // Billing mutations change what the org's card is charged — restrict to org
 // admins/owner (ADMIN section = ADMIN/SUPERADMIN role). A regular invited
@@ -35,11 +36,17 @@ export class BillingController {
   @Get('/check/:id')
   async checkId(
     @GetOrgFromRequest() org: Organization,
+    @GetUserFromRequest() user: User,
     @Param('id') body: string
   ) {
-    return {
-      status: await this._stripeService.checkSubscription(org.id, body),
-    };
+    const status = await this._stripeService.checkSubscription(org.id, body);
+    // The frontend re-fetches /user/self exactly once when this turns 2 — that
+    // request must not be served the pre-payment FREE context from the 30s
+    // auth cache (the webhook busts it too, but this poll can win that race).
+    if (status === 2) {
+      await bustAuthContextCache(user.id);
+    }
+    return { status };
   }
 
   @Get('/check-discount')
