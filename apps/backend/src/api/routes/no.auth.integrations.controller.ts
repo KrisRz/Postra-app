@@ -155,6 +155,7 @@ export class NoAuthIntegrationsController {
       picture,
       username,
       additionalSettings,
+      grantedScopes,
       // eslint-disable-next-line no-async-promise-executor
     } = await new Promise<AuthTokenDetails>(async (res) => {
       try {
@@ -333,7 +334,8 @@ export class NoAuthIntegrationsController {
           ? AuthService.fixedEncryption(
               Buffer.from(body.code, 'base64').toString()
             )
-          : undefined
+          : undefined,
+        grantedScopes
       );
 
     this._refreshIntegrationService

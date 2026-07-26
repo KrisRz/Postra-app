@@ -187,6 +187,11 @@ export async function postWorkflowV107({
   // list of all the saved results
   const postsResults: PostResponse[] = [];
 
+  // Set when a comment fails after the post itself went out. The post stays
+  // published and the run finishes normally; only the comment is flagged.
+  let failedComment: { post: (typeof postsList)[number]; err: any } | null =
+    null;
+
   // iterate over the posts
   for (let i = 0; i < postsList.length; i++) {
     const before = postsResults.length;
@@ -264,6 +269,16 @@ export async function postWorkflowV107({
           continue;
         }
 
+        // A comment that fails must not drag the already-published post into
+        // ERROR — it really did go out, and marking the whole group failed is
+        // how a successful publish ends up looking broken in the calendar.
+        // Stop the chain (later comments reply to this one) and finish the run:
+        // webhooks and plugs still belong to a post that exists.
+        if (i > 0) {
+          failedComment = { post: postsList[i], err };
+          break;
+        }
+
         // for other errors, change state and inform the user if needed
         await changeState(postsList[0].id, 'ERROR', err, postsList);
 
@@ -297,6 +312,10 @@ export async function postWorkflowV107({
       }
     }
 
+    if (failedComment) {
+      break;
+    }
+
     if (postsResults.length === before) {
       // all retries exhausted without success
       return false;
@@ -326,6 +345,28 @@ export async function postWorkflowV107({
       } attached to it could not be — ${channel} has not granted this channel the permission needed to post comments. The text is still saved on the post, so you can add ${
         skippedComments.length === 1 ? 'it' : 'them'
       } on ${channel} yourself.`,
+      true,
+      false,
+      'fail'
+    );
+  }
+
+  // A comment the channel accepted in principle but the platform rejected in
+  // practice. Same treatment: flag the comment, leave the post published.
+  if (failedComment) {
+    const channel = capitalize(post.integration.providerIdentifier);
+    const reason = failedComment.err?.cause?.message
+      ? `: ${failedComment.err.cause.message}`
+      : '';
+
+    await changeState(failedComment.post.id, 'ERROR', failedComment.err, [
+      failedComment.post,
+    ]);
+
+    await inAppNotification(
+      post.organizationId,
+      `Your ${channel} post went out, but a comment didn't`,
+      `Your post was published on ${channel}, but one of the comments attached to it could not be posted${reason}. The text is still saved on the post, so you can add it on ${channel} yourself.`,
       true,
       false,
       'fail'

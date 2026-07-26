@@ -375,6 +375,11 @@ model Integration {
   customerId            String?
   rootInternalId        String?
   additionalSettings    String?                @default("[]")
+  // JSON array of the scopes the platform actually granted this token. Meta
+  // hands Standard-access scopes only to accounts with a role in the app, so
+  // the same provider can be comment-capable on one channel and not on another.
+  // null = never recorded (channel connected before this column existed).
+  grantedScopes         String?
   exisingPlugData       ExisingPlugData[]
   customer              Customer?              @relation(fields: [customerId], references: [id], onDelete: SetNull)
   organization          Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)

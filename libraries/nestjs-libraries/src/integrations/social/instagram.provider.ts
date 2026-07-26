@@ -478,6 +478,7 @@ export class InstagramProvider
       expiresIn: dayjs().add(59, 'days').unix() - dayjs().unix(),
       picture: picture?.data?.url || '',
       username: '',
+      grantedScopes: permissions,
     };
   }
 

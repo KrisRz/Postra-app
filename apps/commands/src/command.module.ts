@@ -7,6 +7,7 @@ import { EncryptTokens } from './tasks/encrypt.tokens';
 import { GrandfatherSubscriptions } from './tasks/grandfather.subscriptions';
 import { GrantLifetime } from './tasks/grant.lifetime';
 import { SyncChannelSlots } from './tasks/sync.channel.slots';
+import { BackfillGrantedScopes } from './tasks/backfill.granted.scopes';
 import { AgentModule } from '@gitroom/nestjs-libraries/agent/agent.module';
 import { TemporalStubModule } from './temporal.stub.module';
 
@@ -30,6 +31,7 @@ import { TemporalStubModule } from './temporal.stub.module';
     GrandfatherSubscriptions,
     GrantLifetime,
     SyncChannelSlots,
+    BackfillGrantedScopes,
   ],
   get exports() {
     return [...this.imports, ...this.providers];

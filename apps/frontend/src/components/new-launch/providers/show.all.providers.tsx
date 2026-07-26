@@ -206,12 +206,17 @@ export const ShowAllProviders = forwardRef((props, ref) => {
 
   const t = useT();
 
-  // Channels in this post that can't publish comments (their provider sets
-  // comments: false — the platform permission isn't granted).
+  // Channels in this post that can't publish comments — either the provider
+  // has no first comment at all (comments: false), or this particular token
+  // wasn't granted the platform scope it needs (canComment from the backend).
   const unsupported = useMemo(
     () =>
       selectedIntegrations
         .filter((p) => {
+          if (p.integration.canComment === false) {
+            return true;
+          }
+
           const found = Providers.find(
             (provider) =>
               provider.identifier === p.integration.identifier

@@ -132,8 +132,15 @@ export const withProvider = function <T extends object>(params: {
       }
 
       if (current) {
+        // Two gates: what the provider supports at all, and what this channel's
+        // token was actually granted (Meta hands the first-comment scope only
+        // to accounts with a role in the app).
         setComments(
-          typeof params.comments === 'undefined' ? true : params.comments
+          selectedIntegration?.integration?.canComment === false
+            ? false
+            : typeof params.comments === 'undefined'
+            ? true
+            : params.comments
         );
         setEditor(selectedIntegration?.integration.editor);
         setPostComment(postComment);
