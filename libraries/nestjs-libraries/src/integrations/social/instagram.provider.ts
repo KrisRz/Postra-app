@@ -33,12 +33,6 @@ export class InstagramProvider
   name = 'Instagram\n(Facebook Business)';
   isBetweenSteps = true;
   toolTip = 'Instagram must be business and connected to a Facebook page';
-  // Meta grants non-role users ONLY scopes with Advanced Access; checkScopes
-  // requires every entry here, so listing anything below Advanced breaks
-  // connect for every external user. instagram_manage_comments no longer
-  // exists on the app's permission list at all (Meta retired it after the
-  // 07-15 review) — comments stay disabled until Meta offers a replacement
-  // we can get through review.
   scopes = [
     'instagram_basic',
     'pages_show_list',
@@ -46,8 +40,18 @@ export class InstagramProvider
     'business_management',
     'instagram_content_publish',
     'instagram_manage_insights',
+    'instagram_manage_comments',
   ];
-  commentsDisabled = true;
+  // instagram_manage_comments holds Advanced Access on this app, so Meta grants
+  // it to every user and first comment works for everyone — but it is asked for,
+  // not required. Requiring a scope is exactly what broke connect for every
+  // external user in #188: the moment Meta moves one back to Standard, or it
+  // stops appearing (which is what we mistakenly believed had happened to this
+  // one), checkScopes rejects the entire connect. Asked-not-required degrades to
+  // "the feature hides itself on that channel", and the publish workflow reports
+  // it instead of dropping the comment in silence.
+  optionalScopes = ['instagram_manage_comments'];
+  commentScope = 'instagram_manage_comments';
   override maxConcurrentJob = 400;
   editor = 'normal' as const;
   dto = InstagramDto;
@@ -462,7 +466,10 @@ export class InstagramProvider
     const permissions = data
       .filter((d: any) => d.status === 'granted')
       .map((p: any) => p.permission);
-    this.checkScopes(this.scopes, permissions);
+    this.checkScopes(
+      this.scopes.filter((scope) => !this.optionalScopes.includes(scope)),
+      permissions
+    );
 
     const { id, name, picture } = await (
       await fetch(

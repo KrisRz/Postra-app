@@ -66,14 +66,17 @@ describe('Meta provider scopes', () => {
     );
   });
 
-  it('keeps instagram first comment off entirely', () => {
-    // Meta retired instagram_manage_comments from the app's permission list
-    // after the 07-15 review, so no token can ever hold it — there is nothing
-    // to ask for and nothing to gate on. Unlike Facebook, this one stays a
-    // flat "off" until Meta offers a replacement we can get through review.
+  it('instagram asks for the first-comment scope without requiring it', () => {
+    // instagram_manage_comments holds Advanced Access on the app (verified in
+    // the dashboard 2026-07-26), so Meta grants it to every user. It is still
+    // only asked for, never required: a scope that connect depends on is a
+    // single point of failure the moment Meta changes its access level, which
+    // is what took FB/IG connect down in #188.
     const instagram = new InstagramProvider();
 
-    expect(instagram.commentsDisabled).toBe(true);
-    expect(instagram.scopes).not.toContain('instagram_manage_comments');
+    expect(instagram.scopes).toContain('instagram_manage_comments');
+    expect(instagram.optionalScopes).toContain('instagram_manage_comments');
+    expect(instagram.commentScope).toBe('instagram_manage_comments');
+    expect(instagram.commentsDisabled).toBeUndefined();
   });
 });
