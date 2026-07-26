@@ -39,6 +39,9 @@ interface StoreState {
   tab: 0 | 1;
   current: string;
   comments: boolean | 'no-media';
+  // Names of the selected channels that cannot publish comments, so the
+  // composer can say which ones instead of silently dropping them at publish.
+  commentsUnsupported: string[];
   locked: boolean;
   hide: boolean;
   setLocked: (locked: boolean) => void;
@@ -133,6 +136,7 @@ interface StoreState {
   setChars: (id: string, chars: number) => void;
   chars: Record<string, number>;
   setComments: (comments: boolean | 'no-media') => void;
+  setCommentsUnsupported: (commentsUnsupported: string[]) => void;
 }
 
 const initialState = {
@@ -140,6 +144,7 @@ const initialState = {
   loaded: true,
   dummy: false,
   comments: true,
+  commentsUnsupported: [] as string[],
   activateExitButton: true,
   date: newDayjs(),
   postComment: PostComment.ALL,
@@ -631,6 +636,10 @@ export const useLaunchStore = create<StoreState>()((set) => ({
   setComments: (comments: boolean | 'no-media') =>
     set((state) => ({
       comments,
+    })),
+  setCommentsUnsupported: (commentsUnsupported: string[]) =>
+    set((state) => ({
+      commentsUnsupported,
     })),
   setGlobalDelay: (index: number, minutes: number) =>
     set((state) => ({

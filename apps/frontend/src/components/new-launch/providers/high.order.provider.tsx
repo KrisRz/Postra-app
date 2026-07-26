@@ -122,7 +122,10 @@ export const withProvider = function <T extends object>(params: {
       );
 
       if (isGlobal) {
-        setComments(true);
+        // `comments` is deliberately NOT set here: on the global tab the answer
+        // depends on every selected channel, not on this one, so ShowAllProviders
+        // owns it. Hardcoding true here is what let the composer offer comments
+        // for channels that can't publish them.
         setPostComment(PostComment.ALL);
         setTotalChars(0);
         setEditor('normal');
@@ -344,6 +347,7 @@ export const withProvider = function <T extends object>(params: {
     dto,
     postComment,
     maximumCharacters,
+    comments: params.comments,
   };
 
   return Wrapped;
@@ -358,6 +362,15 @@ export const getProviderSettingsMeta = (component: unknown) => {
         dto?: any;
         postComment: PostComment;
         maximumCharacters?: number | ((settings: any) => number);
+        comments?: boolean | 'no-media';
       }
     | undefined;
+};
+
+/**
+ * Whether a wrapped provider can publish comments (first comment / thread).
+ * Providers that omit the flag support them — same default as withProvider.
+ */
+export const providerSupportsComments = (component: unknown) => {
+  return getProviderSettingsMeta(component)?.comments !== false;
 };
