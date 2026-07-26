@@ -27,19 +27,22 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
   identifier = 'facebook';
   name = 'Facebook Page';
   isBetweenSteps = true;
-  // Meta grants non-role users ONLY scopes with Advanced Access; checkScopes
-  // requires every entry here, so listing anything below Advanced breaks
-  // connect for every external user. pages_manage_engagement (first comment)
-  // is still on Standard — re-add it and drop commentsDisabled once its
-  // mini App Review is approved.
   scopes = [
     'pages_show_list',
     'business_management',
     'pages_manage_posts',
+    'pages_manage_engagement',
     'pages_read_engagement',
     'read_insights',
   ];
-  commentsDisabled = true;
+  // pages_manage_engagement (first comment) is still on Standard access, which
+  // Meta grants only to accounts holding a role in the app. Asking for it is
+  // free — role accounts get it and their first comment works — but requiring
+  // it fails connect for every external user, which is what #188 hit. Channels
+  // that weren't granted it simply don't offer the feature; once its mini App
+  // Review lands it becomes Advanced and this entry can go.
+  optionalScopes = ['pages_manage_engagement'];
+  commentScope = 'pages_manage_engagement';
   override maxConcurrentJob = 500; // Facebook has reasonable rate limits
   editor = 'normal' as const;
   maxLength() {
@@ -329,7 +332,10 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
     const permissions = data
       .filter((d: any) => d.status === 'granted')
       .map((p: any) => p.permission);
-    this.checkScopes(this.scopes, permissions);
+    this.checkScopes(
+      this.scopes.filter((scope) => !this.optionalScopes.includes(scope)),
+      permissions
+    );
 
     const { id, name, picture } = await (
       await fetch(
@@ -345,6 +351,9 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
       expiresIn: dayjs().add(59, 'days').unix() - dayjs().unix(),
       picture: picture?.data?.url || '',
       username: '',
+      // Page tokens inherit the user's grants, and the page is picked from this
+      // same authorization, so the user-level list describes the channel too.
+      grantedScopes: permissions,
     };
   }
 

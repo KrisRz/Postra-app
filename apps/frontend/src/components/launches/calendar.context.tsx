@@ -101,6 +101,9 @@ export interface Integrations {
   changeProfilePicture: boolean;
   additionalSettings: string;
   changeNickName: boolean;
+  // Whether first comment works on THIS channel — the platform scope it needs
+  // isn't granted to every account. Absent on older payloads: treat as allowed.
+  canComment?: boolean;
   time: {
     time: number;
   }[];

@@ -286,7 +286,8 @@ export class IntegrationRepository {
     isBetweenSteps = false,
     refresh?: string,
     timezone?: number,
-    customInstanceDetails?: string
+    customInstanceDetails?: string,
+    grantedScopes?: string[]
   ) {
     token = AuthService.encryptIntegrationToken(token);
     refreshToken = AuthService.encryptIntegrationToken(refreshToken);
@@ -325,6 +326,9 @@ export class IntegrationRepository {
         refreshNeeded: false,
         rootInternalId: internalId,
         ...(customInstanceDetails ? { customInstanceDetails } : {}),
+        ...(grantedScopes
+          ? { grantedScopes: JSON.stringify(grantedScopes) }
+          : {}),
         additionalSettings: additionalSettings
           ? JSON.stringify(additionalSettings)
           : '[]',
@@ -334,6 +338,11 @@ export class IntegrationRepository {
           ? { additionalSettings: JSON.stringify(additionalSettings) }
           : {}),
         ...(customInstanceDetails ? { customInstanceDetails } : {}),
+        // Only overwrite when this connect actually reported them — a refresh
+        // that can't tell must not wipe what a real authorization recorded.
+        ...(grantedScopes
+          ? { grantedScopes: JSON.stringify(grantedScopes) }
+          : {}),
         type: type as any,
         ...(!refresh
           ? {
@@ -385,6 +394,32 @@ export class IntegrationRepository {
     }
 
     return upsert;
+  }
+
+  // Channels connected before grantedScopes existed have it null, and null
+  // fails closed — so every already-connected Meta channel would lose first
+  // comment until it was reconnected by hand. The backfill command asks the
+  // platform what each token really holds and fills them in.
+  async integrationsMissingGrantedScopes(providers: string[]) {
+    const list = await this._integration.model.integration.findMany({
+      where: {
+        providerIdentifier: { in: providers },
+        deletedAt: null,
+        disabled: false,
+        inBetweenSteps: false,
+      },
+    });
+
+    return list.map((integration) =>
+      this.decryptIntegrationTokens(integration)
+    );
+  }
+
+  setGrantedScopes(id: string, grantedScopes: string[]) {
+    return this._integration.model.integration.update({
+      where: { id },
+      data: { grantedScopes: JSON.stringify(grantedScopes) },
+    });
   }
 
   async needsToBeRefreshed() {

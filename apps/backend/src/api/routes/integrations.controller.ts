@@ -33,6 +33,7 @@ import {
   Sections,
 } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
 import { uniqBy } from 'lodash';
+import { canPostComments } from '@gitroom/nestjs-libraries/integrations/social/comment.capability';
 import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integrations/refresh.integration.service';
 
 @ApiTags('Integrations')
@@ -112,6 +113,11 @@ export class IntegrationsController {
             identifier: p.providerIdentifier,
             inBetweenSteps: p.inBetweenSteps,
             refreshNeeded: p.refreshNeeded,
+            // Per channel, not per provider: Meta grants the first-comment
+            // scope only to accounts holding a role in the app, so one Page
+            // can take comments while the next one can't. The composer hides
+            // the option where the comment would be dropped at publish.
+            canComment: canPostComments(findIntegration, p),
             isCustomFields: !!findIntegration.customFields,
             ...(findIntegration.customFields
               ? { customFields: await findIntegration.customFields() }

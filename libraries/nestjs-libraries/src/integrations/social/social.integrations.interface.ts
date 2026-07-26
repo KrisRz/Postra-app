@@ -72,6 +72,10 @@ export type AuthTokenDetails = {
   expiresIn?: number; // The duration in seconds for which the access token is valid
   picture?: string;
   username: string;
+  // What the platform actually granted this token, when the provider can tell.
+  // Persisted on the integration so features gated on an optional scope know
+  // whether this particular channel can use them.
+  grantedScopes?: string[];
   additionalSettings?: {
     title: string;
     description: string;
@@ -168,9 +172,16 @@ export interface SocialProvider
   oneTimeToken?: boolean;
   isBetweenSteps: boolean;
   scopes: string[];
-  // Set when the provider implements comment() but the connected tokens lack
-  // the platform permission to use it (scope not granted/approved yet), so
-  // publish workflows must not try to post comments.
+  // Scopes we ask the platform for but must NOT require to finish a connect.
+  // Meta grants Standard-access scopes only to accounts holding a role in the
+  // app, so requiring one rejects every external user (#188). Features that
+  // need them check the token's granted scopes at runtime instead.
+  optionalScopes?: string[];
+  // The scope comment() needs. When set, first comment is offered only on
+  // channels whose token was actually granted it.
+  commentScope?: string;
+  // Set when the provider implements comment() but no token can ever use it
+  // (the platform retired the permission), so publish must not try at all.
   commentsDisabled?: boolean;
   externalUrl?: (
     url: string

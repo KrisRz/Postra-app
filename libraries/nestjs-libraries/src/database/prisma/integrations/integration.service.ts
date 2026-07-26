@@ -26,6 +26,7 @@ import utc from 'dayjs/plugin/utc';
 import { AutopostRepository } from '@gitroom/nestjs-libraries/database/prisma/autopost/autopost.repository';
 import { RefreshIntegrationService } from '@gitroom/nestjs-libraries/integrations/refresh.integration.service';
 import { TemporalService } from 'nestjs-temporal-core';
+import { fetch } from 'undici';
 import { AuthService } from '@gitroom/helpers/auth/auth.service';
 
 dayjs.extend(utc);
@@ -111,7 +112,8 @@ export class IntegrationService {
     isBetweenSteps = false,
     refresh?: string,
     timezone?: number,
-    customInstanceDetails?: string
+    customInstanceDetails?: string,
+    grantedScopes?: string[]
   ) {
     const existingChannel = await this._integrationRepository.findActiveByProviderIdentifier(
       provider,
@@ -181,8 +183,74 @@ export class IntegrationService {
       isBetweenSteps,
       refresh,
       timezone,
-      customInstanceDetails
+      customInstanceDetails,
+      grantedScopes
     );
+  }
+
+  // One-off after the grantedScopes column lands: ask Meta what each already
+  // connected token actually holds. Without it every existing channel reads as
+  // "no scopes" and loses first comment until someone reconnects it by hand.
+  // Only ever writes grantedScopes — tokens are read, never touched.
+  async backfillGrantedScopes(apply: boolean) {
+    const integrations =
+      await this._integrationRepository.integrationsMissingGrantedScopes([
+        'facebook',
+        'instagram',
+      ]);
+
+    const report: {
+      id: string;
+      name: string;
+      provider: string;
+      granted?: string[];
+      canComment?: boolean;
+      error?: string;
+    }[] = [];
+
+    for (const integration of integrations) {
+      const row = {
+        id: integration.id,
+        name: integration.name,
+        provider: integration.providerIdentifier,
+      } as (typeof report)[number];
+
+      try {
+        const response = await fetch(
+          `https://graph.facebook.com/v20.0/me/permissions?access_token=${integration.token}`
+        );
+        const body = (await response.json()) as {
+          data?: { permission: string; status: string }[];
+          error?: { message?: string };
+        };
+
+        if (!body?.data) {
+          row.error = body?.error?.message || 'no permissions returned';
+          report.push(row);
+          continue;
+        }
+
+        const granted = body.data
+          .filter((d) => d.status === 'granted')
+          .map((d) => d.permission);
+
+        row.granted = granted;
+        row.canComment = granted.includes('pages_manage_engagement');
+
+        if (apply) {
+          await this._integrationRepository.setGrantedScopes(
+            integration.id,
+            granted
+          );
+        }
+      } catch (err) {
+        row.error = (err as Error)?.message || 'request failed';
+      }
+
+      report.push(row);
+    }
+
+    return report;
   }
 
   updateIntegrationGroup(org: string, id: string, group: string) {
