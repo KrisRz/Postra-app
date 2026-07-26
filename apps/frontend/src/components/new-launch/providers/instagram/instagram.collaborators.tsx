@@ -100,8 +100,8 @@ export default withProvider<InstagramDto>({
   CustomPreviewComponent: InstagramPreview,
   dto: InstagramDto,
   maximumCharacters: 2200,
-  // First comment needs instagram_manage_comments, which Meta retired from
-  // the app's permission list — hide the option so published posts match
-  // what the composer promises.
-  comments: false,
+  // Instagram comments carry no media, so the composer offers text-only ones.
+  // Whether they can be published at all is decided per channel by canComment,
+  // from the scopes that channel's token was actually granted.
+  comments: 'no-media',
 });
