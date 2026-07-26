@@ -188,6 +188,14 @@ export class IntegrationService {
     );
   }
 
+  // Meta echoes the offending access token back inside its error messages
+  // ("Malformed access token EAA…"), and this report is printed to a console
+  // whose output lands in deploy logs and SSM results. Strip anything
+  // token-shaped before it gets there.
+  private redactMetaToken(message: string) {
+    return message.replace(/EAA[A-Za-z0-9_-]+/g, '<redacted token>');
+  }
+
   // One-off after the grantedScopes column lands: ask Meta what each already
   // connected token actually holds. Without it every existing channel reads as
   // "no scopes" and loses first comment until someone reconnects it by hand.
@@ -241,7 +249,9 @@ export class IntegrationService {
         const granted = body?.data?.scopes;
 
         if (!granted) {
-          row.error = body?.error?.message || 'no scopes returned';
+          row.error = this.redactMetaToken(
+            body?.error?.message || 'no scopes returned'
+          );
           report.push(row);
           continue;
         }
@@ -256,7 +266,9 @@ export class IntegrationService {
           );
         }
       } catch (err) {
-        row.error = (err as Error)?.message || 'request failed';
+        row.error = this.redactMetaToken(
+          (err as Error)?.message || 'request failed'
+        );
       }
 
       report.push(row);
