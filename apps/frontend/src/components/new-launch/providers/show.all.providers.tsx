@@ -26,12 +26,21 @@ import NostrProvider from '@gitroom/frontend/components/new-launch/providers/nos
 import VkProvider from '@gitroom/frontend/components/new-launch/providers/vk/vk.provider';
 import { useLaunchStore } from '@gitroom/frontend/components/new-launch/store';
 import { useShallow } from 'zustand/react/shallow';
-import React, { FC, forwardRef, useEffect, useImperativeHandle } from 'react';
+import React, {
+  FC,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import { GeneralPreviewComponent } from '@gitroom/frontend/components/launches/general.preview.component';
 import { IntegrationContext } from '@gitroom/frontend/components/launches/helpers/use.integration';
 import { Button } from '@gitroom/frontend/components/ui/button';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
-import { PostComment } from '@gitroom/frontend/components/new-launch/providers/high.order.provider';
+import {
+  PostComment,
+  providerSupportsComments,
+} from '@gitroom/frontend/components/new-launch/providers/high.order.provider';
 import WordpressProvider from '@gitroom/frontend/components/new-launch/providers/wordpress/wordpress.provider';
 import ListmonkProvider from '@gitroom/frontend/components/new-launch/providers/listmonk/listmonk.provider';
 import GmbProvider from '@gitroom/frontend/components/new-launch/providers/gmb/gmb.provider';
@@ -175,18 +184,65 @@ export const Providers = [
   },
 ];
 export const ShowAllProviders = forwardRef((props, ref) => {
-  const { date, current, global, selectedIntegrations, allIntegrations } =
-    useLaunchStore(
-      useShallow((state) => ({
-        date: state.date,
-        selectedIntegrations: state.selectedIntegrations,
-        allIntegrations: state.integrations,
-        current: state.current,
-        global: state.global,
-      }))
-    );
+  const {
+    date,
+    current,
+    global,
+    selectedIntegrations,
+    allIntegrations,
+    setComments,
+    setCommentsUnsupported,
+  } = useLaunchStore(
+    useShallow((state) => ({
+      date: state.date,
+      selectedIntegrations: state.selectedIntegrations,
+      allIntegrations: state.integrations,
+      current: state.current,
+      global: state.global,
+      setComments: state.setComments,
+      setCommentsUnsupported: state.setCommentsUnsupported,
+    }))
+  );
 
   const t = useT();
+
+  // Channels in this post that can't publish comments (their provider sets
+  // comments: false — the platform permission isn't granted).
+  const unsupported = useMemo(
+    () =>
+      selectedIntegrations
+        .filter((p) => {
+          const found = Providers.find(
+            (provider) =>
+              provider.identifier === p.integration.identifier
+          );
+
+          return !!found && !providerSupportsComments(found.component);
+        })
+        .map((p) => p.integration.name),
+    [selectedIntegrations]
+  );
+
+  useEffect(() => {
+    setCommentsUnsupported(unsupported);
+  }, [unsupported]);
+
+  // The global tab writes for every selected channel at once, so no single
+  // provider can answer this — offer comments while at least one channel can
+  // take them (the editor names the ones that can't), and hide them outright
+  // when none can. The per-channel tabs stay owned by withProvider.
+  useEffect(() => {
+    if (current !== 'global') {
+      return;
+    }
+
+    setComments(
+      !(
+        selectedIntegrations.length > 0 &&
+        unsupported.length === selectedIntegrations.length
+      )
+    );
+  }, [current, unsupported, selectedIntegrations.length]);
 
   useImperativeHandle(ref, () => ({
     checkAllValid: async () => {
