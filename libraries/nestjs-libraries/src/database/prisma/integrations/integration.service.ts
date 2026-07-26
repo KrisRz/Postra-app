@@ -193,6 +193,14 @@ export class IntegrationService {
   // "no scopes" and loses first comment until someone reconnects it by hand.
   // Only ever writes grantedScopes — tokens are read, never touched.
   async backfillGrantedScopes(apply: boolean) {
+    const appToken = `${process.env.FACEBOOK_APP_ID}|${process.env.FACEBOOK_APP_SECRET}`;
+
+    if (!process.env.FACEBOOK_APP_ID || !process.env.FACEBOOK_APP_SECRET) {
+      throw new Error(
+        'FACEBOOK_APP_ID / FACEBOOK_APP_SECRET are required to inspect tokens'
+      );
+    }
+
     const integrations =
       await this._integrationRepository.integrationsMissingGrantedScopes([
         'facebook',
@@ -216,23 +224,27 @@ export class IntegrationService {
       } as (typeof report)[number];
 
       try {
+        // NOT /me/permissions: what we store is the Page token (Facebook) or a
+        // "pageToken___userToken" pair (Instagram), and /me on a Page token
+        // resolves to the Page, which has no permissions edge. debug_token
+        // reports the scopes of the authorization behind any of them.
         const response = await fetch(
-          `https://graph.facebook.com/v20.0/me/permissions?access_token=${integration.token}`
+          `https://graph.facebook.com/v20.0/debug_token?input_token=${
+            integration.token.split('___')[0]
+          }&access_token=${appToken}`
         );
         const body = (await response.json()) as {
-          data?: { permission: string; status: string }[];
+          data?: { scopes?: string[] };
           error?: { message?: string };
         };
 
-        if (!body?.data) {
-          row.error = body?.error?.message || 'no permissions returned';
+        const granted = body?.data?.scopes;
+
+        if (!granted) {
+          row.error = body?.error?.message || 'no scopes returned';
           report.push(row);
           continue;
         }
-
-        const granted = body.data
-          .filter((d) => d.status === 'granted')
-          .map((d) => d.permission);
 
         row.granted = granted;
         row.canComment = granted.includes('pages_manage_engagement');
