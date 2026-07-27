@@ -712,7 +712,7 @@ export const AddProviderComponent: FC<{
                   onCancel={() => {
                     modal.closeCurrent();
                     resolve(false);
-                    window.open('/help', '_blank');
+                    window.open(`/help#channel-${identifier}`, '_blank');
                   }}
                 />
               ),
