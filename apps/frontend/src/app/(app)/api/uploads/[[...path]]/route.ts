@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createReadStream, statSync } from 'fs';
+import { resolve, sep } from 'path';
 import mime from 'mime';
 async function* nodeStreamToIterator(stream: any) {
   for await (const chunk of stream) {
@@ -27,8 +28,16 @@ export const GET = async (
   }
 ) => {
   const { path } = await context.params;
-  const filePath =
-    process.env.UPLOAD_DIRECTORY + '/' + (path ?? []).join('/');
+  // Confine reads to UPLOAD_DIRECTORY. resolve() collapses any `..` segments
+  // (including URL-decoded ones), so this blocks every path-traversal variant.
+  // On prod this route is unreachable (next.config.js sends /api/uploads/* to
+  // /404 unless STORAGE_PROVIDER=local), but local storage is the docker-compose
+  // default, so self-hosted and dev instances were readable end-to-end.
+  const base = resolve(process.env.UPLOAD_DIRECTORY!);
+  const filePath = resolve(base, (path ?? []).join('/'));
+  if (filePath !== base && !filePath.startsWith(base + sep)) {
+    return new NextResponse('Not found', { status: 404 });
+  }
   const response = createReadStream(filePath);
   const fileStats = statSync(filePath);
   const contentType = mime.getType(filePath) || 'application/octet-stream';
