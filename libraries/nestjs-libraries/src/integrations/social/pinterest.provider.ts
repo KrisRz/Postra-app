@@ -387,7 +387,11 @@ export class PinterestProvider
     date: number
   ): Promise<AnalyticsData[]> {
     const until = dayjs().format('YYYY-MM-DD');
-    const since = dayjs().subtract(date, 'day').format('YYYY-MM-DD');
+    // Pinterest analytics only cover the last 90 days, evaluated in UTC; 89
+    // leaves a margin for the server's local date running ahead of UTC.
+    const since = dayjs()
+      .subtract(Math.min(date, 89), 'day')
+      .format('YYYY-MM-DD');
 
     const {
       all: { daily_metrics },
@@ -452,12 +456,14 @@ export class PinterestProvider
     date: number
   ): Promise<AnalyticsData[]> {
     const today = dayjs().format('YYYY-MM-DD');
-    // Use a very long date range (2 years) to capture lifetime metrics for older posts
-    const since = dayjs().subtract(2, 'year').format('YYYY-MM-DD');
+    // Pinterest only serves pin analytics for the last 90 days (89 for the same
+    // UTC margin as above). The old 2-year range was rejected on every call, so
+    // pin analytics came back empty every time.
+    const since = dayjs().subtract(89, 'day').format('YYYY-MM-DD');
 
     try {
       // Fetch pin analytics from Pinterest API
-      const response = await this.fetch(
+      const response = await fetch(
         `https://api.pinterest.com/v5/pins/${postId}/analytics?start_date=${since}&end_date=${today}&metric_types=IMPRESSION,PIN_CLICK,OUTBOUND_CLICK,SAVE`,
         {
           method: 'GET',
