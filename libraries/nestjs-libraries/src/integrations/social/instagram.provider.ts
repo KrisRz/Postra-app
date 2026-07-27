@@ -803,7 +803,14 @@ export class InstagramProvider
       ).json();
 
       let status = 'IN_PROGRESS';
+      // Same cap as the per-media poll above: the carousel container poll was
+      // still unbounded, so a container stuck on IN_PROGRESS ran until Temporal
+      // killed the activity and the retry re-published the carousel.
+      let carouselAttempts = 0;
       while (status === 'IN_PROGRESS') {
+        if (carouselAttempts++ >= 14) {
+          throw new ProcessingTimeout('instagram');
+        }
         const { status_code } = await (
           await this.fetch(
             `https://${type}/v20.0/${containerId}?fields=status_code&access_token=${
