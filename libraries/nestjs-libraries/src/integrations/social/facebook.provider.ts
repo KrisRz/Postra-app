@@ -528,10 +528,15 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
           );
 
           let videoStatus = 'in_progress';
+          // Facebook settles on `upload_complete` as often as on `ready`, and
+          // waiting only for `ready` kept the poll spinning until the cap below
+          // and failed the story on a video that had actually uploaded fine.
+          const isUploaded = (s: string) =>
+            s === 'ready' || s === 'upload_complete';
           // Capped under the 10-min activity budget (H1): an unbounded poll
           // used to blow the activity timeout and the retry re-published.
           let storyAttempts = 0;
-          while (videoStatus !== 'ready') {
+          while (!isUploaded(videoStatus)) {
             if (storyAttempts++ >= 42) {
               throw new ProcessingTimeout('facebook');
             }
@@ -548,7 +553,7 @@ export class FacebookProvider extends SocialAbstract implements SocialProvider {
             if (videoStatus === 'error') {
               throw new Error('Video processing failed');
             }
-            if (videoStatus !== 'ready') {
+            if (!isUploaded(videoStatus)) {
               await timer(10000);
             }
           }
