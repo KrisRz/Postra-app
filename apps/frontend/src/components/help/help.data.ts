@@ -141,7 +141,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     composer: [
       'Post Type: Post or Story (a Story needs at least one image or video).',
       'Embedded URL: attach a link preview to a text-only post.',
-      'First comments are not available on Facebook yet.',
+      'First comments: available on Pages where Meta granted the permission — it is still on limited access, so on most Pages the "Add comment" button stays hidden for now. Where it shows up, it works.',
       "Character limit: 63,206 — effectively you won't hit it.",
     ],
   },
@@ -150,10 +150,10 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
     name: 'Instagram',
     connectType: 'oauth',
     steps: [
-      'Set Instagram up on Meta\'s side FIRST — before you touch Postra. Skip this and the account list in the next step comes up empty, because Meta simply does not show us the account.',
-      'Step 1 — make it professional: in the Instagram app open Settings → Account type and tools → Switch to professional account, and pick Business or Creator. (Wording shifts slightly between app versions.)',
-      'Step 2 — link it to your Facebook Page: still in Instagram, Edit profile → Page → choose the Page you publish as. You can do the same from the other side: Facebook → your Page → Settings → Linked accounts → Instagram → Connect account. This link is what makes the account visible to Postra — or to any other scheduling tool.',
-      'Step 3 — only now, in Postra: click "Add Channel", pick Instagram and log in with the Facebook account that manages that Page. Tick every Page in the Facebook dialog — a Page you skip there stays invisible to us.',
+      'Set Instagram up on Meta\'s side FIRST — before you touch Postra. Skip this and the account list in the last step comes up empty, because Meta simply does not show us the account.',
+      'Make it professional: in the Instagram app open Settings → Account type and tools → Switch to professional account, and pick Business (Creator works too). (Wording shifts slightly between app versions.)',
+      'Link it to your Facebook Page: still in Instagram, Edit profile → Page → choose the Page you publish as. You can do the same from the other side: Facebook → your Page → Settings → Linked accounts → Instagram → Connect account. This link is what makes the account visible to Postra — or to any other scheduling tool.',
+      'Only now, in Postra: click "Add Channel", pick Instagram and log in with the Facebook account that manages that Page. Tick every Page in the Facebook dialog — a Page you skip there stays invisible to us.',
       'Choose the Instagram account.',
     ],
     gotchas: [
@@ -169,7 +169,7 @@ export const CHANNEL_GUIDES: ChannelGuide[] = [
       'Post Type: Post, Reel or Story.',
       "Collaborators: invite up to 3 public accounts to co-author (not available for Stories).",
       'Trial Reel: show a Reel to non-followers first, with manual or performance-based graduation to everyone.',
-      'First comments are not available on Instagram yet.',
+      'First comments: click "Add comment" to publish a comment under the post right after it goes live, each with its own Delay. It is decided per channel from what Meta granted when you connected — if the button is missing, reconnect the channel.',
       'Media is required; carousels take up to 10 items. Caption limit: 2,200 characters.',
     ],
   },
@@ -514,6 +514,6 @@ export const FAQ_ITEMS: FaqItem[] = [
   {
     question: 'How do first comments and threads work?',
     answer:
-      'Depending on the channel, the composer shows an extra button below your post. "Add comment" publishes a first comment right under the post on the platform — supported on LinkedIn and LinkedIn Page (text only), Telegram and Discord. "Add post" chains additional posts into a thread — that\'s how X, Threads, Bluesky and Mastodon work. In both cases you can add several entries, reorder them, and give each one a Delay (1 min – 2 h presets or a custom number of minutes) so it publishes that long after the previous one. Facebook, Instagram, TikTok and YouTube don\'t support first comments yet. Separately, the comments you see when opening a post on the Calendar are internal team notes — they are never published anywhere.',
+      'Depending on the channel, the composer shows an extra button below your post. "Add comment" publishes a first comment right under the post on the platform — supported on LinkedIn and LinkedIn Page (text only), Telegram, Discord and Instagram, and on Facebook Pages where Meta granted us the permission. "Add post" chains additional posts into a thread — that\'s how X, Threads, Bluesky and Mastodon work. In both cases you can add several entries, reorder them, and give each one a Delay (1 min – 2 h presets or a custom number of minutes) so it publishes that long after the previous one. TikTok and YouTube don\'t support first comments. Where a channel supports them but the button is missing, reconnect that channel — the feature follows the permissions the platform granted at connect time. Separately, the comments you see when opening a post on the Calendar are internal team notes — they are never published anywhere.',
   },
 ];
