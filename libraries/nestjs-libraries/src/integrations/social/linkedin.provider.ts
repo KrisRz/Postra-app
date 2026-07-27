@@ -625,17 +625,33 @@ export class LinkedinProvider extends SocialAbstract implements SocialProvider {
     const isVideo = hasExtension(mediaUrl, 'mp4');
     const isGif = lookup(mediaUrl) === 'image/gif';
 
+    // GIFs and videos pass through untouched (sharp would break animation).
     if (isVideo || isGif) {
       return Buffer.from(await readOrFetch(mediaUrl));
     }
 
-    return await sharp(await readOrFetch(mediaUrl), {
+    // PNG and JPEG (covers both .jpg and .jpeg) keep their original format, so
+    // PNG transparency survives instead of being flattened onto black. Anything
+    // else (webp, tiff, ...) is still converted, because LinkedIn only accepts
+    // JPG/GIF/PNG.
+    const keepFormat =
+      lookup(mediaUrl) === 'image/png' || lookup(mediaUrl) === 'image/jpeg';
+
+    // Downscale only when needed: fit within a 6000x6000 box (max 36,000,000 px
+    // for any aspect ratio, under LinkedIn's 36,152,320-pixel cap), preserving
+    // the aspect ratio and never enlarging. The previous fixed 1000px resize
+    // upscaled small images and threw away detail on large ones.
+    const pipeline = sharp(await readOrFetch(mediaUrl), {
       animated: false,
       limitInputPixels: 100_000_000,
-    })
-      .toFormat('jpeg')
-      .resize({ width: 1000 })
-      .toBuffer();
+    }).resize({
+      width: 6000,
+      height: 6000,
+      fit: 'inside',
+      withoutEnlargement: true,
+    });
+
+    return await (keepFormat ? pipeline : pipeline.toFormat('jpeg')).toBuffer();
   }
 
   private buildPostContent(isPdf: boolean, mediaIds: string[], pdfTitle?: string) {
