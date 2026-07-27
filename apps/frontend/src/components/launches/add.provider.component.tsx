@@ -22,6 +22,11 @@ import copy from 'copy-to-clipboard';
 import { capitalize } from 'lodash';
 import { useUser } from '@gitroom/frontend/components/layout/user.context';
 import {
+  hasMetaChecklist,
+  metaChecklists,
+  MetaConnectChecklist,
+} from '@gitroom/frontend/components/launches/meta.connect.checklist';
+import {
   pricing,
   planLabel,
 } from '@gitroom/nestjs-libraries/database/prisma/subscriptions/pricing';
@@ -148,7 +153,7 @@ export const UrlModal: FC<{
   }, []);
   return (
     <div className="rounded-[4px] border border-customColor6 bg-sixth px-[16px] pb-[16px] relative">
-      <TopTitle title="Adres instancji" />
+      <TopTitle title={t('instance_url', 'Instance URL')} />
       <button
         onClick={close}
         className="outline-none absolute end-[20px] top-[20px] mantine-UnstyledButton-root mantine-ActionIcon-root hover:bg-tableBorder cursor-pointer mantine-Modal-close mantine-1dcetaa"
@@ -382,6 +387,7 @@ const ChromeExtensionWarning: FC<{
   );
 };
 
+
 export const AddProviderComponent: FC<{
   social: Array<{
     identifier: string;
@@ -458,7 +464,9 @@ export const AddProviderComponent: FC<{
             )
           ).json();
           modal.openModal({
-            title: `Dodaj ${capitalize(identifier)}`,
+            title: t('add_channel_named', 'Add {{name}}', {
+              name: capitalize(identifier),
+            }),
             withCloseButton: true,
             ...(isMobile ? { removeLayout: true, fullScreen: true } : {}),
             classNames: {
@@ -489,6 +497,10 @@ export const AddProviderComponent: FC<{
           const params = [
             `externalUrl=${encodeURIComponent(externalUrl)}`,
             onboardingParam,
+            // Asks the backend for a link to a page of ours rather than the raw
+            // provider OAuth URL, so the client following it is told what the
+            // platform requires before they meet the platform.
+            invite ? 'invite=true' : '',
             isMobile
               ? `redirectUrl=${encodeURIComponent('postra://integrations')}`
               : '',
@@ -646,7 +658,7 @@ export const AddProviderComponent: FC<{
         }
         if (isExternal) {
           modal.openModal({
-            title: 'Adres URL',
+            title: t('instance_url', 'Instance URL'),
             withCloseButton: true,
             ...(isMobile ? { removeLayout: true, fullScreen: true } : {}),
             classNames: {
@@ -678,6 +690,37 @@ export const AddProviderComponent: FC<{
             ),
           });
           return;
+        }
+        // Ask before the trip to Meta, not after the picker comes back empty.
+        // Invites skip it here and get the same checklist on the page their
+        // link now opens (`/connect/:provider/:token`), because the person
+        // following that link is not the one standing in front of this modal.
+        if (!invite && hasMetaChecklist(identifier)) {
+          const checklist = metaChecklists[identifier];
+          const acknowledged = await new Promise<boolean>((resolve) => {
+            modal.openModal({
+              title: t(checklist.title.key, checklist.title.text),
+              withCloseButton: true,
+              onClose: () => resolve(false),
+              children: (
+                <MetaConnectChecklist
+                  provider={identifier}
+                  onConfirm={() => {
+                    modal.closeCurrent();
+                    resolve(true);
+                  }}
+                  onCancel={() => {
+                    modal.closeCurrent();
+                    resolve(false);
+                    window.open('/help', '_blank');
+                  }}
+                />
+              ),
+            });
+          });
+          if (!acknowledged) {
+            return;
+          }
         }
         await gotoIntegration();
       },
