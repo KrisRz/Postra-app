@@ -51,6 +51,8 @@ export async function proxy(request: NextRequest) {
     nextUrl.pathname.startsWith('/uploads/') ||
     nextUrl.pathname.startsWith('/p/') ||
     nextUrl.pathname.startsWith('/provider/') ||
+    // Invite links are opened by the customer's client, who has no account here.
+    nextUrl.pathname.startsWith('/connect/') ||
     nextUrl.pathname.startsWith('/icons/')
   ) {
     return topResponse;

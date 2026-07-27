@@ -48,6 +48,23 @@ export class NoAuthIntegrationsController {
     return this._integrationManager.getAllIntegrations();
   }
 
+  /**
+   * Resolves an invite token to the provider URL it stands for. Necessarily
+   * public: the person following an invite link is a client of the customer,
+   * has no Postra account and no session. The token carries no organisation
+   * data — that binding lives in the OAuth state inside the stored URL — and
+   * expires with the invite after an hour.
+   */
+  @Get('/invite/:token')
+  async getInviteUrl(@Param('token') token: string) {
+    const url = await ioRedis.get(`invite:${token}`);
+    if (!url) {
+      return { err: true };
+    }
+
+    return { url };
+  }
+
   @Post('/social-connect/:integration')
   @CheckPolicies([AuthorizationActions.Create, Sections.CHANNEL])
   @UseFilters(new NotEnoughScopesFilter())

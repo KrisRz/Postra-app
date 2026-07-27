@@ -11,6 +11,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ioRedis } from '@gitroom/nestjs-libraries/redis/redis.service';
+import { makeId } from '@gitroom/nestjs-libraries/services/make.is';
 import { IntegrationManager } from '@gitroom/nestjs-libraries/integrations/integration.manager';
 import { IntegrationService } from '@gitroom/nestjs-libraries/database/prisma/integrations/integration.service';
 import { GetOrgFromRequest } from '@gitroom/nestjs-libraries/user/org.from.request';
@@ -210,6 +211,7 @@ export class IntegrationsController {
     @Query('externalUrl') externalUrl: string,
     @Query('redirectUrl') redirectUrl: string,
     @Query('onboarding') onboarding: string,
+    @Query('invite') invite: string,
     @GetOrgFromRequest() org: Organization
   ) {
     if (
@@ -276,6 +278,21 @@ export class IntegrationsController {
         'EX',
         3600
       );
+
+      // An invite link is opened by someone who has never seen Postra — an
+      // agency's client. Handing them the provider's OAuth URL drops them
+      // straight onto Meta's consent screen, where nothing tells them Instagram
+      // has to be a professional account linked to a Page: they reach the same
+      // empty picker as everyone else, minus every screen we use to explain it.
+      // Point the link at a page of ours and keep the provider URL server-side,
+      // behind a token of its own rather than the 6-character OAuth state.
+      if (invite === 'true') {
+        const inviteToken = makeId(32);
+        await ioRedis.set(`invite:${inviteToken}`, url, 'EX', 3600);
+        return {
+          url: `${process.env.FRONTEND_URL}/connect/${integration}/${inviteToken}`,
+        };
+      }
 
       return { url };
     } catch (err) {
