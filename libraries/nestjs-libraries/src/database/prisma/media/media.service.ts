@@ -528,73 +528,70 @@ export class MediaService {
     return video.instance[safeName](body);
   }
 
+  // Refine/brand-voice/ai-edit are text (and vision) calls, not image
+  // generation. They used to spend an `ai_images` credit, which meant a user
+  // out of image credits could not fix the tone of a caption — and it was
+  // inconsistent with every other text AI in the product, which is unmetered.
+  // They stay unmetered for now and keep their 30-per-5-minutes throttle;
+  // token usage is still recorded to AiUsage (observational, not billing) so a
+  // real `ai_text` bucket can be priced once there is post-launch traffic.
   async refineDesign(org: Organization, body: RefineDesignDto) {
-    await this.requireAiImageCredit(org);
     const spec = body.spec as StudioSpec;
 
-    return this._subscriptionService.useCredit(org, 'ai_images', async () => {
-      const result = await this._studioAi.refineSpec(
-        spec,
-        body.instruction,
-        body.screenshot,
-        org.id
-      );
-      return {
-        patch: result.patch,
-        nextSpec: result.nextSpec,
-        explanation: result.explanation,
-      };
-    });
+    const result = await this._studioAi.refineSpec(
+      spec,
+      body.instruction,
+      body.screenshot,
+      org.id
+    );
+    return {
+      patch: result.patch,
+      nextSpec: result.nextSpec,
+      explanation: result.explanation,
+    };
   }
 
   async checkBrandVoice(
     org: Organization,
     body: BrandVoiceCheckDto
   ): Promise<BrandVoiceResult> {
-    await this.requireAiImageCredit(org);
     const brandKit = await this._brandKitService.getNormalized(org.id);
     const recentPosts = await this.getRecentPostBodies(org.id);
 
-    return this._subscriptionService.useCredit(org, 'ai_images', () =>
-      this._studioAi.checkBrandVoice(
-        {
-          caption: body.caption,
-          recentPosts,
-          brand: brandKit
-            ? {
-                primary: brandKit.colors.primary,
-                secondary: brandKit.colors.secondary,
-                text: brandKit.colors.text,
-                fontFamily: brandKit.font,
-                tone: brandKit.tone,
-              }
-            : undefined,
-        },
-        org.id
-      )
+    return this._studioAi.checkBrandVoice(
+      {
+        caption: body.caption,
+        recentPosts,
+        brand: brandKit
+          ? {
+              primary: brandKit.colors.primary,
+              secondary: brandKit.colors.secondary,
+              text: brandKit.colors.text,
+              fontFamily: brandKit.font,
+              tone: brandKit.tone,
+            }
+          : undefined,
+      },
+      org.id
     );
   }
 
   // Inline composer AI: rewrite/shorten/expand/adapt/fix-tone the caption in the
-  // user's brand voice. Follows the brand-voice-check convention of metering on
-  // the shared ai_images credit bucket.
+  // user's brand voice.
   async aiEditText(
     org: Organization,
     body: AiEditTextDto
   ): Promise<{ text: string }> {
-    await this.requireAiImageCredit(org);
     const brandKit = await this._brandKitService.getNormalized(org.id);
 
-    return this._subscriptionService.useCredit(org, 'ai_images', () =>
-      this._studioAi.editText(
-        {
-          text: body.text,
-          action: body.action,
-          platform: body.platform,
-          tone: brandKit?.tone,
-        },
-        org.id
-      )
+    return this._studioAi.editText(
+      {
+        text: body.text,
+        action: body.action,
+        platform: body.platform,
+        tone: brandKit?.tone,
+      },
+      org.id
     );
   }
 
@@ -649,17 +646,6 @@ export class MediaService {
       throw new HttpException('Invalid design spec', 400);
     }
     return this._mediaRepository.saveDesignSpec(org, mediaId, spec);
-  }
-
-  private async requireAiImageCredit(org: Organization): Promise<void> {
-    if (!process.env.STRIPE_PUBLISHABLE_KEY) return;
-    const total = await this._subscriptionService.checkCredits(org, 'ai_images');
-    if (total.credits <= 0) {
-      throw new HttpException(
-        'No image generation credits remaining for this billing cycle',
-        402
-      );
-    }
   }
 
   private getRecentPostBodies(orgId: string): Promise<string[]> {
