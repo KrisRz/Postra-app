@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { EmailInterface } from '@gitroom/nestjs-libraries/emails/email.interface';
+import { htmlToText } from '@gitroom/helpers/utils/html.to.text';
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -31,7 +32,11 @@ export class NodeMailerProvider implements EmailInterface {
       from: `${emailFromName} <${emailFromAddress}>`, // sender address
       to: to, // list of receivers
       subject: subject, // Subject line
-      text: html, // plain text body
+      // Never the markup itself: whatever prefers text/plain (the SES inbound
+      // forwarder, notification previews, text-only clients) would render the
+      // raw HTML source, and a plain part that mismatches the html one scores
+      // as spam.
+      text: htmlToText(html), // plain text body
       html: html, // html body
     });
 
