@@ -915,8 +915,6 @@
   "success_emails_description": "Receive email notifications when posts are published successfully",
   "failure_emails": "Failure emails",
   "failure_emails_description": "Receive email notifications when post publishing fails",
-  "streak_emails": "Streak emails",
-  "streak_emails_description": "Receive email reminders when your publishing streak is about to end",
   "shortlink_settings": "Short link settings",
   "shortlink_preference": "Short link preference",
   "shortlink_preference_description": "Choose how links in your posts are handled. Short links give you click statistics.",

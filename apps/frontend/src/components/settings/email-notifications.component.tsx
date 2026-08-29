@@ -12,7 +12,6 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 interface EmailNotifications {
   sendSuccessEmails: boolean;
   sendFailureEmails: boolean;
-  sendStreakEmails: boolean;
 }
 
 export const useEmailNotifications = () => {
@@ -39,9 +38,8 @@ const EmailNotificationsComponent = () => {
   const { data, isLoading } = useEmailNotifications();
 
   const [localSettings, setLocalSettings] = useState<EmailNotifications>({
-    sendSuccessEmails: true,
+    sendSuccessEmails: false,
     sendFailureEmails: true,
-    sendStreakEmails: true,
   });
 
   // Keep a ref to always have the latest state
@@ -113,13 +111,6 @@ const EmailNotificationsComponent = () => {
     [updateSetting]
   );
 
-  const handleStreakEmailsChange = useCallback(
-    (value: 'on' | 'off') => {
-      updateSetting('sendStreakEmails', value === 'on');
-    },
-    [updateSetting]
-  );
-
   if (isLoading) {
     return (
       <Card className="my-[16px] p-[24px]">
@@ -168,24 +159,6 @@ const EmailNotificationsComponent = () => {
         <Slider
           value={localSettings.sendFailureEmails ? 'on' : 'off'}
           onChange={handleFailureEmailsChange}
-          fill={true}
-        />
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col">
-          <div className="text-[14px]">
-            {t('streak_emails', 'Streak Reminder Emails')}
-          </div>
-          <div className="text-[12px] text-newTextColor/55">
-            {t(
-              'streak_emails_description',
-              'Receive email reminders when your posting streak is about to end'
-            )}
-          </div>
-        </div>
-        <Slider
-          value={localSettings.sendStreakEmails ? 'on' : 'off'}
-          onChange={handleStreakEmailsChange}
           fill={true}
         />
       </div>

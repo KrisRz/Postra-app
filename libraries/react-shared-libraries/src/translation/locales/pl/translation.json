@@ -915,8 +915,6 @@
   "success_emails_description": "Otrzymuj powiadomienia e-mail, gdy posty zostaną opublikowane pomyślnie",
   "failure_emails": "Maile o błędach",
   "failure_emails_description": "Otrzymuj powiadomienia e-mail, gdy publikacja postów się nie powiedzie",
-  "streak_emails": "Maile o passie",
-  "streak_emails_description": "Otrzymuj przypomnienia e-mail, gdy Twoja passa publikacji ma się skończyć",
   "shortlink_settings": "Ustawienia skróconych linków",
   "shortlink_preference": "Preferencje skróconych linków",
   "shortlink_preference_description": "Określ, jak obsługiwane są linki w Twoich postach. Skrócone linki dają statystyki kliknięć.",
