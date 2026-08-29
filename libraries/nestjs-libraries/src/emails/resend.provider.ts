@@ -1,5 +1,6 @@
 import { Resend } from 'resend';
 import { EmailInterface } from '@gitroom/nestjs-libraries/emails/email.interface';
+import { htmlToText } from '@gitroom/helpers/utils/html.to.text';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 're_132');
 
@@ -20,6 +21,7 @@ export class ResendProvider implements EmailInterface {
         to,
         subject,
         html,
+        text: htmlToText(html),
         ...(replyTo && { reply_to: replyTo }),
       });
 
