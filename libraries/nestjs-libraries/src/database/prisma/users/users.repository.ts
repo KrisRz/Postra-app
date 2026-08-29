@@ -185,7 +185,6 @@ export class UsersRepository {
       select: {
         sendSuccessEmails: true,
         sendFailureEmails: true,
-        sendStreakEmails: true,
       },
     });
   }
@@ -198,7 +197,6 @@ export class UsersRepository {
       data: {
         sendSuccessEmails: body.sendSuccessEmails,
         sendFailureEmails: body.sendFailureEmails,
-        sendStreakEmails: body.sendStreakEmails,
       },
     });
   }

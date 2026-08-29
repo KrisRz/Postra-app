@@ -139,9 +139,8 @@ model User {
   picture               Media?               @relation(fields: [pictureId], references: [id], onDelete: SetNull)
   organizations         UserOrganization[]
   mobilePushTokens      MobilePushToken[]
-  sendSuccessEmails     Boolean              @default(true)
+  sendSuccessEmails     Boolean              @default(false)
   sendFailureEmails     Boolean              @default(true)
-  sendStreakEmails      Boolean              @default(true)
   oauthAuthorizations   OAuthAuthorization[]
 
   @@unique([email, providerName])
