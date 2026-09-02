@@ -47,6 +47,7 @@ function passwordScore(password: string): number {
 export function Register() {
   const getQuery = useSearchParams();
   const fetch = useFetch();
+  const { disableRegistration } = useVariables();
   const [provider] = useState(getQuery?.get('provider')?.toUpperCase());
   const [code, setCode] = useState(getQuery?.get('code') || '');
   const [state] = useState(getQuery?.get('state') || '');
@@ -76,6 +77,12 @@ export function Register() {
       setShow(true);
     }
   }, [provider, code, state]);
+  // Defence in depth: proxy.ts already 302s /auth/register to /auth/login while
+  // DISABLE_REGISTRATION is on, and the backend refuses the POST. This covers the
+  // page being reached without the middleware (and makes the closure legible).
+  if (disableRegistration) {
+    return <RegistrationClosed />;
+  }
   if (!code && !provider) {
     return <RegisterAfter token="" provider="LOCAL" />;
   }
@@ -84,6 +91,30 @@ export function Register() {
   }
   return (
     <RegisterAfter token={code} provider={provider?.toUpperCase() || 'LOCAL'} />
+  );
+}
+function RegistrationClosed() {
+  const t = useT();
+  return (
+    <div className="flex flex-1 flex-col">
+      <h1 className="cursor-pointer text-start text-[40px] font-[700] tracking-[-0.04em] text-white">
+        {t('registration_closed_title', 'Sign-ups are closed')}
+      </h1>
+      <p className="mt-[8px] text-[15px] text-textColor/58">
+        {t(
+          'registration_closed_body',
+          'Postra is not accepting new accounts right now. If you already have an account you can still sign in.'
+        )}
+      </p>
+      <p className="mt-[24px] text-sm text-textColor/66">
+        <Link
+          href="/auth/login"
+          className="underline underline-offset-4 cursor-pointer text-textColor hover:text-[#38bdf8]"
+        >
+          {t('sign_in', 'Sign In')}
+        </Link>
+      </p>
+    </div>
   );
 }
 function getHelpfulReasonForRegistrationFailure(httpCode: number) {

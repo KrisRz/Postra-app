@@ -1179,6 +1179,8 @@
   "studio_tab_video": "🎬 Video",
   "auth_login_subtitle": "Access your workspace, calendar and connected channels.",
   "auth_register_subtitle": "Create your Postra workspace and plan content faster.",
+  "registration_closed_title": "Sign-ups are closed",
+  "registration_closed_body": "Postra is not accepting new accounts right now. If you already have an account you can still sign in.",
   "forgot_password_subtitle": "We will send you a secure link to reset your password.",
   "account_not_activated": "Your account is not active yet. Check your email for the activation link.",
   "resend_activation_email": "Resend Activation Email",
