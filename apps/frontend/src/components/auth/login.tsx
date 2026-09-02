@@ -24,7 +24,7 @@ export function Login() {
   const t = useT();
   const [loading, setLoading] = useState(false);
   const [notActivated, setNotActivated] = useState(false);
-  const { isGeneral, genericOauth } = useVariables();
+  const { isGeneral, genericOauth, disableRegistration } = useVariables();
   const resolver = useMemo(() => {
     return classValidatorResolver(LoginUserDto);
   }, []);
@@ -114,29 +114,35 @@ export function Login() {
               )}
             </p>
           </div>
-          <div className="mb-[12px] mt-[28px] text-[12px] font-[600] uppercase tracking-[0.08em] text-textColor/55">
-            {t('continue_with', 'Continue With')}
-          </div>
-          <div className="flex flex-col">
-            {isGeneral && genericOauth ? (
-              <OauthProvider />
-            ) : !isGeneral ? (
-              <GithubProvider />
-            ) : (
-              <div className="gap-[8px] flex">
-                <GoogleProvider />
-              </div>
-            )}
-            <div className="h-[20px] mb-[24px] mt-[24px] relative">
-              <div className="absolute top-[50%] h-[1px] w-full -translate-y-[50%] bg-white/10" />
-              <div
-                className={`absolute z-[1] justify-center items-center w-full start-0 -top-[4px] flex`}
-              >
-                <div className="rounded-full border border-white/8 bg-[rgba(15,23,42,0.92)] px-[16px] py-[4px] text-[11px] font-[700] uppercase tracking-[0.08em] text-textColor/52">
-                  {t('or', 'or')}
-                </div>
-              </div>
+          {!disableRegistration && (
+            <div className="mb-[12px] mt-[28px] text-[12px] font-[600] uppercase tracking-[0.08em] text-textColor/55">
+              {t('continue_with', 'Continue With')}
             </div>
+          )}
+          <div className={`flex flex-col${disableRegistration ? ' mt-[28px]' : ''}`}>
+            {!disableRegistration && (
+              <>
+                {isGeneral && genericOauth ? (
+                  <OauthProvider />
+                ) : !isGeneral ? (
+                  <GithubProvider />
+                ) : (
+                  <div className="gap-[8px] flex">
+                    <GoogleProvider />
+                  </div>
+                )}
+                <div className="h-[20px] mb-[24px] mt-[24px] relative">
+                  <div className="absolute top-[50%] h-[1px] w-full -translate-y-[50%] bg-white/10" />
+                  <div
+                    className={`absolute z-[1] justify-center items-center w-full start-0 -top-[4px] flex`}
+                  >
+                    <div className="rounded-full border border-white/8 bg-[rgba(15,23,42,0.92)] px-[16px] py-[4px] text-[11px] font-[700] uppercase tracking-[0.08em] text-textColor/52">
+                      {t('or', 'or')}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
             <div className="flex flex-col gap-[12px]">
               <div className="text-textColor">
                 <Input
@@ -181,15 +187,17 @@ export function Login() {
                     {t('sign_in_1', 'Sign in')}
                   </Button>
                 </div>
-                <p className="mt-4 text-sm text-textColor/66">
-                  {t('don_t_have_an_account', "Don't Have An Account?")}&nbsp;
-                  <Link
-                    href="/auth/register"
-                    className="underline underline-offset-4 cursor-pointer text-textColor hover:text-[#38bdf8]"
-                  >
-                    {t('sign_up', 'Sign Up')}
-                  </Link>
-                </p>
+                {!disableRegistration && (
+                  <p className="mt-4 text-sm text-textColor/66">
+                    {t('don_t_have_an_account', "Don't Have An Account?")}&nbsp;
+                    <Link
+                      href="/auth/register"
+                      className="underline underline-offset-4 cursor-pointer text-textColor hover:text-[#38bdf8]"
+                    >
+                      {t('sign_up', 'Sign Up')}
+                    </Link>
+                  </p>
+                )}
                 <p className="mt-4 text-sm">
                   <Link
                     href="/auth/forgot"

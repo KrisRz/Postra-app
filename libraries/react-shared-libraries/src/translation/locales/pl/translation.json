@@ -1179,6 +1179,8 @@
   "studio_tab_video": "🎬 Wideo",
   "auth_login_subtitle": "Uzyskaj dostęp do swojego workspace, kalendarza i podłączonych kanałów.",
   "auth_register_subtitle": "Załóż swój workspace Postra i planuj treści szybciej.",
+  "registration_closed_title": "Rejestracja jest zamknięta",
+  "registration_closed_body": "Postra nie przyjmuje teraz nowych kont. Jeśli masz już konto, nadal możesz się zalogować.",
   "forgot_password_subtitle": "Wyślemy Ci bezpieczny link do zresetowania hasła.",
   "account_not_activated": "Twoje konto nie jest jeszcze aktywne. Sprawdź e-mail z linkiem aktywacyjnym.",
   "resend_activation_email": "Wyślij ponownie e-mail aktywacyjny",
