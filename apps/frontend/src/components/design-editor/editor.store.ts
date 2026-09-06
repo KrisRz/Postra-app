@@ -49,6 +49,7 @@ interface EditorState {
   setAiPrompt: (prompt: string) => void;
 
   pushHistory: (json: string) => void;
+  resetHistory: () => void;
   undo: () => string | null;
   redo: () => string | null;
 }
@@ -69,6 +70,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setCanvasReady: (val) => set({ canvasReady: val }),
   setBgColor: (color) => set({ bgColor: color }),
   setAiPrompt: (prompt) => set({ aiPrompt: prompt }),
+
+  // The store is module-global and outlives any single editor mount, so a new
+  // editor has to start from a clean slate — otherwise Undo reaches back into
+  // the previous session's canvas.
+  resetHistory: () => set({ history: [], historyIndex: -1 }),
 
   pushHistory: (json) => {
     const { history, historyIndex } = get();

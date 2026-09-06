@@ -14,6 +14,7 @@ import {
   wireStudioIds,
 } from './utils/fabric-studio-metadata';
 import { renderDesignSpec, PostDesignSpec } from './utils/canvas-renderer';
+import { withHistoryPaused, isHistoryPaused } from './utils/canvas-history';
 import './fonts';
 
 installStudioFabricMetadata();
@@ -101,8 +102,13 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   );
 
   const isRestoringRef = useRef(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const saveStateRef = useRef<(() => void) | null>(null);
   const prevPlatformRef = useRef(platform);
+  /** Set once the design has been exported or saved — the draft is spent. */
+  const draftDoneRef = useRef(false);
+  /** Whether this editor ever held a design, so "empty" can be read correctly. */
+  const hadContentRef = useRef(false);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -124,8 +130,15 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
     wireStudioIds(c);
     setCanvasReady(true);
 
+    // The store outlives the editor, so without this a freshly opened Studio
+    // started with Undo enabled and would restore the PREVIOUS session's canvas
+    // — possibly another organisation's design.
+    useEditorStore.getState().resetHistory();
+
     const saveState = () => {
-      if (isRestoringRef.current) return;
+      // Bulk loads (templates, AI designs, carousel slides) pause history and
+      // commit once at the end — see withHistoryPaused.
+      if (isRestoringRef.current || isHistoryPaused(c)) return;
       pushHistory(JSON.stringify(c.toJSON()));
     };
     saveStateRef.current = saveState;
@@ -135,10 +148,17 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
 
     const snapshotDraft = () => {
       if (isRestoringRef.current) return;
+      // The design has been exported or saved: re-writing it here would bring
+      // it back as a "restored draft" the next time Studio opens, long after
+      // the user considered it finished.
+      if (draftDoneRef.current) return;
+      if (c.getObjects().length) hadContentRef.current = true;
       if (!c.getObjects().length) {
-        // The user emptied the canvas on purpose — since drafts now restore
-        // automatically, a stale one would resurrect the deleted design.
-        clearDraft(orgIdRef.current);
+        // Emptying a canvas that HELD something is deliberate, so drop the
+        // draft. An editor that never held anything (a second tab, say) must
+        // leave the stored draft alone — otherwise simply opening Studio in
+        // another tab wiped the design being worked on in the first.
+        if (hadContentRef.current) clearDraft(orgIdRef.current);
         return;
       }
       writeDraft(orgIdRef.current, {
@@ -228,16 +248,21 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
         // canvas from its design spec (rather than loading the flat PNG), so
         // the user can keep editing headline / colours / layout in Studio.
         if (data?.designSpec && isPostDesignSpec(data.designSpec)) {
-          await renderDesignSpec(
-            fabricRef.current,
-            data.designSpec as PostDesignSpec,
-            useEditorStore.getState().platform
+          await withHistoryPaused(fabricRef.current, () =>
+            renderDesignSpec(
+              fabricRef.current!,
+              data.designSpec as PostDesignSpec,
+              useEditorStore.getState().platform
+            )
           );
-          saveStateRef.current?.();
           return;
         }
         if (data?.path) {
-          const url = `${process.env.NEXT_PUBLIC_UPLOAD_STATIC_DIRECTORY || ''}${data.path}`;
+          // `path` is already an absolute CDN URL (the S3 storage returns one),
+          // so prefixing the static directory — which on production IS that CDN
+          // — produced "https://cdn…https://cdn…/x.jpg" and every "Edit design"
+          // on a plain uploaded image failed to load.
+          const url = data.path;
           const img = await fabric.Image.fromURL(url, { crossOrigin: 'anonymous' });
           const c = fabricRef.current;
           const w = c.getWidth() / c.getZoom();
@@ -369,6 +394,10 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   const finishExport = useCallback(
     (uploaded: { id: string; path: string }[]) => {
       // The design is safely in the library/post now — stop nagging about it.
+      // The flag matters as much as the clear: unmount snapshots the canvas one
+      // last time, and without it the just-posted design was written straight
+      // back and offered as a "restored draft" on the next visit.
+      draftDoneRef.current = true;
       clearDraft(orgIdRef.current);
       if (mode === 'studio') {
         router.push(
@@ -505,6 +534,7 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
           body: JSON.stringify({ isTemplate: true }),
         });
       }
+      draftDoneRef.current = true;
       clearDraft(orgIdRef.current);
     },
     [fetch]
@@ -581,19 +611,45 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   }, [toaster, t]);
 
   useEffect(() => {
+    // Typing in a panel field — an AI prompt, a stock search, a hex value — or
+    // editing text on the canvas is not "editing the design": the browser's own
+    // undo belongs to the caret, and Delete belongs to the characters.
+    const isTypingTarget = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable) {
+        return true;
+      }
+      const active = fabricRef.current?.getActiveObject() as
+        | { isEditing?: boolean }
+        | undefined;
+      return !!active?.isEditing;
+    };
+
     const onKey = (e: KeyboardEvent) => {
       // The editor stays mounted (hidden) while the Video tab is open — its
-      // global shortcuts must not fire at an invisible canvas.
+      // global shortcuts must not fire at an invisible canvas. One of our own
+      // modals (Welcome, All formats) owns the keyboard for the same reason;
+      // the search is scoped to this editor so the composer's modal, which
+      // hosts Studio, doesn't count as "on top".
       if (!canvasRef.current?.offsetParent) return;
+      if (rootRef.current?.querySelector('[role="dialog"]')) return;
+      if (isTypingTarget(e.target)) return;
+
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        const target = e.target as HTMLElement;
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
         handleDelete();
       }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+      // Shift turns 'z' into 'Z', so the redo branch never ran and the tooltip
+      // promising Ctrl+Shift+Z was wrong. Ctrl+Y is the other common binding.
+      const key = e.key.toLowerCase();
+      if ((e.metaKey || e.ctrlKey) && key === 'z') {
         e.preventDefault();
         if (e.shiftKey) handleRedo();
         else handleUndo();
+      }
+      if ((e.metaKey || e.ctrlKey) && key === 'y') {
+        e.preventDefault();
+        handleRedo();
       }
     };
     window.addEventListener('keydown', onKey);
@@ -601,7 +657,10 @@ const PostDesignEditor: FC<PostDesignEditorProps> = ({
   }, [handleDelete, handleUndo, handleRedo]);
 
   return (
-    <div className="flex flex-col h-full min-h-[600px] bg-white/[0.03] rounded-lg overflow-hidden">
+    <div
+      ref={rootRef}
+      className="flex flex-col h-full min-h-[600px] bg-white/[0.03] rounded-lg overflow-hidden"
+    >
       <div className="flex flex-1 min-h-0">
         <EditorToolbar canvas={fabricRef} />
 

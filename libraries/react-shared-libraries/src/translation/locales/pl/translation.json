@@ -884,7 +884,7 @@
   "ai_no_credits": "Brak kredytów na generowanie obrazów w tym miesiącu. Ulepsz plan.",
   "ai_prompt_required": "Opisz, co chcesz wygenerować",
   "ai_prompt_placeholder": "np. Letnia wyprzedaż -50% w sklepie odzieżowym",
-  "ai_tier_required": "Generowanie obrazów AI dostępne od planu Pro i wyższego.",
+  "ai_tier_required": "Projektowanie AI jest dostępne w planie Starter i wyższych.",
   "brand_kit": "Brand Kit",
   "brand_kit_loading": "Ładowanie brand kitu…",
   "brand_kit_save_failed": "Nie udało się zapisać brand kitu",

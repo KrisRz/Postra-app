@@ -9,6 +9,7 @@ import {
 } from 'react';
 import * as fabric from 'fabric';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
+import { useEditorStore } from '../editor.store';
 import clsx from 'clsx';
 
 interface Props {
@@ -136,6 +137,11 @@ export const ImageFiltersPanel: FC<Props> = ({ canvas }) => {
   // Bumped on selection / external modification so we re-read the canvas.
   const [version, setVersion] = useState(0);
 
+  // Mounted before the canvas exists whenever Images is the remembered tool,
+  // and the ref never triggers a re-run — so the panel subscribed to nothing
+  // and sat on "Select an image" no matter what was selected. canvasReady is
+  // the signal that the ref has been filled in (same fix as the inspector).
+  const canvasReady = useEditorStore((s) => s.canvasReady);
   useEffect(() => {
     const c = canvas.current;
     if (!c) return;
@@ -144,7 +150,7 @@ export const ImageFiltersPanel: FC<Props> = ({ canvas }) => {
     return () => {
       SELECTION_EVENTS.forEach((e) => c.off(e, bump));
     };
-  }, [canvas]);
+  }, [canvas, canvasReady]);
 
   const getActiveImage = useCallback((): fabric.FabricImage | null => {
     const active = canvas.current?.getActiveObject();

@@ -140,6 +140,21 @@ const shapeLayer = (obj: fabric.FabricObject): StudioShapeLayer | null => {
   };
 };
 
+/**
+ * What we are willing to tell the model about an image layer.
+ *
+ * Background removal and smart crop leave the result on the canvas as a data
+ * URL, and the spec is JSON-stringified into the Refine prompt — so a single
+ * cut-out could push several megabytes of base64 into the request. That
+ * overflows the vision model's context outright, and the text fallback would
+ * happily bill for a million tokens of pixels that say nothing about the
+ * design. The model only needs to know a picture is there.
+ */
+const describeImageSrc = (src: string | undefined): string => {
+  if (!src) return '';
+  return src.startsWith('data:') ? 'data:(edited image)' : src;
+};
+
 const imageLayer = (obj: fabric.FabricImage): StudioImageLayer => {
   const o = obj as fabric.FabricImage & {
     studioId?: string;
@@ -160,7 +175,7 @@ const imageLayer = (obj: fabric.FabricImage): StudioImageLayer => {
     originY: studioOriginY(o.originY),
     width: o.width ? o.width * (o.scaleX || 1) : undefined,
     height: o.height ? o.height * (o.scaleY || 1) : undefined,
-    src: el?.src || '',
+    src: describeImageSrc(el?.src),
     rotation: o.angle,
     opacity: o.opacity,
   };

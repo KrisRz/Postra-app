@@ -12,6 +12,12 @@ interface CarouselState {
   slides: CarouselSlide[];
   currentSlideIndex: number;
   pendingSlideSwitch: number | null;
+  /**
+   * Set when the pending switch must NOT save what is currently on the canvas
+   * — deleting the slide you are editing is the only case: the canvas still
+   * shows the design that was just thrown away.
+   */
+  discardLiveOnSwitch: boolean;
 
   enterCarouselMode: (initialJson: string | null) => void;
   exitCarouselMode: () => void;
@@ -37,6 +43,7 @@ export const useCarouselStore = create<CarouselState>((set, get) => ({
   slides: [],
   currentSlideIndex: 0,
   pendingSlideSwitch: null,
+  discardLiveOnSwitch: false,
 
   enterCarouselMode: (initialJson) =>
     set({
@@ -44,6 +51,7 @@ export const useCarouselStore = create<CarouselState>((set, get) => ({
       slides: [{ id: newSlideId(), canvasJson: initialJson }],
       currentSlideIndex: 0,
       pendingSlideSwitch: null,
+      discardLiveOnSwitch: false,
     }),
 
   exitCarouselMode: () =>
@@ -52,6 +60,7 @@ export const useCarouselStore = create<CarouselState>((set, get) => ({
       slides: [],
       currentSlideIndex: 0,
       pendingSlideSwitch: null,
+      discardLiveOnSwitch: false,
     }),
 
   addSlide: (json = null) => {
@@ -87,7 +96,17 @@ export const useCarouselStore = create<CarouselState>((set, get) => ({
     let newIndex = currentSlideIndex;
     if (index < currentSlideIndex) newIndex = currentSlideIndex - 1;
     else if (index === currentSlideIndex) newIndex = Math.min(currentSlideIndex, next.length - 1);
-    set({ slides: next, currentSlideIndex: newIndex, pendingSlideSwitch: null });
+    // Deleting the slide being edited left the canvas showing it while the
+    // store pointed elsewhere, so the NEXT switch committed the deleted design
+    // over whichever slide was then highlighted. Ask the editor to load the new
+    // target, and tell it to throw the live canvas away rather than save it.
+    const deletedActive = index === currentSlideIndex;
+    set({
+      slides: next,
+      currentSlideIndex: newIndex,
+      pendingSlideSwitch: deletedActive ? newIndex : null,
+      discardLiveOnSwitch: deletedActive,
+    });
   },
 
   reorderSlides: (from, to) => {
@@ -110,15 +129,20 @@ export const useCarouselStore = create<CarouselState>((set, get) => ({
   },
 
   commitSlideSwitch: (currentJson) => {
-    const { slides, currentSlideIndex, pendingSlideSwitch } = get();
+    const { slides, currentSlideIndex, pendingSlideSwitch, discardLiveOnSwitch } = get();
     if (pendingSlideSwitch === null) return;
-    const updated = slides.map((s, i) =>
-      i === currentSlideIndex ? { ...s, canvasJson: currentJson } : s
-    );
+    // After a delete the canvas still holds the design that was removed, so
+    // saving it would write it straight back over another slide.
+    const updated = discardLiveOnSwitch
+      ? slides
+      : slides.map((s, i) =>
+          i === currentSlideIndex ? { ...s, canvasJson: currentJson } : s
+        );
     set({
       slides: updated,
       currentSlideIndex: pendingSlideSwitch,
       pendingSlideSwitch: null,
+      discardLiveOnSwitch: false,
     });
   },
 

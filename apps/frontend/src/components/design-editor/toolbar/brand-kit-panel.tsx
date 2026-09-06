@@ -66,17 +66,35 @@ export const BrandKitPanel: FC = () => {
     };
   }, [fetch]);
 
-  const persist = useDebouncedCallback(async (next: BrandKit) => {
-    try {
-      const res = await fetch('/brand-kit', {
-        method: 'PUT',
-        body: JSON.stringify(next),
-      });
-      if (res.ok) setSavedAt(Date.now());
-    } catch {
-      toaster.show(t('brand_kit_save_failed', 'Failed to save brand kit'), 'warning');
-    }
-  }, 600);
+  const persist = useDebouncedCallback(
+    async (next: BrandKit) => {
+      try {
+        const res = await fetch('/brand-kit', {
+          method: 'PUT',
+          body: JSON.stringify(next),
+        });
+        // A rejected value (a half-typed "#38bd", say) came back 400 and
+        // nothing said so, while the panel kept showing the new colour as if
+        // it had been saved.
+        if (res.ok) setSavedAt(Date.now());
+        else {
+          toaster.show(
+            t(
+              'brand_kit_save_rejected',
+              "That value wasn't saved — colours need to be a full hex code like #38bdf8."
+            ),
+            'warning'
+          );
+        }
+      } catch {
+        toaster.show(t('brand_kit_save_failed', 'Failed to save brand kit'), 'warning');
+      }
+    },
+    600,
+    // Closing the panel within the debounce window (switching tools is one
+    // click) used to drop the pending write and lose the edit silently.
+    { flushOnExit: true }
+  );
 
   const update = useCallback(
     <K extends keyof BrandKit>(key: K, value: BrandKit[K]) => {

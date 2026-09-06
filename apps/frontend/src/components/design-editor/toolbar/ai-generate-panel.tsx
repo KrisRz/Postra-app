@@ -5,6 +5,7 @@ import * as fabric from 'fabric';
 import { useEditorStore } from '../editor.store';
 import { useCarouselStore, CarouselSlide } from '../carousel.store';
 import { renderDesignSpec, PostDesignSpec } from '../utils/canvas-renderer';
+import { withHistoryPaused } from '../utils/canvas-history';
 import { useHolidays, getUpcomingHolidays } from '../utils/holidays';
 import { useFetch } from '@gitroom/helpers/utils/custom.fetch';
 import { isFetchHandledError } from '@gitroom/helpers/utils/fetch.errors';
@@ -142,24 +143,29 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
           return;
         }
         const slides: CarouselSlide[] = [];
-        for (let i = 0; i < slideSpecs.length; i += 1) {
-          await renderDesignSpec(canvas.current, slideSpecs[i], platform);
-          slides.push({
-            id: `slide-${Date.now().toString(36)}-${i}`,
-            canvasJson: JSON.stringify(canvas.current.toJSON()),
-          });
-        }
-        useCarouselStore.getState().replaceAllSlides(slides);
-        // The loop leaves the canvas on the LAST slide, but the strip activates
-        // slide 1 — reload slide 1 so the canvas matches the highlighted thumbnail
-        // (otherwise clicking thumbnail 1 is a no-op and the canvas looks stuck).
-        await canvas.current.loadFromJSON(slides[0].canvasJson!);
-        canvas.current.renderAll();
-        pushHistory(slides[0].canvasJson!);
+        // Five slides, each a full canvas rebuild, pushed roughly forty history
+        // entries — past the 30-entry cap, so the design the user had BEFORE
+        // generating was evicted. The whole generation is one undo step now.
+        await withHistoryPaused(canvas.current, async () => {
+          for (let i = 0; i < slideSpecs.length; i += 1) {
+            await renderDesignSpec(canvas.current!, slideSpecs[i], platform);
+            slides.push({
+              id: `slide-${Date.now().toString(36)}-${i}`,
+              canvasJson: JSON.stringify(canvas.current!.toJSON()),
+            });
+          }
+          useCarouselStore.getState().replaceAllSlides(slides);
+          // The loop leaves the canvas on the LAST slide, but the strip activates
+          // slide 1 — reload slide 1 so the canvas matches the highlighted thumbnail
+          // (otherwise clicking thumbnail 1 is a no-op and the canvas looks stuck).
+          await canvas.current!.loadFromJSON(slides[0].canvasJson!);
+          canvas.current!.renderAll();
+        });
       } else {
         const spec = data as PostDesignSpec;
-        await renderDesignSpec(canvas.current, spec, platform);
-        pushHistory(JSON.stringify(canvas.current.toJSON()));
+        await withHistoryPaused(canvas.current, () =>
+          renderDesignSpec(canvas.current!, spec, platform)
+        );
       }
     } catch (err) {
       if ((err as { name?: string })?.name === 'AbortError') return;
@@ -186,7 +192,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
         <p>
           {t(
             'ai_tier_required',
-            'AI is available on the Pro plan and above.'
+            'AI design is available on the Starter plan and above.'
           )}
         </p>
       </div>

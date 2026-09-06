@@ -14,38 +14,48 @@ const SlideThumb: FC<{ slide: CarouselSlide; sourceWidth: number; sourceHeight: 
   sourceWidth,
   sourceHeight,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
+  // Render offscreen, the way template thumbnails do. Rendering into a mounted
+  // <canvas> meant that as soon as a thumbnail existed the element was replaced
+  // by the <img>, so the next time the slide changed the ref was null, the
+  // effect bailed, and the thumbnail stayed blank — which is what happened
+  // after every slide switch and every "Apply layout to all".
   useEffect(() => {
-    if (!slide.canvasJson || !canvasRef.current) {
+    if (!slide.canvasJson) {
       setDataUrl(null);
       return;
     }
-    const c = new fabric.StaticCanvas(canvasRef.current, {
+    let cancelled = false;
+    const c = new fabric.StaticCanvas(undefined, {
       width: THUMB_W,
       height: THUMB_H,
       backgroundColor: '#1a1a2e',
+      renderOnAddRemove: false,
     });
     const scale = Math.min(THUMB_W / sourceWidth, THUMB_H / sourceHeight);
     c.setZoom(scale);
     c.loadFromJSON(slide.canvasJson)
       .then(() => {
         c.renderAll();
-        setDataUrl(c.toDataURL({ format: 'png', quality: 0.6, multiplier: 1 }));
+        if (!cancelled) {
+          setDataUrl(c.toDataURL({ format: 'jpeg', quality: 0.7, multiplier: 1 }));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setDataUrl(null);
       })
       .finally(() => {
-        c.dispose();
+        void c.dispose();
       });
+    return () => {
+      cancelled = true;
+    };
   }, [slide.canvasJson, sourceWidth, sourceHeight]);
 
   return (
     <div className="w-[80px] h-[100px] bg-white/[0.03] rounded overflow-hidden flex items-center justify-center">
-      {dataUrl ? (
-        <img src={dataUrl} alt="" className="w-full h-full object-contain" />
-      ) : (
-        <canvas ref={canvasRef} width={THUMB_W} height={THUMB_H} />
-      )}
+      {dataUrl && <img src={dataUrl} alt="" className="w-full h-full object-contain" />}
     </div>
   );
 };
