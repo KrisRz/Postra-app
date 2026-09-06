@@ -20,6 +20,8 @@ import {
   VideoTooLargeError,
   assertVideoSize,
 } from './load-library-media';
+import { ensureMp4, isMp4 } from './mp4-source';
+import { UnsupportedCodecError } from './compositor-pipeline';
 
 interface VideoStudioProps {
   setMedia: (params: { id: string; path: string }[]) => void;
@@ -34,6 +36,19 @@ interface VideoStudioProps {
 }
 
 type Tab = 'trim' | 'formats' | 'captions' | 'stock' | 'text' | 'slideshow';
+
+/** Why an upload produced no media row — each reason gets its own message. */
+type UploadFailure = 'too_large' | 'rejected' | 'network';
+/**
+ * Deliberately a plain record rather than a discriminated union: this repo
+ * compiles with `strictNullChecks: false` (tsconfig.base.json), and that turns
+ * off narrowing on a boolean discriminant — `if (!result.ok)` would still see
+ * the success member and refuse to read `reason`.
+ */
+type UploadResult = {
+  media: { id: string; path: string } | null;
+  reason: UploadFailure | null;
+};
 
 export const VideoStudio: FC<VideoStudioProps> = ({
   setMedia,
@@ -64,6 +79,8 @@ export const VideoStudio: FC<VideoStudioProps> = ({
     [mode, router, setMedia, closeModal]
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  /** In-flight upload, shared so a double click can't start a second one. */
+  const uploadPromiseRef = useRef<Promise<{ id: string; path: string } | null> | null>(null);
   const user = useUser();
   const orgIdRef = useRef('default');
   orgIdRef.current = user?.orgId || 'default';
@@ -74,6 +91,9 @@ export const VideoStudio: FC<VideoStudioProps> = ({
   const [uploadedMedia, setUploadedMedia] = useState<{ id: string; path: string } | null>(null);
   const [tab, setTab] = useState<Tab>('trim');
   const [isUploading, setIsUploading] = useState(false);
+  // Remuxing a MOV/WebM source into MP4 before upload takes long enough on a
+  // phone-sized clip to need its own line in the status bar.
+  const [isConverting, setIsConverting] = useState(false);
   const [browserSupported, setBrowserSupported] = useState(true);
   const [showLibrary, setShowLibrary] = useState(false);
   const [isImportingLibrary, setIsImportingLibrary] = useState(false);
@@ -106,6 +126,18 @@ export const VideoStudio: FC<VideoStudioProps> = ({
   }, [showGoalsSignal]);
 
   fileRef.current = file;
+
+  // The restore below runs across two awaits; these mirrors let it ask "is the
+  // user still waiting for this clip, or did they walk off and start something
+  // else?" without re-running the effect.
+  const showGoalsRef = useRef(showGoals);
+  showGoalsRef.current = showGoals;
+  const tabRef = useRef(tab);
+  tabRef.current = tab;
+  /** Tabs that edit the one shared source clip (the others bring their own). */
+  const SHARED_CLIP_TABS: Tab[] = ['trim', 'formats', 'captions'];
+  const wantsSharedClip = () =>
+    showGoalsRef.current || SHARED_CLIP_TABS.includes(tabRef.current);
 
   // Remember the last library-backed clip (per org) so leaving the page and
   // coming back doesn't lose the session. A from-disk file that was never
@@ -143,13 +175,22 @@ export const VideoStudio: FC<VideoStudioProps> = ({
         const media = await (await fetch(`/media/${draft.id}`)).json();
         if (!media?.path) throw new Error('deleted');
         if (fileRef.current) return;
+        // Don't spend a 200 MB download on someone who opened Studio to build a
+        // slideshow or browse stock — those tabs never touch the shared clip.
+        if (!wantsSharedClip()) return;
         const loaded = await fetchLibraryVideoAsFile(mediaDirectory.set(media.path));
         if (fileRef.current) return; // user loaded their own clip meanwhile
+        if (!wantsSharedClip()) return;
         setFile(loaded);
         setTrimmedBlob(null);
         setUploadedMedia({ id: draft.id!, path: media.path });
-        setTab('trim');
-        setShowGoals(false);
+        // Taking over the screen is only welcome while the user is still on the
+        // goal picker. Doing it after they picked "Photos → video" unmounted
+        // that tab and threw away the photos they had already added.
+        if (showGoalsRef.current) {
+          setTab('trim');
+          setShowGoals(false);
+        }
         toaster.show(t('video_clip_restored', 'Restored the clip from your last session.'), 'success');
       } catch {
         // The clip was deleted from the library (or is too big) — forget it.
@@ -167,6 +208,9 @@ export const VideoStudio: FC<VideoStudioProps> = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
+    // Clear the input straight away: without this, picking the SAME file again
+    // after a failed step fires no change event and looks like a dead button.
+    e.target.value = '';
     if (!f) return;
     if (!f.type.startsWith('video/')) {
       toaster.show(t('video_bad_type', 'Choose a video file (MP4, WebM, MOV).'), 'warning');
@@ -219,22 +263,51 @@ export const VideoStudio: FC<VideoStudioProps> = ({
     [mediaDirectory, toaster, t]
   );
 
+  /** Turn an upload failure into the one sentence that tells the user what to do. */
+  const reportUploadFailure = useCallback(
+    (reason: UploadFailure) => {
+      toaster.show(
+        reason === 'too_large'
+          ? t(
+              'video_upload_too_large',
+              'The rendered clip is too big to upload. Trim it shorter, or export a smaller section, and try again.'
+            )
+          : reason === 'rejected'
+          ? t(
+              'video_upload_rejected',
+              "The server didn't accept that file. Trim the clip first — that re-saves it as a standard MP4."
+            )
+          : t('video_upload_failed', 'Upload failed.'),
+        'warning'
+      );
+    },
+    [toaster, t]
+  );
+
   const uploadBlob = useCallback(
-    async (blob: Blob, name: string): Promise<{ id: string; path: string } | null> => {
+    async (blob: Blob, name: string): Promise<UploadResult> => {
       const formData = new FormData();
       formData.append('file', blob, name);
       try {
-        const data = await (
-          await fetch('/media/upload-simple', {
-            method: 'POST',
-            body: formData,
-          })
-        ).json();
-        // An error body (413, validation) still parses as JSON — treat any
-        // response without id+path as a failed upload, not a media object.
-        return data?.id && data?.path ? { id: data.id, path: data.path } : null;
+        const res = await fetch('/media/upload-simple', {
+          method: 'POST',
+          body: formData,
+        });
+        // 413 comes back from the gateway as HTML, so read the status before
+        // touching the body — .json() on it throws and used to surface as a
+        // generic failure with no hint that the file was simply too big.
+        if (!res.ok) {
+          return {
+            media: null,
+            reason: res.status === 413 ? 'too_large' : 'rejected',
+          };
+        }
+        const data = await res.json();
+        return data?.id && data?.path
+          ? { media: { id: data.id, path: data.path }, reason: null }
+          : { media: null, reason: 'rejected' };
       } catch {
-        return null;
+        return { media: null, reason: 'network' };
       }
     },
     [fetch]
@@ -258,17 +331,62 @@ export const VideoStudio: FC<VideoStudioProps> = ({
   );
 
   // Upload whatever clip is loaded — the trimmed version if present, otherwise
-  // the original source — so captions don't force a trim first.
+  // the original source — so captions don't force a trim first. Reports its own
+  // failures (with the reason), so callers only have to check for null.
   const ensureUploaded = useCallback(async (): Promise<{ id: string; path: string } | null> => {
     if (uploadedMedia) return uploadedMedia;
-    const blob = trimmedBlob ?? file;
-    if (!blob) return null;
-    setIsUploading(true);
-    const result = await uploadBlob(blob, `clip-${Date.now()}.mp4`);
-    setIsUploading(false);
-    if (result) setUploadedMedia(result);
-    return result;
-  }, [uploadedMedia, trimmedBlob, file, uploadBlob]);
+    // Two clicks on "AI Captions" used to start two uploads and leave two rows
+    // in the library; share the in-flight one instead.
+    if (uploadPromiseRef.current) return uploadPromiseRef.current;
+    const source = trimmedBlob ?? file;
+    if (!source) return null;
+
+    const run = (async (): Promise<{ id: string; path: string } | null> => {
+      let blob = source;
+      // The upload endpoint takes MP4 and nothing else, while the editor opens
+      // MOV/WebM happily — remux (a container rewrite, no re-encode) so a clip
+      // straight off a phone doesn't dead-end at "Upload failed".
+      if (!isMp4(source)) {
+        setIsConverting(true);
+        try {
+          blob = await ensureMp4(source);
+        } catch (err) {
+          toaster.show(
+            err instanceof UnsupportedCodecError
+              ? t(
+                  'clip_codec_unsupported',
+                  "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again."
+                )
+              : t(
+                  'video_convert_failed',
+                  "Couldn't convert this clip to MP4. Re-export it as a standard MP4 (H.264) and try again."
+                ),
+            'warning'
+          );
+          return null;
+        } finally {
+          setIsConverting(false);
+        }
+      }
+
+      setIsUploading(true);
+      const result = await uploadBlob(blob, `clip-${Date.now()}.mp4`);
+      setIsUploading(false);
+      if (!result.media) {
+        reportUploadFailure(result.reason ?? 'network');
+        return null;
+      }
+      setUploadedMedia(result.media);
+      return result.media;
+    })();
+
+    uploadPromiseRef.current = run;
+    try {
+      return await run;
+    } finally {
+      uploadPromiseRef.current = null;
+    }
+  }, [uploadedMedia, trimmedBlob, file, uploadBlob, reportUploadFailure, toaster, t]);
 
   const handleSwitchToCaptions = useCallback(async () => {
     if (!uploadedMedia && !trimmedBlob && !file) {
@@ -278,13 +396,10 @@ export const VideoStudio: FC<VideoStudioProps> = ({
       );
       return;
     }
+    // A clip IS loaded, so any failure here is the upload's — and ensureUploaded
+    // has already said which one. Saying "load a video first" sent users in circles.
     const m = await ensureUploaded();
-    if (!m) {
-      // A clip IS loaded — the upload itself failed. Saying "load a video
-      // first" here sent users in circles.
-      toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
-      return;
-    }
+    if (!m) return;
     setTab('captions');
   }, [uploadedMedia, trimmedBlob, file, ensureUploaded, toaster, t]);
 
@@ -336,12 +451,8 @@ export const VideoStudio: FC<VideoStudioProps> = ({
     }
     if (!trimmedBlob) return;
     const m = await ensureUploaded();
-    if (m) {
-      deliver([m]);
-    } else {
-      toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
-    }
-  }, [uploadedMedia, trimmedBlob, ensureUploaded, deliver, toaster, t]);
+    if (m) deliver([m]);
+  }, [uploadedMedia, trimmedBlob, ensureUploaded, deliver]);
 
   // "Just save" — upload the trimmed clip to the library and stay here.
   const handleSaveToLibrary = useCallback(async () => {
@@ -351,8 +462,6 @@ export const VideoStudio: FC<VideoStudioProps> = ({
         t('video_saved_to_library', 'Saved to media library — you can use it in any post.'),
         'success'
       );
-    } else {
-      toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
     }
   }, [ensureUploaded, toaster, t]);
 
@@ -360,18 +469,20 @@ export const VideoStudio: FC<VideoStudioProps> = ({
     async (results: { format: VideoFormat; blob: Blob }[]) => {
       setIsUploading(true);
       const uploaded: { id: string; path: string }[] = [];
+      let failure: UploadFailure | null = null;
       for (const r of results) {
         const result = await uploadBlob(r.blob, `${r.format.key}-${Date.now()}.mp4`);
-        if (result) uploaded.push(result);
+        if (result.media) uploaded.push(result.media);
+        else failure = failure ?? result.reason;
       }
       setIsUploading(false);
       if (uploaded.length) {
         deliver(uploaded);
       } else {
-        toaster.show(t('video_upload_failed', 'Upload failed.'), 'warning');
+        reportUploadFailure(failure ?? 'network');
       }
     },
-    [uploadBlob, deliver, toaster, t]
+    [uploadBlob, deliver, reportUploadFailure]
   );
 
   const handleCaptionedReady = useCallback(
@@ -445,7 +556,7 @@ export const VideoStudio: FC<VideoStudioProps> = ({
                 if (tDef.onClick) tDef.onClick();
                 else setTab(tDef.key);
               }}
-              disabled={tDef.needsClip && !hasClip}
+              disabled={(tDef.needsClip && !hasClip) || isUploading || isConverting}
               className={`text-xs px-3 py-1 rounded transition-colors ${
                 tab === tDef.key && !showGoals
                   ? 'bg-newAccent text-white'
@@ -479,13 +590,15 @@ export const VideoStudio: FC<VideoStudioProps> = ({
         </div>
       </div>
 
-      {(isUploading || restoringClip || isImportingLibrary) && (
+      {(isUploading || restoringClip || isImportingLibrary || isConverting) && (
         <div className="px-4 py-1.5 bg-forth/10 border-b border-forth/30 text-xs text-textColor">
           ⏳{' '}
           {restoringClip
             ? t('video_restoring_clip', 'Restoring the clip from your last session…')
             : isImportingLibrary
             ? t('video_importing_clip', 'Loading the clip from your library…')
+            : isConverting
+            ? t('video_converting_clip', 'Converting the clip to MP4 — keep this page open…')
             : t('video_uploading_clip', 'Uploading the clip — keep this page open…')}
         </div>
       )}
