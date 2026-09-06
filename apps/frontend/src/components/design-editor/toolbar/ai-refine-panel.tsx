@@ -134,7 +134,7 @@ export const AiRefinePanel: FC<Props> = ({ canvas }) => {
       <div className="text-[11px] text-textColor/60 leading-relaxed">
         {t(
           'ai_tier_required',
-          'AI is available on the Pro plan and above.'
+          'AI design is available on the Starter plan and above.'
         )}
       </div>
     );

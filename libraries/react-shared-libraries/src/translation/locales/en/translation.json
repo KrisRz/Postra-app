@@ -884,7 +884,7 @@
   "ai_no_credits": "No image generation credits left this month. Upgrade your plan.",
   "ai_prompt_required": "Please describe what you want to generate",
   "ai_prompt_placeholder": "e.g. Summer sale -50% at clothing store",
-  "ai_tier_required": "AI image generation is available on the Pro plan and above.",
+  "ai_tier_required": "AI design is available on the Starter plan and above.",
   "brand_kit": "Brand Kit",
   "brand_kit_loading": "Loading brand kit…",
   "brand_kit_save_failed": "Failed to save brand kit",

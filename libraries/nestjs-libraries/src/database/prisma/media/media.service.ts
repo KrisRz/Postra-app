@@ -605,11 +605,16 @@ export class MediaService {
   ): Promise<{ id: string; score: number }[]> {
     if (!body.templates.length) return [];
 
-    const templateIds = body.templates
-      .map((t) => t.id)
+    // The key has to cover the TEXTS, not just the ids: the client sends both,
+    // and the ids alone are identical across languages and across template
+    // edits. Keyed by id only, whoever searched first — any org, in whichever
+    // language their UI happened to be — defined the embeddings everyone else
+    // matched against for the next 30 days.
+    const corpus = body.templates
+      .map((t) => `${t.id} ${t.text}`)
       .sort()
       .join('|');
-    const corpusHash = createHash('md5').update(templateIds).digest('hex');
+    const corpusHash = createHash('md5').update(corpus).digest('hex');
     const cacheKey = `studio:tpl-embeds:${corpusHash}`;
 
     let embeddings: { id: string; embedding: number[] }[] | null = null;

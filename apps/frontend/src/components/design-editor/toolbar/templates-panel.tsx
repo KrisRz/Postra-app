@@ -24,6 +24,7 @@ import {
   DEFAULT_BRAND,
   BrandStyle,
 } from '../templates/template-types';
+import { withHistoryPaused } from '../utils/canvas-history';
 
 interface TemplatesPanelProps {
   canvas: MutableRefObject<fabric.Canvas | null>;
@@ -99,9 +100,12 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
           );
           return;
         }
-        await canvas.current.loadFromJSON(data.canvasJson);
-        canvas.current.renderAll();
-        pushHistory(data.canvasJson);
+        // loadFromJSON clears and re-adds, firing an event per object — that
+        // is what buried the pre-template canvas under a dozen undo steps.
+        await withHistoryPaused(canvas.current, async () => {
+          await canvas.current!.loadFromJSON(data.canvasJson);
+          canvas.current!.renderAll();
+        });
       } catch {
         toaster.show(
           t('template_apply_failed', 'Failed to apply template'),
@@ -222,14 +226,11 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
       if (!tpl) return;
 
       try {
-        const keptPhoto = await applyTemplate(
-          tpl,
-          canvas.current,
-          platform,
-          brand,
-          lang
+        // A template adds its objects one at a time; without pausing, each
+        // one became its own undo step and "undo with Ctrl+Z" was a lie.
+        const keptPhoto = await withHistoryPaused(canvas.current, () =>
+          applyTemplate(tpl, canvas.current!, platform, brand, lang)
         );
-        pushHistory(JSON.stringify(canvas.current.toJSON()));
         if (keptPhoto) {
           toaster.show(
             t(

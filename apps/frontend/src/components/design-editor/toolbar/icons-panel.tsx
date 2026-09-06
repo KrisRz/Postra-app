@@ -67,8 +67,14 @@ export const IconsPanel: FC<IconsPanelProps> = ({ canvas }) => {
         const cw = c.getWidth() / c.getZoom();
         const ch = c.getHeight() / c.getZoom();
         obj.set({
-          left: cw / 2 - (obj.width || 0) / 2,
-          top: ch / 2 - (obj.height || 0) / 2,
+          // Fabric v7 anchors objects by their CENTRE, so subtracting half the
+          // size (v5 top-left maths) dropped every icon up and to the left of
+          // where the user clicked. Anchor explicitly instead of relying on
+          // whichever default is in force.
+          originX: 'center',
+          originY: 'center',
+          left: cw / 2,
+          top: ch / 2,
           selectable: true,
           evented: true,
           hasControls: true,

@@ -519,14 +519,25 @@ export const EditorToolbar: FC<ToolbarProps> = ({ canvas }) => {
       if (!c) return;
       const active = c.getActiveObjects();
       if (active.length) {
-        active.forEach((o) => {
-          // Lines and rings are stroke-drawn — recolour the stroke there.
-          if (o.type === 'line' || (o.fill === 'transparent' && o.stroke)) {
-            o.set({ stroke: color });
-          } else {
-            o.set({ fill: color });
+        // Fabric's SVG parser turns fill="none" into an EMPTY STRING, not
+        // "transparent", so every Tabler icon fell through to the fill branch:
+        // single-path icons got an inside-out blob and grouped ones a no-op.
+        const isStrokeDrawn = (o: fabric.FabricObject) =>
+          o.type === 'line' ||
+          ((o.fill === 'transparent' || o.fill === '' || o.fill == null) && !!o.stroke);
+        const recolour = (o: fabric.FabricObject) => {
+          // An icon arrives as a Group of paths; setting fill on the group
+          // itself changes nothing, so reach the paths inside.
+          const children = (o as unknown as { getObjects?: () => fabric.FabricObject[] })
+            .getObjects?.();
+          if (children?.length) {
+            children.forEach(recolour);
+            return;
           }
-        });
+          if (isStrokeDrawn(o)) o.set({ stroke: color });
+          else o.set({ fill: color });
+        };
+        active.forEach(recolour);
         c.renderAll();
         c.fire('object:modified', { target: active[0] } as never);
         return;
