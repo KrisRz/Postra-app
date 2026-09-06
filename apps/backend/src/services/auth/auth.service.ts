@@ -265,8 +265,15 @@ export class AuthService {
       return false;
     }
 
+    // `tokenVersion` makes the link single-use without storing anything:
+    // updatePassword increments it, so the same link stops verifying the moment
+    // it is redeemed. Without this the token was a bare {id, expires} JWT that
+    // nothing could mark as spent, and a leaked link stayed usable for the full
+    // twenty minutes — including *after* the victim had reset their own
+    // password, which handed the account to whoever else held the link.
     const resetValues = AuthChecker.signJWT({
       id: user.id,
+      tokenVersion: user.tokenVersion,
       expires: dayjs().add(20, 'minutes').format('YYYY-MM-DD HH:mm:ss'),
     });
 
@@ -281,9 +288,23 @@ export class AuthService {
   async forgotReturn(body: ForgotReturnPasswordDto) {
     const user = AuthChecker.verifyJWT(body.token) as {
       id: string;
+      tokenVersion?: number;
       expires: string;
     };
     if (dayjs(user.expires).isBefore(dayjs())) {
+      return false;
+    }
+
+    // Single-use check. A token minted before this change carries no
+    // tokenVersion, and those are refused rather than trusted: they live at
+    // most twenty minutes and a deploy takes longer than that, so failing
+    // closed costs nothing and avoids leaving the old reusable shape valid.
+    const current = await this._userService.getUserById(user.id);
+    if (
+      !current ||
+      typeof user.tokenVersion !== 'number' ||
+      current.tokenVersion !== user.tokenVersion
+    ) {
       return false;
     }
 
