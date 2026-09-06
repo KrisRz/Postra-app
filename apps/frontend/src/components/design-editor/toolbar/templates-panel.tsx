@@ -42,7 +42,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
   const lang: TemplateLang = isPl ? 'pl' : 'en';
   const toaster = useToaster();
   const fetch = useFetch();
-  const { platform, pushHistory } = useEditorStore();
+  const { platform } = useEditorStore();
   // Templates render in the org's own colours/font the moment a Brand Kit is
   // saved — that's the whole point of "template in your brand". Without a
   // saved kit they fall back to the Postra default palette.
@@ -115,7 +115,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         setApplyingId(null);
       }
     },
-    [canvas, fetch, applyingId, pushHistory, t, toaster]
+    [canvas, fetch, applyingId, t, toaster]
   );
 
   const removeMyTemplate = useCallback(
@@ -247,7 +247,7 @@ export const TemplatesPanel: FC<TemplatesPanelProps> = ({ canvas }) => {
         );
       }
     },
-    [canvas, platform, pushHistory, t, toaster, lang, brand]
+    [canvas, platform, t, toaster, lang, brand]
   );
 
   return (

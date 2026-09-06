@@ -27,7 +27,6 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
     isGenerating,
     setGenerating,
     platform,
-    pushHistory,
     setTool,
   } = useEditorStore();
   const fetch = useFetch();
@@ -181,7 +180,7 @@ export const AiGeneratePanel: FC<Props> = ({ canvas }) => {
       if (abortRef.current === ctrl) abortRef.current = null;
       setGenerating(false);
     }
-  }, [canvas, aiPrompt, platform, isGenerating, fetch, toaster, t, setGenerating, pushHistory, slidesCount, i18n]);
+  }, [canvas, aiPrompt, platform, isGenerating, fetch, toaster, t, setGenerating, slidesCount, i18n]);
 
   if (!allowed) {
     return (
