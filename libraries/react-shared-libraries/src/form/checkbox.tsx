@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, forwardRef, useCallback, useState } from 'react';
+import React, { FC, forwardRef, useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { useFormContext, useWatch } from 'react-hook-form';
 export const Checkbox = forwardRef<
@@ -11,6 +11,15 @@ export const Checkbox = forwardRef<
     name?: string;
     className?: string;
     label?: string;
+    // An accessible name for cases where the visible text lives outside this
+    // component — /auth/register renders the consent sentence itself, links
+    // and all, so `label` cannot carry it.
+    ariaLabel?: string;
+    // Passed by 8 call sites (TikTok, generator) and, before this, read by
+    // none of them. Click still toggles a disabled box — that is a separate
+    // bug (e2e/bugs.md E2E-03-06). What we must not do is *newly* hand a
+    // disabled control to the keyboard, so it stays out of the tab order.
+    disabled?: boolean;
     onChange?: (event: {
       target: {
         name?: string;
@@ -20,7 +29,8 @@ export const Checkbox = forwardRef<
     variant?: 'default' | 'hollow';
   }
 >((props, ref: any) => {
-  const { checked, className, label, disableForm, variant } = props;
+  const { checked, className, label, disableForm, variant, ariaLabel, disabled } =
+    props;
   const form = useFormContext();
   const register = disableForm ? {} : form.register(props.name!);
   const watch = disableForm ? false : form.watch(props.name!);
@@ -43,14 +53,43 @@ export const Checkbox = forwardRef<
       });
     }
   }, [val]);
+  // Space and Enter, because this control is a div and the browser gives a div
+  // none of the behaviour it would give an <input type="checkbox">.
+  const onKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (disabled) {
+        return;
+      }
+      if (event.key === ' ' || event.key === 'Enter') {
+        // Space would otherwise scroll the page.
+        event.preventDefault();
+        changeStatus();
+      }
+    },
+    [changeStatus, disabled]
+  );
+
   return (
     <div className="flex gap-[10px]">
       <div
         ref={ref}
         {...disableForm ? {} : form.register(props.name!)}
         onClick={changeStatus}
+        onKeyDown={onKeyDown}
+        // Without these three a keyboard or screen-reader user cannot reach
+        // this control at all, let alone tick it — and on /auth/register that
+        // closed registration to them completely, because the form refuses to
+        // submit until the terms box is checked (e2e/bugs.md E2E-03-05).
+        role="checkbox"
+        aria-checked={!!val}
+        aria-label={ariaLabel || label}
+        aria-disabled={disabled || undefined}
+        tabIndex={disabled ? -1 : 0}
         className={clsx(
           'cursor-pointer rounded-[4px] select-none w-[24px] h-[24px] justify-center items-center flex text-white',
+          // A focus ring is not decoration here: it is the only way someone
+          // navigating by keyboard can tell where they are.
+          'outline-none focus-visible:ring-2 focus-visible:ring-[#38bdf8] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
           variant === 'default' || !variant
             ? 'bg-forth'
             : 'border-customColor1 border-2 bg-customColor2',
@@ -75,7 +114,11 @@ export const Checkbox = forwardRef<
           </div>
         )}
       </div>
-      {!!label && <div>{label}</div>}
+      {!!label && (
+        <div className="cursor-pointer select-none" onClick={changeStatus}>
+          {label}
+        </div>
+      )}
     </div>
   );
 });

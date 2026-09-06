@@ -340,7 +340,14 @@ export function RegisterAfter({
               </div>
               <div className={clsx('rounded-[14px] border border-white/8 bg-white/[0.025] px-[14px] py-[12px] text-[12px] text-textColor/68')}>
                 <div className="flex items-start gap-[10px]">
-                  <Checkbox name="termsAccepted" className="shrink-0" />
+                  <Checkbox
+                    name="termsAccepted"
+                    className="shrink-0"
+                    ariaLabel={t(
+                      'accept_terms_aria',
+                      'I accept the Terms of Service and Privacy Policy, and confirm that I am 18 or older'
+                    )}
+                  />
                   <div>
                     {t('i_accept_the', 'I accept the')}
                     &nbsp;
