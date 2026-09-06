@@ -323,11 +323,22 @@ export class AuthService {
   }
 
   async activate(code: string, tracking: string) {
-    const user = AuthChecker.verifyJWT(code) as {
-      id: string;
-      activated: boolean;
-      email: string;
-    };
+    // A mangled activation code must read as "this link is not valid", not as
+    // a server error. verifyJWT throws on a bad signature, and mail clients do
+    // mangle links — wrapping, tracking rewrites — so this is a real person
+    // meeting a 500 instead of being told to request a new one
+    // (e2e/bugs.md E2E-03-03). getOrgFromCookie in this same file already
+    // handles the same call this way.
+    let user: { id: string; activated: boolean; email: string };
+    try {
+      user = AuthChecker.verifyJWT(code) as {
+        id: string;
+        activated: boolean;
+        email: string;
+      };
+    } catch (err) {
+      return false;
+    }
     if (user.id && !user.activated) {
       const getUserAgain = await this._userService.getUserByEmail(user.email);
       if (getUserAgain.activated) {
