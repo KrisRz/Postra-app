@@ -13,6 +13,8 @@ import {
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { VIDEO_FORMATS, VideoFormat } from './video-formats';
+import { assertVideoSurvives } from './mp4-source';
+import { UnsupportedCodecError } from './compositor-pipeline';
 
 interface VideoMultiFormatProps {
   source: Blob | null;
@@ -62,6 +64,10 @@ export const VideoMultiFormat: FC<VideoMultiFormatProps> = ({ source, onExported
           output,
           video: { width: fmt.width, height: fmt.height, fit: 'cover' },
         });
+        // Resizing forces a decode. If the source codec can't be decoded the
+        // video track is dropped and the "successful" export is audio-only —
+        // catch it on the first format instead of writing three mute files.
+        assertVideoSurvives(conversion);
         conversion.onProgress = (p) =>
           setProgressMap((prev) => ({ ...prev, [fmt.key]: Math.round(p * 100) }));
         await conversion.execute();
@@ -70,12 +76,17 @@ export const VideoMultiFormat: FC<VideoMultiFormatProps> = ({ source, onExported
         results.push({ format: fmt, blob: new Blob([buffer], { type: 'video/mp4' }) });
       }
       onExported(results);
-    } catch {
+    } catch (err) {
       toaster.show(
-        t(
-          'video_format_failed',
-          'Multi-format export failed. Check that your browser supports WebCodecs.'
-        ),
+        err instanceof UnsupportedCodecError
+          ? t(
+              'clip_codec_unsupported',
+              "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again."
+            )
+          : t(
+              'video_format_failed',
+              'Multi-format export failed. Check that your browser supports WebCodecs (Chrome, Edge or Safari 16.4+).'
+            ),
         'warning'
       );
     } finally {
