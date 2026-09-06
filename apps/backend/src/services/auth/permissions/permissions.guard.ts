@@ -10,7 +10,11 @@ import {
 } from '@gitroom/backend/services/auth/permissions/permissions.ability';
 import { Organization } from '@prisma/client';
 import { Request } from 'express';
-import { SubscriptionException } from './permission.exception.class';
+import {
+  PermissionDeniedException,
+  Sections,
+  SubscriptionException,
+} from './permission.exception.class';
 
 @Injectable()
 export class PoliciesGuard implements CanActivate {
@@ -54,10 +58,15 @@ export class PoliciesGuard implements CanActivate {
     );
 
     if (item) {
-      throw new SubscriptionException({
-        section: item[1],
-        action: item[0],
-      });
+      const denial = { section: item[1], action: item[0] };
+
+      // A role that is too low is a 403, not a 402 — see
+      // PermissionDeniedException. Keeping both on 402 made the two cases
+      // indistinguishable from the outside, which is also why the role matrix
+      // could not be verified from status codes (e2e/bugs.md E2E-02-02).
+      throw item[1] === Sections.ADMIN
+        ? new PermissionDeniedException(denial)
+        : new SubscriptionException(denial);
     }
 
     return true;

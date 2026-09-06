@@ -133,6 +133,25 @@ function LayoutContextInner(params: { children: ReactNode }) {
         return true;
       }
 
+      // Authority, not entitlement: the member's role is too low. No billing
+      // dialog — paying changes nothing here, only an admin granting the role
+      // does. (Before the backend split these, this arrived as a 402 with no
+      // message and opened an empty "Go to billing" dialog.)
+      if (response.status === 403) {
+        const body = await response.json().catch(() => null);
+        toaster.show(
+          body?.message ||
+            t(
+              'permission_denied',
+              'You do not have permission to do this. Ask an admin of this organization to give you the required role.'
+            ),
+          'warning'
+        );
+        // false -> FetchHandledError, so the caller unwinds its loading state
+        // instead of parsing a body it cannot use.
+        return false;
+      }
+
       if (response.status === 429) {
         if (Date.now() - last429.current > 5000) {
           last429.current = Date.now();
