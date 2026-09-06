@@ -112,7 +112,13 @@ export const AddMember = () => {
           </Select>
           <div className="flex gap-[5px]">
             <div>
-              <Checkbox name="sendEmail" />
+              <Checkbox
+                name="sendEmail"
+                ariaLabel={t(
+                  'send_invitation_via_email',
+                  'Send invitation via email?'
+                )}
+              />
             </div>
             <div>
               {t('send_invitation_via_email', 'Send invitation via email?')}
