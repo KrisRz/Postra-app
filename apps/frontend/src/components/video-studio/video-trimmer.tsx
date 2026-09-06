@@ -14,6 +14,8 @@ import WaveSurfer from 'wavesurfer.js';
 import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { safeMediaUrl } from '@gitroom/helpers/utils/safe.media.url';
+import { assertVideoSurvives } from './mp4-source';
+import { UnsupportedCodecError } from './compositor-pipeline';
 
 interface VideoTrimmerProps {
   file: File | null;
@@ -120,6 +122,10 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
         output,
         trim: { start: trimStart, end: trimEnd },
       });
+      // A clip whose video we can't decode still converts "successfully" as
+      // long as its audio survives — the user would get sound over a black
+      // screen with no error anywhere. Say so before spending the render.
+      assertVideoSurvives(conversion);
       conversion.onProgress = (p) => setProgress(Math.round(p * 100));
       await conversion.execute();
       const buffer = (output.target as BufferTarget).buffer;
@@ -128,10 +134,15 @@ export const VideoTrimmer: FC<VideoTrimmerProps> = ({ file, onTrimmed }) => {
       onTrimmed(blob);
     } catch (err) {
       toaster.show(
-        t(
-          'video_trim_failed',
-          'Video trimming failed. Check that your browser supports WebCodecs (Chrome / Edge).'
-        ),
+        err instanceof UnsupportedCodecError
+          ? t(
+              'clip_codec_unsupported',
+              "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again."
+            )
+          : t(
+              'video_trim_failed',
+              'Video trimming failed. Check that your browser supports WebCodecs (Chrome, Edge or Safari 16.4+).'
+            ),
         'warning'
       );
     } finally {
