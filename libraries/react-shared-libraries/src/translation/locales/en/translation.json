@@ -994,7 +994,7 @@
   "video_use_in_post": "Use in post",
   "video_saved_to_library": "Saved to media library — you can use it in any post.",
   "video_trim_invalid": "End point must be after the start point",
-  "video_trim_failed": "Video trimming failed. Check that your browser supports WebCodecs (Chrome / Edge).",
+  "video_trim_failed": "Video trimming failed. Check that your browser supports WebCodecs (Chrome, Edge or Safari 16.4+).",
   "video_select_file": "Choose a video file to get started.",
   "video_trim_start": "Start",
   "video_trim_end": "End",
@@ -1002,7 +1002,7 @@
   "video_exporting": "Exporting",
   "video_export_trimmed": "Export trimmed clip",
   "video_format_select_one": "Select at least one format",
-  "video_format_failed": "Multi-format export failed. Check that your browser supports WebCodecs.",
+  "video_format_failed": "Multi-format export failed. Check that your browser supports WebCodecs (Chrome, Edge or Safari 16.4+).",
   "video_no_source": "Load a video first (From disk / From library) to pick formats.",
   "video_format_explainer": "Generates a separate MP4 file for each selected format (smart center-crop).",
   "video_format_exporting": "Exporting {n} formats...",
@@ -1322,5 +1322,9 @@
   "clip_codec_unsupported": "This clip's video format can't be decoded by your browser (often HEVC/H.265 from a phone). Re-export it as a standard MP4 (H.264) and try again.",
   "video_restoring_clip": "Restoring the clip from your last session…",
   "video_importing_clip": "Loading the clip from your library…",
-  "video_uploading_clip": "Uploading the clip — keep this page open…"
+  "video_uploading_clip": "Uploading the clip — keep this page open…",
+  "video_upload_too_large": "The rendered clip is too big to upload. Trim it shorter, or export a smaller section, and try again.",
+  "video_upload_rejected": "The server didn't accept that file. Trim the clip first — that re-saves it as a standard MP4.",
+  "video_convert_failed": "Couldn't convert this clip to MP4. Re-export it as a standard MP4 (H.264) and try again.",
+  "video_converting_clip": "Converting the clip to MP4 — keep this page open…"
 }

@@ -994,7 +994,7 @@
   "video_use_in_post": "Użyj w poście",
   "video_saved_to_library": "Zapisano do biblioteki mediów — możesz użyć w dowolnym poście.",
   "video_trim_invalid": "Punkt końcowy musi być po początkowym",
-  "video_trim_failed": "Cięcie wideo nie powiodło się. Sprawdź czy przeglądarka wspiera WebCodecs (Chrome / Edge).",
+  "video_trim_failed": "Cięcie wideo nie powiodło się. Sprawdź, czy przeglądarka wspiera WebCodecs (Chrome, Edge lub Safari 16.4+).",
   "video_select_file": "Wybierz plik wideo aby zacząć.",
   "video_trim_start": "Początek",
   "video_trim_end": "Koniec",
@@ -1002,7 +1002,7 @@
   "video_exporting": "Eksportuję",
   "video_export_trimmed": "Eksportuj wycięty fragment",
   "video_format_select_one": "Wybierz przynajmniej jeden format",
-  "video_format_failed": "Eksport wielu formatów nie powiódł się. Sprawdź czy przeglądarka wspiera WebCodecs.",
+  "video_format_failed": "Eksport wielu formatów nie powiódł się. Sprawdź, czy przeglądarka wspiera WebCodecs (Chrome, Edge lub Safari 16.4+).",
   "video_no_source": "Najpierw wczytaj wideo (Z dysku / Z biblioteki), aby wybrać formaty.",
   "video_format_explainer": "Generuje osobny plik MP4 dla każdego wybranego formatu (smart center-crop).",
   "video_format_exporting": "Eksportuję {n} formatów...",
@@ -1322,5 +1322,9 @@
   "clip_codec_unsupported": "Format wideo tego klipu nie może być zdekodowany przez Twoją przeglądarkę (często HEVC/H.265 z telefonu). Wyeksportuj go jako standardowy MP4 (H.264) i spróbuj ponownie.",
   "video_restoring_clip": "Przywracanie klipu z poprzedniej sesji…",
   "video_importing_clip": "Wczytywanie klipu z biblioteki…",
-  "video_uploading_clip": "Wysyłanie klipu — nie zamykaj tej strony…"
+  "video_uploading_clip": "Wysyłanie klipu — nie zamykaj tej strony…",
+  "video_upload_too_large": "Wyrenderowany klip jest za duży, żeby go wysłać. Przytnij go krócej albo wyeksportuj mniejszy fragment i spróbuj ponownie.",
+  "video_upload_rejected": "Serwer nie przyjął tego pliku. Najpierw przytnij klip — zapisze się wtedy jako standardowy MP4.",
+  "video_convert_failed": "Nie udało się przekonwertować klipu na MP4. Wyeksportuj go jako standardowy MP4 (H.264) i spróbuj ponownie.",
+  "video_converting_clip": "Konwertowanie klipu na MP4 — nie zamykaj tej strony…"
 }
