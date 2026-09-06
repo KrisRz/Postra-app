@@ -10,6 +10,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
 && rm -rf /var/lib/apt/lists/*
 
+# Amazon's RDS root CAs for eu-west-2, added to Node's trust store.
+#
+# Node carries its own compiled-in Mozilla roots and ignores the system bundle,
+# and Amazon's RDS CA is not in that set. Prisma does not care — its Postgres
+# connector is Rust and has its own TLS — but @mastra/pg goes through Node's
+# `pg`, whose current default resolves sslmode to verify-full. Without these
+# roots that connection dies with "self-signed certificate in certificate
+# chain" at boot, which is exactly what NODE_TLS_REJECT_UNAUTHORIZED=0 had been
+# hiding on the box (e2e/bugs.md E2E-01-21).
+#
+# NODE_EXTRA_CA_CERTS *adds* to the built-in roots rather than replacing them,
+# so public HTTPS keeps verifying normally. The bundle is vendored rather than
+# fetched at build time: it is trust material, so it should be reviewable in a
+# diff and identical between builds. Refresh from
+# https://truststore.pki.rds.amazonaws.com/eu-west-2/eu-west-2-bundle.pem when
+# AWS rotates its RDS CAs.
+COPY var/docker/rds-ca-eu-west-2.pem /etc/ssl/rds/eu-west-2-bundle.pem
+ENV NODE_EXTRA_CA_CERTS=/etc/ssl/rds/eu-west-2-bundle.pem
+
 RUN addgroup --system www \
  && adduser --system --ingroup www --home /www --shell /usr/sbin/nologin www \
  && mkdir -p /www /var/cache/nginx /var/log/nginx /uploads \
