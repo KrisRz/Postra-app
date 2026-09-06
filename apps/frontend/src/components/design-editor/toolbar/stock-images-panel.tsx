@@ -119,6 +119,23 @@ export const StockImagesPanel: FC<Props> = ({ canvas }) => {
       <span className="text-[10px] text-textColor/60 uppercase tracking-wide">
         {t('image_stock_title', 'Stock photos')}
       </span>
+      {/* Pixabay's API terms ask that results say where they came from,
+          wherever they are shown. The video panel does; here the only credit
+          was a hover title, which nobody reads. */}
+      <p className="text-[10px] text-textColor/50 leading-snug">
+        {t(
+          'image_stock_source',
+          'Free photos from Pixabay — commercial use, no credit needed.'
+        )}{' '}
+        <a
+          href="https://pixabay.com/service/license-summary/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-newAccent hover:underline"
+        >
+          {t('video_stock_license', 'Pixabay License')} ↗
+        </a>
+      </p>
       <div className="flex gap-1.5">
         <input
           value={query}

@@ -1330,5 +1330,6 @@
   "video_captions_too_new": "AI features unlock about an hour after signup. Try again shortly.",
   "video_captions_rate_limited": "Too many caption requests. Wait a few minutes and try again.",
   "video_captions_too_long": "That clip's audio is too long to transcribe. Trim it and try again.",
-  "slideshow_unreadable": "Your browser can't read {files} (iPhone HEIC photos usually). Export them as JPEG and add them again."
+  "slideshow_unreadable": "Your browser can't read {files} (iPhone HEIC photos usually). Export them as JPEG and add them again.",
+  "image_stock_source": "Free photos from Pixabay — commercial use, no credit needed."
 }
