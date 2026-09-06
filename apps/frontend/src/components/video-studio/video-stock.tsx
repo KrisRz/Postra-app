@@ -133,7 +133,7 @@ export const VideoStock: FC<VideoStockProps> = ({ onImported }) => {
           ⚠️{' '}
           {t(
             'video_stock_no_key',
-            'Pixabay is not configured. An admin must add PIXABAY_API_KEY to SSM (free key from pixabay.com/api/docs).'
+            'Stock video search is unavailable right now. Upload your own clip, or try again later.'
           )}
         </div>
       </div>

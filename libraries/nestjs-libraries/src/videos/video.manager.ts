@@ -55,6 +55,12 @@ export class VideoManager {
     const video = (Reflect.getMetadata('video', VideoAbstract) || []).find(
       (p: any) => p.identifier === identifier
     );
+    // The signature has always promised undefined for an unknown identifier,
+    // but the code dereferenced it regardless — so a typo in the request came
+    // back as a TypeError 500 instead of the caller's own "not found".
+    if (!video) {
+      return undefined;
+    }
 
     return {
       ...video,

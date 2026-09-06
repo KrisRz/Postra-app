@@ -57,17 +57,40 @@ export const VideoCaptions: FC<VideoCaptionsProps> = ({ mediaId, source, onCapti
     try {
       const res = await fetch(`/media/${mediaId}/auto-caption`, {
         method: 'POST',
-        body: JSON.stringify({ language }),
+        // Auto-detect means "don't send a language", not "send an empty one".
+        body: JSON.stringify(language ? { language } : {}),
       });
       if (!res.ok) {
+        // One catch-all message hid the three things that actually go wrong
+        // here: a brand-new account inside the AI cooldown, the per-org rate
+        // limit, and a clip too long for Whisper.
         toaster.show(
-          t('video_captions_failed', 'Caption generation failed.'),
+          res.status === 403
+            ? t(
+                'video_captions_too_new',
+                'AI features unlock about an hour after signup. Try again shortly.'
+              )
+            : res.status === 429
+            ? t(
+                'video_captions_rate_limited',
+                'Too many caption requests. Wait a few minutes and try again.'
+              )
+            : res.status === 413
+            ? t(
+                'video_captions_too_long',
+                "That clip's audio is too long to transcribe. Trim it and try again."
+              )
+            : t('video_captions_failed', 'Caption generation failed.'),
           'warning'
         );
         return;
       }
       const data = await res.json();
       setSrt(data?.srt ?? '');
+    } catch {
+      // A 402/406 is handled globally and rejects with a marker; anything else
+      // reaching here would otherwise surface as an unhandled rejection.
+      toaster.show(t('video_captions_failed', 'Caption generation failed.'), 'warning');
     } finally {
       setIsGenerating(false);
     }

@@ -92,6 +92,17 @@ export const VideoTextOverlay: FC<VideoTextOverlayProps> = ({ onReady }) => {
     });
   }, []);
 
+  // Switching tabs unmounts this component with a rendered clip still held by
+  // an object URL; without this the blob lives on for the life of the tab.
+  const resultUrlRef = useRef<string | null>(null);
+  resultUrlRef.current = resultUrl;
+  useEffect(
+    () => () => {
+      if (resultUrlRef.current) URL.revokeObjectURL(resultUrlRef.current);
+    },
+    []
+  );
+
   const compose = useCallback(async () => {
     if (!file || busy) return;
     setBusy(true);

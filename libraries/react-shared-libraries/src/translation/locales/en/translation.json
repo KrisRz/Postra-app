@@ -1026,7 +1026,7 @@
   "video_stock_search_failed": "Video search failed.",
   "video_stock_no_variant": "No downloadable video version available.",
   "video_stock_import_failed": "Video import failed.",
-  "video_stock_no_key": "Pixabay is not configured. An admin must add PIXABAY_API_KEY to SSM (free key from pixabay.com/api/docs).",
+  "video_stock_no_key": "Stock video search is unavailable right now. Upload your own clip, or try again later.",
   "video_stock_explainer": "Stock B-roll from Pixabay — click Import to download a video into your media library. The Pixabay License allows commercial use.",
   "video_stock_license": "Pixabay License",
   "video_stock_search_ph": "e.g. nature timelapse, city street, ocean",
@@ -1057,7 +1057,7 @@
   "clip_text_download": "Download",
   "slideshow_intro": "Got product photos but no footage? Drop in a few — we turn them into a vertical clip with subtle motion and text in your brand.",
   "slideshow_max": "Maximum {n} photos per clip.",
-  "slideshow_failed": "Failed to build the video from photos — check the console.",
+  "slideshow_failed": "Failed to build the video from these photos. Try removing the last one you added.",
   "slideshow_add": "Add photos",
   "slideshow_format": "Format",
   "slideshow_seconds": "Seconds/photo",
@@ -1326,5 +1326,9 @@
   "video_upload_too_large": "The rendered clip is too big to upload. Trim it shorter, or export a smaller section, and try again.",
   "video_upload_rejected": "The server didn't accept that file. Trim the clip first — that re-saves it as a standard MP4.",
   "video_convert_failed": "Couldn't convert this clip to MP4. Re-export it as a standard MP4 (H.264) and try again.",
-  "video_converting_clip": "Converting the clip to MP4 — keep this page open…"
+  "video_converting_clip": "Converting the clip to MP4 — keep this page open…",
+  "video_captions_too_new": "AI features unlock about an hour after signup. Try again shortly.",
+  "video_captions_rate_limited": "Too many caption requests. Wait a few minutes and try again.",
+  "video_captions_too_long": "That clip's audio is too long to transcribe. Trim it and try again.",
+  "slideshow_unreadable": "Your browser can't read {files} (iPhone HEIC photos usually). Export them as JPEG and add them again."
 }

@@ -43,6 +43,17 @@ export interface SlideshowResult {
   frames: number;
 }
 
+/**
+ * Thrown when a picked photo can't be decoded. HEIC is the case that matters:
+ * it is the iPhone default and Chrome cannot read it at all, so the file has
+ * to be named back to the user rather than blamed on "the console".
+ */
+export class UndecodableImageError extends Error {
+  constructor(public readonly fileName: string) {
+    super(`Cannot decode image: ${fileName || 'unknown'}`);
+  }
+}
+
 /** Draw an image "cover" (fill + crop) into width×height, scaled by `zoom`. */
 function drawCover(
   ctx: CanvasRenderingContext2D,
@@ -80,7 +91,17 @@ export async function composeSlideshow(opts: SlideshowOptions): Promise<Slidesho
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('No 2D canvas context');
 
-  const bitmaps = await Promise.all(images.map((img) => createImageBitmap(img)));
+  // Honour EXIF orientation, or portrait photos straight off a phone come out
+  // on their side — the browser default for a Blob is to ignore it.
+  const bitmaps = await Promise.all(
+    images.map(async (img) => {
+      try {
+        return await createImageBitmap(img, { imageOrientation: 'from-image' });
+      } catch {
+        throw new UndecodableImageError(img instanceof File ? img.name : '');
+      }
+    })
+  );
 
   const output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() });
   const videoSource = new CanvasSource(canvas, {
