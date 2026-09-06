@@ -232,6 +232,25 @@ export class OrganizationRepository {
       return false;
     }
 
+    // Already a member? The guard above only asks whether *this invite* has
+    // been redeemed, so a second invite carries a different id, sails past it
+    // and lands on the (userId, organizationId) unique constraint — an
+    // unhandled 500 (e2e/bugs.md E2E-03-04). That is an ordinary situation:
+    // someone says the mail never arrived, you send another, they click both.
+    // Answer it the same way as a spent invite rather than letting the
+    // database raise.
+    const alreadyMember =
+      await this._userOrg.model.userOrganization.findFirst({
+        where: {
+          userId,
+          organizationId: orgId,
+        },
+      });
+
+    if (alreadyMember) {
+      return false;
+    }
+
     const checkForSubscription =
       await this._organization.model.organization.findFirst({
         where: {

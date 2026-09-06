@@ -5,6 +5,10 @@ dist
 tmp
 /out-tsc
 .env
+# Backups of .env are still .env — GitHub push protection caught one of these
+# being swept in by `git add -A` (2026-09-06). Same secrets, different name.
+.env.bak*
+.env.*.bak
 # dependencies
 node_modules
 
