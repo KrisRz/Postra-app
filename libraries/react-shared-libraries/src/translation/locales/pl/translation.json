@@ -1026,7 +1026,7 @@
   "video_stock_search_failed": "Wyszukiwanie wideo nie powiodło się.",
   "video_stock_no_variant": "Brak dostępnej wersji wideo do pobrania.",
   "video_stock_import_failed": "Import wideo nie powiódł się.",
-  "video_stock_no_key": "Pixabay nie jest skonfigurowane. Admin musi dodać PIXABAY_API_KEY do SSM (klucz darmowy z pixabay.com/api/docs).",
+  "video_stock_no_key": "Wyszukiwarka wideo stockowego jest chwilowo niedostępna. Wgraj własny klip albo spróbuj później.",
   "video_stock_explainer": "Stock B-roll z Pixabay — kliknij Importuj aby pobrać wideo do swojej biblioteki mediów. Pixabay License pozwala na użycie komercyjne.",
   "video_stock_license": "Pixabay License",
   "video_stock_search_ph": "np. nature timelapse, city street, ocean",
@@ -1057,7 +1057,7 @@
   "clip_text_download": "Pobierz",
   "slideshow_intro": "Masz zdjęcia produktów, nie filmy? Wrzuć kilka — złożymy z nich pionowy klip z delikatnym ruchem i tekstem w Twoim brandzie.",
   "slideshow_max": "Maksymalnie {n} zdjęć na klip.",
-  "slideshow_failed": "Nie udało się złożyć wideo ze zdjęć — sprawdź konsolę.",
+  "slideshow_failed": "Nie udało się zbudować wideo z tych zdjęć. Spróbuj usunąć ostatnio dodane.",
   "slideshow_add": "Dodaj zdjęcia",
   "slideshow_format": "Format",
   "slideshow_seconds": "Sekundy/zdjęcie",
@@ -1326,5 +1326,9 @@
   "video_upload_too_large": "Wyrenderowany klip jest za duży, żeby go wysłać. Przytnij go krócej albo wyeksportuj mniejszy fragment i spróbuj ponownie.",
   "video_upload_rejected": "Serwer nie przyjął tego pliku. Najpierw przytnij klip — zapisze się wtedy jako standardowy MP4.",
   "video_convert_failed": "Nie udało się przekonwertować klipu na MP4. Wyeksportuj go jako standardowy MP4 (H.264) i spróbuj ponownie.",
-  "video_converting_clip": "Konwertowanie klipu na MP4 — nie zamykaj tej strony…"
+  "video_converting_clip": "Konwertowanie klipu na MP4 — nie zamykaj tej strony…",
+  "video_captions_too_new": "Funkcje AI włączają się mniej więcej godzinę po założeniu konta. Spróbuj za chwilę.",
+  "video_captions_rate_limited": "Za dużo żądań napisów. Odczekaj kilka minut i spróbuj ponownie.",
+  "video_captions_too_long": "Ścieżka dźwiękowa tego klipu jest za długa do transkrypcji. Przytnij go i spróbuj ponownie.",
+  "slideshow_unreadable": "Twoja przeglądarka nie odczyta {files} (zwykle zdjęcia HEIC z iPhone'a). Wyeksportuj je jako JPEG i dodaj ponownie."
 }

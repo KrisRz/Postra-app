@@ -6,7 +6,7 @@ import { useT } from '@gitroom/react/translation/get.transation.service.client';
 import { useToaster } from '@gitroom/react/toaster/toaster';
 import { Button } from '@gitroom/frontend/components/ui/button';
 import { VIDEO_FORMATS, VideoFormat } from './video-formats';
-import { composeSlideshow } from './slideshow-pipeline';
+import { composeSlideshow, UndecodableImageError } from './slideshow-pipeline';
 import {
   fontFamilyForLabel,
   ensureFontLoaded,
@@ -68,13 +68,23 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
     setFontLabel((f) => f ?? kit.font);
   }, [kitLoading, kit]);
 
-  // Revoke every object URL we created on unmount.
+  // Revoke every object URL we created on unmount. The cleanup has to read
+  // through refs: with an empty dependency list it closes over the FIRST
+  // render's empty arrays, so the version that read `images` directly revoked
+  // nothing and leaked every photo for the life of the tab.
+  const liveUrlsRef = useRef<{ images: string[]; result: string | null }>({
+    images: [],
+    result: null,
+  });
+  liveUrlsRef.current = {
+    images: images.map((p) => p.url),
+    result: resultUrl,
+  };
   useEffect(
     () => () => {
-      images.forEach((p) => URL.revokeObjectURL(p.url));
-      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      liveUrlsRef.current.images.forEach((url) => URL.revokeObjectURL(url));
+      if (liveUrlsRef.current.result) URL.revokeObjectURL(liveUrlsRef.current.result);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -90,9 +100,36 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
   }, []);
 
   const addFiles = useCallback(
-    (files: FileList) => {
-      const incoming = Array.from(files).filter((f) => f.type.startsWith('image/'));
+    async (files: FileList) => {
+      const picked = Array.from(files).filter((f) => f.type.startsWith('image/'));
+      if (!picked.length) return;
+
+      // Probe each photo now rather than failing minutes later, mid-render.
+      // HEIC is why: it's the iPhone default, Safari reads it and Chrome does
+      // not, so the answer depends on the browser and has to name the file.
+      const probes = await Promise.all(
+        picked.map(async (f) => {
+          try {
+            (await createImageBitmap(f)).close();
+            return { file: f, ok: true };
+          } catch {
+            return { file: f, ok: false };
+          }
+        })
+      );
+      const unreadable = probes.filter((p) => !p.ok).map((p) => p.file.name);
+      const incoming = probes.filter((p) => p.ok).map((p) => p.file);
+      if (unreadable.length) {
+        toaster.show(
+          t(
+            'slideshow_unreadable',
+            "Your browser can't read {files} (iPhone HEIC photos usually). Export them as JPEG and add them again."
+          ).replace('{files}', unreadable.join(', ')),
+          'warning'
+        );
+      }
       if (!incoming.length) return;
+
       setImages((prev) => {
         const room = MAX_IMAGES - prev.length;
         if (room <= 0) {
@@ -167,10 +204,16 @@ export const VideoSlideshow: FC<VideoSlideshowProps> = ({ onReady }) => {
       setResultBlob(result.blob);
       setResultUrl(URL.createObjectURL(result.blob));
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('[Postra:slideshow] failed:', err);
       toaster.show(
-        t('slideshow_failed', 'Failed to build the video from photos — check the console.'),
+        err instanceof UndecodableImageError
+          ? t(
+              'slideshow_unreadable',
+              "Your browser can't read {files} (iPhone HEIC photos usually). Export them as JPEG and add them again."
+            ).replace('{files}', err.fileName)
+          : t(
+              'slideshow_failed',
+              'Failed to build the video from these photos. Try removing the last one you added.'
+            ),
         'warning'
       );
     } finally {

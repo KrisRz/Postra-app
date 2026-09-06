@@ -115,7 +115,10 @@ export class OpenaiService {
       file: createReadStream(audioFilePath),
       model: 'whisper-1',
       response_format: 'srt',
-      language,
+      // "Auto-detect" reaches us as an empty string, and the SDK serialises
+      // that into the multipart form as `language=`, which the API rejects.
+      // Omitting the field is what auto-detect actually means.
+      language: language?.trim() || undefined,
     });
     const srt = typeof result === 'string' ? result : '';
     // Whisper bills per audio minute but the srt response carries no usage —
