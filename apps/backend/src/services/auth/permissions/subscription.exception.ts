@@ -4,7 +4,12 @@ import {
   ExceptionFilter,
   HttpException,
 } from '@nestjs/common';
-import { AuthorizationActions, Sections, SubscriptionException } from '@gitroom/backend/services/auth/permissions/permission.exception.class';
+import {
+  AuthorizationActions,
+  PermissionDeniedException,
+  Sections,
+  SubscriptionException,
+} from '@gitroom/backend/services/auth/permissions/permission.exception.class';
 
 @Catch(SubscriptionException)
 export class SubscriptionExceptionFilter implements ExceptionFilter {
@@ -25,7 +30,8 @@ export class SubscriptionExceptionFilter implements ExceptionFilter {
   }
 }
 
-const getErrorMessage = (error: {
+// Exported for the spec that pins "no section may map to undefined".
+export const getErrorMessage = (error: {
   section: Sections;
   action: AuthorizationActions;
 }) => {
@@ -50,5 +56,29 @@ const getErrorMessage = (error: {
         default:
           return 'You have reached the maximum number of generated videos for your subscription. Please upgrade your subscription to generate more videos.';
       }
+    // Every other section (AI, AUTOPOST, TEAM_MEMBERS, COMMUNITY_FEATURES,
+    // IMPORT_FROM_CHANNELS, ...) used to fall out of this switch as `undefined`,
+    // which JSON.stringify then dropped: the client received a bare
+    // `{statusCode: 402, url}` and the global handler opened an empty dialog.
+    // Never return undefined from here again.
+    default:
+      return 'This feature is not included in your current plan. Please upgrade your subscription to use it.';
   }
 };
+
+/**
+ * The 403 counterpart. Deliberately carries no billing URL: the member cannot
+ * fix this by paying, only an ADMIN or SUPERADMIN of the organization can grant
+ * them the role.
+ */
+@Catch(PermissionDeniedException)
+export class PermissionDeniedExceptionFilter implements ExceptionFilter {
+  catch(exception: HttpException, host: ArgumentsHost) {
+    const response = host.switchToHttp().getResponse();
+    response.status(exception.getStatus()).json({
+      statusCode: exception.getStatus(),
+      message:
+        'You do not have permission to do this. Ask an admin of this organization to give you the required role.',
+    });
+  }
+}

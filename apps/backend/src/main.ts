@@ -15,7 +15,10 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
-import { SubscriptionExceptionFilter } from '@gitroom/backend/services/auth/permissions/subscription.exception';
+import {
+  PermissionDeniedExceptionFilter,
+  SubscriptionExceptionFilter,
+} from '@gitroom/backend/services/auth/permissions/subscription.exception';
 import { PostValidationExceptionFilter } from '@gitroom/backend/api/routes/posts.validation.exception';
 import { HttpExceptionFilter } from '@gitroom/nestjs-libraries/services/exception.filter';
 import { ConfigurationChecker } from '@gitroom/helpers/configuration/configuration.checker';
@@ -113,7 +116,10 @@ async function start() {
   );
   app.use(cookieParser());
   app.use(compression());
-  app.useGlobalFilters(new SubscriptionExceptionFilter());
+  app.useGlobalFilters(
+    new SubscriptionExceptionFilter(),
+    new PermissionDeniedExceptionFilter()
+  );
   app.useGlobalFilters(new PostValidationExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
 
